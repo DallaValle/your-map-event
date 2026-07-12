@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// A Team is the public-facing profile of a Better Auth organization.
+// `orgId` is a plain string reference (no FK): auth data lives in the
+// Better Auth adapter (in-memory in dev, switchable to Postgres via
+// AUTH_STORAGE), so Postgres can't enforce the relation.
+model Team {
+  id        String     @id @default(cuid())
+  orgId     String     @unique
+  slug      String     @unique
+  name      String
+  logoUrl   String?
+  maps      EventMap[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model EventMap {
+  id          String            @id @default(cuid())
+  teamId      String
+  team        Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  centerLat   Float
+  centerLng   Float
+  centerName  String
+  zoom        Int               @default(16)
+  published   Boolean           @default(false)
+  pois        PointOfInterest[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([teamId])
+}
+
+model PointOfInterest {
+  id          String   @id @default(cuid())
+  mapId       String
+  map         EventMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  imageUrl    String?
+  lat         Float
+  lng         Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([mapId])
+}
