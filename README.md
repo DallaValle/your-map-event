@@ -32,8 +32,8 @@ npm run dev
 
 Open http://localhost:3000:
 
-- **Admin:** sign in with `admin@dev.local` / `demo-password`
-- **Viewer:** `viewer@dev.local` / `demo-password`
+- **Admin:** sign in with `admin@test.com` / `password`
+- **Viewer:** `view@test.com` / `password`
 - **Public map:** http://localhost:3000/demo-team (no login needed)
 
 The dev accounts are re-created on every server start by
@@ -45,7 +45,7 @@ The dev accounts are re-created on every server start by
 
 - `memory` (default): users, organizations and sessions live in-process and
   **reset on every restart**. Great for instant local hacking — the
-  instrumentation hook re-seeds `admin@dev.local`, recreates the demo
+  instrumentation hook re-seeds `admin@test.com`, recreates the demo
   organization, and re-links the `Team.orgId` column in Postgres on each boot.
 - `postgres`: persist auth in the same database via Prisma. To switch:
   1. `npx @better-auth/cli generate` — appends the Better Auth models

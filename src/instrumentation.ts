@@ -17,8 +17,8 @@ export async function register() {
   const { auth } = await import("@/lib/auth");
   const { prisma } = await import("@/lib/prisma");
 
-  const email = "admin@dev.local";
-  const password = "demo-password";
+  const email = "admin@test.com";
+  const password = "password";
 
   try {
     const signUp = await auth.api.signUpEmail({
@@ -32,7 +32,7 @@ export async function register() {
 
     // Second seeded account to exercise the Viewer role.
     const viewer = await auth.api.signUpEmail({
-      body: { email: "viewer@dev.local", password, name: "Demo Viewer" },
+      body: { email: "view@test.com", password, name: "Demo Viewer" },
     });
     await auth.api.addMember({
       body: { userId: viewer.user.id, organizationId: org.id, role: "member" },
@@ -47,7 +47,7 @@ export async function register() {
     });
 
     console.log(
-      `[auth] Seeded dev accounts: ${email} (admin) and viewer@dev.local (viewer), password "${password}", team "demo-team".`,
+      `[auth] Seeded dev accounts: ${email} (admin) and view@test.com (viewer), password "${password}", team "demo-team".`,
     );
   } catch (error) {
     console.error("[auth] Dev seed failed:", error);
