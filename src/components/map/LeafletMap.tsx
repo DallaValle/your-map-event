@@ -14,14 +14,24 @@ import type { LatLng } from "./types";
  * OSM tile usage policy: single canonical host (the {s} subdomains are
  * deprecated) and visible attribution are required.
  */
+export interface MapBounds {
+  swLat: number;
+  swLng: number;
+  neLat: number;
+  neLng: number;
+}
+
 export function LeafletMap({
   center,
   zoom,
+  maxBounds,
   children,
   className = "h-full w-full",
 }: {
   center: LatLng;
   zoom: number;
+  /** When set, panning is elastically constrained to this box. */
+  maxBounds?: MapBounds | null;
   children?: React.ReactNode;
   className?: string;
 }) {
@@ -34,6 +44,15 @@ export function LeafletMap({
       // screen space on phones.
       zoomControl={false}
       attributionControl
+      {...(maxBounds
+        ? {
+            maxBounds: [
+              [maxBounds.swLat, maxBounds.swLng],
+              [maxBounds.neLat, maxBounds.neLng],
+            ] as [[number, number], [number, number]],
+            maxBoundsViscosity: 1.0,
+          }
+        : {})}
     >
       <TileLayer
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"

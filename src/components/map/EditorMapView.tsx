@@ -1,13 +1,23 @@
 "use client";
 
-import { Marker, useMapEvents } from "react-leaflet";
-import { LeafletMap } from "./LeafletMap";
+import { Marker, Rectangle, useMapEvents } from "react-leaflet";
+import { LeafletMap, type MapBounds } from "./LeafletMap";
 import type { LatLng, PoiData } from "./types";
 
-function ClickCapture({ onMapClick }: { onMapClick: (position: LatLng) => void }) {
-  useMapEvents({
+function MapEvents({
+  onMapClick,
+  onViewChange,
+}: {
+  onMapClick: (position: LatLng) => void;
+  onViewChange?: (center: LatLng) => void;
+}) {
+  const map = useMapEvents({
     click(event) {
       onMapClick({ lat: event.latlng.lat, lng: event.latlng.lng });
+    },
+    moveend() {
+      const center = map.getCenter();
+      onViewChange?.({ lat: center.lat, lng: center.lng });
     },
   });
   return null;
@@ -23,19 +33,33 @@ export default function EditorMapView({
   zoom,
   pois,
   draftPosition,
+  bounds,
   onMapClick,
   onPoiClick,
+  onViewChange,
 }: {
   center: LatLng;
   zoom: number;
   pois: PoiData[];
   draftPosition: LatLng | null;
+  /** Saved map borders, drawn as a dashed rectangle for reference. */
+  bounds?: MapBounds | null;
   onMapClick: (position: LatLng) => void;
   onPoiClick: (poi: PoiData) => void;
+  onViewChange?: (center: LatLng) => void;
 }) {
   return (
     <LeafletMap center={center} zoom={zoom} className="h-full w-full">
-      <ClickCapture onMapClick={onMapClick} />
+      <MapEvents onMapClick={onMapClick} onViewChange={onViewChange} />
+      {bounds && (
+        <Rectangle
+          bounds={[
+            [bounds.swLat, bounds.swLng],
+            [bounds.neLat, bounds.neLng],
+          ]}
+          pathOptions={{ color: "#0f766e", weight: 2, dashArray: "6 6", fillOpacity: 0.03 }}
+        />
+      )}
       {pois.map((poi) => (
         <Marker
           key={poi.id}

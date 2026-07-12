@@ -18,6 +18,9 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Serwist build artifacts
+      "public/sw.js",
+      "public/swe-worker*.js",
     ],
   },
 ];

@@ -33,6 +33,12 @@ model EventMap {
   centerName  String
   zoom        Int               @default(16)
   published   Boolean           @default(false)
+  // Optional viewing borders: attendees can't pan outside this box.
+  // Either all four are set or none (enforced in the server action).
+  boundsSWLat Float?
+  boundsSWLng Float?
+  boundsNELat Float?
+  boundsNELng Float?
   pois        PointOfInterest[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt

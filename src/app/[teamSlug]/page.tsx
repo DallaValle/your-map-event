@@ -76,6 +76,16 @@ export default async function PublicMapPage({ params }: PageProps) {
         center={{ lat: primaryMap.centerLat, lng: primaryMap.centerLng }}
         zoom={primaryMap.zoom}
         pois={pois}
+        maxBounds={
+          primaryMap.boundsSWLat != null
+            ? {
+                swLat: primaryMap.boundsSWLat,
+                swLng: primaryMap.boundsSWLng!,
+                neLat: primaryMap.boundsNELat!,
+                neLng: primaryMap.boundsNELng!,
+              }
+            : null
+        }
       />
 
       {/* Team chip: pointer-events pass through except on the chip itself. */}

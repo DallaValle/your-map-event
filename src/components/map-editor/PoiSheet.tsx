@@ -12,24 +12,47 @@ export type PoiSheetMode =
   | { type: "edit"; poi: PoiData };
 
 /**
- * Bottom sheet for creating/editing a POI. The position comes from the map
- * (tap location or existing POI) and travels as hidden inputs so the whole
- * thing is a regular form posting to a server action.
+ * POI form as a TOP overlay so the marker being placed/edited stays visible
+ * on the map below (also plays nicer with the on-screen keyboard). The
+ * coordinates are editable — tap position is just the starting value — and
+ * every change is reported so the map's draft marker follows live.
  */
 export function PoiSheet({
   mapId,
   mode,
   uploadsEnabled,
   onClose,
+  onPositionChange,
 }: {
   mapId: string;
   mode: PoiSheetMode;
   uploadsEnabled: boolean;
   onClose: () => void;
+  onPositionChange?: (position: LatLng) => void;
 }) {
   const router = useRouter();
   const isEdit = mode.type === "edit";
-  const position = isEdit ? { lat: mode.poi.lat, lng: mode.poi.lng } : mode.position;
+  const initial = isEdit
+    ? { lat: mode.poi.lat, lng: mode.poi.lng }
+    : mode.position;
+
+  const [lat, setLat] = useState(initial.lat.toFixed(6));
+  const [lng, setLng] = useState(initial.lng.toFixed(6));
+
+  function updateCoord(which: "lat" | "lng", raw: string) {
+    if (which === "lat") setLat(raw);
+    else setLng(raw);
+    const parsedLat = parseFloat(which === "lat" ? raw : lat);
+    const parsedLng = parseFloat(which === "lng" ? raw : lng);
+    if (
+      Number.isFinite(parsedLat) &&
+      Number.isFinite(parsedLng) &&
+      Math.abs(parsedLat) <= 90 &&
+      Math.abs(parsedLng) <= 180
+    ) {
+      onPositionChange?.({ lat: parsedLat, lng: parsedLng });
+    }
+  }
 
   const action = isEdit
     ? updatePoiAction.bind(null, mode.poi.id)
@@ -62,21 +85,21 @@ export function PoiSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/40"
-      />
-
-      <div className="relative max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl dark:bg-neutral-950">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
-
-        <h2 className="mb-4 text-lg font-bold">
-          {isEdit ? "Edit point of interest" : "New point of interest"}
-        </h2>
+    <div className="fixed inset-0 z-[1100] flex flex-col">
+      <div className="relative max-h-[70dvh] overflow-y-auto rounded-b-3xl bg-white px-5 pb-5 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-2xl dark:bg-neutral-950">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-bold">
+            {isEdit ? "Edit point" : "New point"}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex size-9 items-center justify-center rounded-full bg-black/5 text-lg dark:bg-white/10"
+          >
+            ✕
+          </button>
+        </div>
 
         <form action={formAction} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium">
@@ -87,6 +110,7 @@ export function PoiSheet({
               maxLength={80}
               defaultValue={isEdit ? mode.poi.title : ""}
               placeholder="Main Stage"
+              autoFocus={!isEdit}
               className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
             />
           </label>
@@ -95,7 +119,7 @@ export function PoiSheet({
             Description <span className="font-normal opacity-50">(optional)</span>
             <textarea
               name="description"
-              rows={3}
+              rows={2}
               maxLength={500}
               defaultValue={isEdit ? (mode.poi.description ?? "") : ""}
               className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
@@ -110,11 +134,44 @@ export function PoiSheet({
             defaultValue={isEdit ? mode.poi.imageUrl : null}
           />
 
-          <p className="text-xs opacity-60">
-            Position: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
-          </p>
-          <input type="hidden" name="lat" value={position.lat} />
-          <input type="hidden" name="lng" value={position.lng} />
+          <fieldset className="flex flex-col gap-1">
+            <legend className="text-sm font-medium">
+              Position{" "}
+              <span className="font-normal opacity-50">
+                (from map tap — or type exact coordinates)
+              </span>
+            </legend>
+            <div className="flex gap-2">
+              <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs opacity-70">
+                Latitude
+                <input
+                  name="lat"
+                  type="number"
+                  step="any"
+                  min={-90}
+                  max={90}
+                  required
+                  value={lat}
+                  onChange={(e) => updateCoord("lat", e.target.value)}
+                  className="rounded-xl border border-black/15 px-3 py-2.5 text-base text-black outline-teal-700 dark:border-white/20 dark:bg-white/5 dark:text-white"
+                />
+              </label>
+              <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs opacity-70">
+                Longitude
+                <input
+                  name="lng"
+                  type="number"
+                  step="any"
+                  min={-180}
+                  max={180}
+                  required
+                  value={lng}
+                  onChange={(e) => updateCoord("lng", e.target.value)}
+                  className="rounded-xl border border-black/15 px-3 py-2.5 text-base text-black outline-teal-700 dark:border-white/20 dark:bg-white/5 dark:text-white"
+                />
+              </label>
+            </div>
+          </fieldset>
 
           {state && !state.ok && (
             <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -143,6 +200,15 @@ export function PoiSheet({
           </div>
         </form>
       </div>
+
+      {/* The rest of the screen stays transparent so the draft marker is
+          visible; tapping it closes the sheet. */}
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="flex-1"
+      />
     </div>
   );
 }
