@@ -105,7 +105,8 @@ export function NewMapForm({ teamId }: { teamId: string }) {
             <p className="text-xs opacity-60">
               Pan and zoom the map above until the whole event area is visible,
               then tap <strong>“Use current view as borders”</strong> on the
-              map. Attendees won’t be able to pan outside that box.
+              map. Drag the round corner handles to fine-tune the box —
+              attendees won’t be able to pan outside it.
             </p>
             {bounds ? (
               <div className="flex items-center justify-between gap-2 rounded-lg bg-teal-700/10 px-3 py-2 text-sm">

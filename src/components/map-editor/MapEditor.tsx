@@ -71,19 +71,22 @@ export function MapEditor({
       )
     : pois;
 
-  function openSheet(mode: PoiSheetMode) {
+  function openSheet(mode: PoiSheetMode, position: LatLng) {
     setDrawer(false);
     setSheet(mode);
-    setSheetDraft(
-      mode.type === "create"
-        ? mode.position
-        : { lat: mode.poi.lat, lng: mode.poi.lng },
-    );
+    setSheetDraft(position);
   }
 
   function closeSheet() {
     setSheet(null);
     setSheetDraft(null);
+  }
+
+  // While the form is open, map taps MOVE the draft point (the form floats
+  // above the map without blocking it); otherwise a tap starts a new point.
+  function handleMapClick(position: LatLng) {
+    if (sheet) setSheetDraft(position);
+    else openSheet({ type: "create" }, position);
   }
 
   function togglePublished() {
@@ -104,8 +107,8 @@ export function MapEditor({
         pois={pois}
         draftPosition={sheetDraft}
         bounds={bounds}
-        onMapClick={(position) => openSheet({ type: "create", position })}
-        onPoiClick={(poi) => openSheet({ type: "edit", poi })}
+        onMapClick={handleMapClick}
+        onPoiClick={(poi) => openSheet({ type: "edit", poi }, { lat: poi.lat, lng: poi.lng })}
         onViewChange={setViewCenter}
       />
 
@@ -153,7 +156,7 @@ export function MapEditor({
         <button
           type="button"
           aria-label="Add point by coordinates"
-          onClick={() => openSheet({ type: "create", position: viewCenter })}
+          onClick={() => openSheet({ type: "create" }, viewCenter)}
           className={`${fabButton} size-14 bg-teal-700! text-2xl text-white`}
         >
           +
@@ -206,7 +209,7 @@ export function MapEditor({
                   <li key={poi.id}>
                     <button
                       type="button"
-                      onClick={() => openSheet({ type: "edit", poi })}
+                      onClick={() => openSheet({ type: "edit", poi }, { lat: poi.lat, lng: poi.lng })}
                       className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-black/5 dark:active:bg-white/10"
                     >
                       {poi.imageUrl ? (
@@ -263,11 +266,13 @@ export function MapEditor({
         </div>
       )}
 
-      {/* POI create/edit form (top overlay, draft marker follows edits) */}
-      {sheet && (
+      {/* POI form: compact floating card; the map stays interactive and
+          taps reposition the draft point while it's open. */}
+      {sheet && sheetDraft && (
         <PoiSheet
           mapId={map.id}
           mode={sheet}
+          position={sheetDraft}
           uploadsEnabled={uploadsEnabled}
           onClose={closeSheet}
           onPositionChange={setSheetDraft}

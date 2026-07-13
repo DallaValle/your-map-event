@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Rectangle, useMap } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { LocationPicker } from "./LocationPicker";
+import { BoundsEditor } from "./BoundsEditor";
 import type { LatLng } from "./types";
 
 export interface MapFocus {
@@ -90,16 +91,20 @@ export default function PickerMap({
     <LeafletMap center={center} zoom={zoom} className={className}>
       <FlyToFocus focus={focus} />
       <LocationPicker value={value} onPick={onPick} />
-      {bounds && (
-        <Rectangle
-          bounds={[
-            [bounds.swLat, bounds.swLng],
-            [bounds.neLat, bounds.neLng],
-          ]}
-          pathOptions={{ color: "#0f766e", weight: 2, dashArray: "6 6", fillOpacity: 0.05 }}
-        />
-      )}
-      {onCaptureBounds && <CaptureBoundsControl onCapture={onCaptureBounds} />}
+      {bounds &&
+        (onCaptureBounds ? (
+          // Editable: drag any corner handle to fine-tune the box.
+          <BoundsEditor bounds={bounds} onChange={onCaptureBounds} />
+        ) : (
+          <Rectangle
+            bounds={[
+              [bounds.swLat, bounds.swLng],
+              [bounds.neLat, bounds.neLng],
+            ]}
+            pathOptions={{ color: "#0f766e", weight: 2, dashArray: "6 6", fillOpacity: 0.05 }}
+          />
+        ))}
+      {onCaptureBounds && !bounds && <CaptureBoundsControl onCapture={onCaptureBounds} />}
     </LeafletMap>
   );
 }

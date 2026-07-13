@@ -2,6 +2,8 @@
 
 import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+// Patches L.Map with rotation support (bearing, two-finger rotate).
+import "leaflet-rotate";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import "./leaflet-icon-fix";
@@ -25,6 +27,7 @@ export function LeafletMap({
   center,
   zoom,
   maxBounds,
+  rotatable = false,
   children,
   className = "h-full w-full",
 }: {
@@ -32,6 +35,8 @@ export function LeafletMap({
   zoom: number;
   /** When set, panning is elastically constrained to this box. */
   maxBounds?: MapBounds | null;
+  /** Two-finger (touch) / shift-drag (mouse) rotation. */
+  rotatable?: boolean;
   children?: React.ReactNode;
   className?: string;
 }) {
@@ -44,6 +49,10 @@ export function LeafletMap({
       // screen space on phones.
       zoomControl={false}
       attributionControl
+      rotate={rotatable}
+      touchRotate={rotatable}
+      shiftKeyRotate={rotatable}
+      rotateControl={false}
       {...(maxBounds
         ? {
             maxBounds: [

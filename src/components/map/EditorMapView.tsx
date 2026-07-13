@@ -2,6 +2,7 @@
 
 import { Marker, Rectangle, useMapEvents } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
+import { CompassControl } from "./CompassControl";
 import type { LatLng, PoiData } from "./types";
 
 function MapEvents({
@@ -49,8 +50,9 @@ export default function EditorMapView({
   onViewChange?: (center: LatLng) => void;
 }) {
   return (
-    <LeafletMap center={center} zoom={zoom} className="h-full w-full">
+    <LeafletMap center={center} zoom={zoom} rotatable className="h-full w-full">
       <MapEvents onMapClick={onMapClick} onViewChange={onViewChange} />
+      <CompassControl />
       {bounds && (
         <Rectangle
           bounds={[

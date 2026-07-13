@@ -80,8 +80,9 @@ export function MapSettingsForm({ map }: { map: EditorMapData }) {
           }}
         />
         <span className="text-xs opacity-60">
-          Tap the map to move the center. Pan/zoom and use the in-map button to
-          set the borders attendees are limited to.
+          Tap the map to move the center. Use the in-map button to set the
+          borders attendees are limited to, then drag the round corner handles
+          to fine-tune them.
         </span>
         <PickerMapCanvas
           center={center}

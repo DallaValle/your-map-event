@@ -76,6 +76,7 @@ export default async function PublicMapPage({ params }: PageProps) {
         center={{ lat: primaryMap.centerLat, lng: primaryMap.centerLng }}
         zoom={primaryMap.zoom}
         pois={pois}
+        team={{ name: team.name, logoUrl: team.logoUrl }}
         maxBounds={
           primaryMap.boundsSWLat != null
             ? {
@@ -87,19 +88,6 @@ export default async function PublicMapPage({ params }: PageProps) {
             : null
         }
       />
-
-      {/* Team chip: pointer-events pass through except on the chip itself. */}
-      <div className="pointer-events-none absolute right-3 top-3 z-[1000]">
-        <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/95 py-1.5 pl-1.5 pr-3 shadow-lg backdrop-blur dark:bg-neutral-900/95">
-          {team.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={team.logoUrl} alt="" className="size-7 rounded-full object-cover" />
-          ) : (
-            <span className="flex size-7 items-center justify-center rounded-full bg-teal-700/10 text-sm">📍</span>
-          )}
-          <span className="max-w-32 truncate text-sm font-semibold">{team.name}</span>
-        </div>
-      </div>
     </main>
   );
 }
