@@ -5,6 +5,46 @@ Mobile-first PWA for interactive event maps. Teams build a map of their event
 open `https://your-domain/<team-slug>` on their phone to see the map, search
 points of interest, and track their own live position.
 
+## The business — user flow
+
+**Who it's for:** anyone running a physical event on a site attendees don't
+know by heart — festivals, fairs, conferences, sports events, campuses. The
+organizer curates one interactive map; attendees need nothing but the link.
+
+### 1. Organizer (Admin) sets up
+
+1. **Sign up & create a team** — the team gets a public address
+   (`/your-team-slug`) and a profile (name + logo) shown on the map.
+2. **Create an event map** — search for the venue by name/address
+   (OpenStreetMap search), tap the map to pin the exact event center, and
+   name it (e.g. "Landiwiese, Zürich").
+3. **Frame the map** — optionally capture the current view as the map's
+   *borders* (fine-tuned by dragging corner handles): attendees can't pan
+   outside the event area. Rotate the map and save the angle so "up" matches
+   the venue layout.
+4. **Add points of interest** — tap anywhere on the full-screen editor map to
+   drop a point (or use the ＋ button to type exact coordinates). Each point
+   has a title, optional description and photo. Everything is editable and
+   deletable from the map or the points list.
+5. **Publish** — one tap flips the map live at `/your-team-slug`.
+
+### 2. Team members (Viewers)
+
+Invited teammates with the Viewer role can sign in and see the published
+maps exactly as attendees do — but can't change anything. Only Admins edit.
+
+### 3. Attendees (no account)
+
+1. Open `https://your-domain/your-team-slug` on their phone — during the
+   event typically via a QR code on posters/badges.
+2. See the full-screen event map with all points of interest (clustered when
+   dense), the team's branding, and — after accepting the browser prompt —
+   their **own live position** with an accuracy circle.
+3. Tap the always-visible **points list** to browse everything; picking a
+   point flies the map there and opens its details (photo + description).
+4. Install it as an app (PWA) if they like; map areas they've viewed keep
+   working even when the venue Wi-Fi drops.
+
 ## Stack
 
 | Layer | Choice |
