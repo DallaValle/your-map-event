@@ -41,6 +41,13 @@ function buildAuth() {
         ? prismaAdapter(prisma, { provider: "postgresql" })
         : memoryAdapter(g.__authMemoryDb!),
     emailAndPassword: { enabled: true },
+    // Dev servers hop ports (3000 taken -> 3001), and Better Auth rejects
+    // any origin it wasn't told about. Trust every localhost port in dev;
+    // production stays locked to BETTER_AUTH_URL.
+    trustedOrigins:
+      process.env.NODE_ENV === "production"
+        ? undefined
+        : ["http://localhost:*", "http://127.0.0.1:*"],
     socialProviders: useGoogle
       ? {
           google: {

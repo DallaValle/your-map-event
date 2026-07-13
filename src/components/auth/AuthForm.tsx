@@ -36,7 +36,7 @@ export function AuthForm({
     const result =
       mode === "sign-up"
         ? await authClient.signUp.email({ email, password, name })
-        : await authClient.signIn.email({ email, password });
+        : await authClient.signIn.email({ email, password, rememberMe: true });
 
     setPending(false);
 
@@ -86,7 +86,9 @@ export function AuthForm({
             name="email"
             type="email"
             required
-            autoComplete="email"
+            // "username" is the token password managers key on for the
+            // save/autofill prompt — "email" alone is often ignored.
+            autoComplete="username"
             inputMode="email"
             className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
           />
