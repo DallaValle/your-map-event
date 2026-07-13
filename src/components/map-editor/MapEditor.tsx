@@ -9,6 +9,7 @@ import type { MapBounds } from "@/components/map/LeafletMap";
 import type { LatLng, PoiData } from "@/components/map/types";
 import { PoiSheet, type PoiSheetMode } from "./PoiSheet";
 import { MapSettingsForm } from "./MapSettingsForm";
+import { ShareCard } from "@/components/share/ShareCard";
 
 export interface EditorMapData {
   id: string;
@@ -37,11 +38,13 @@ export function MapEditor({
   map,
   pois,
   teamSlug,
+  teamName,
   uploadsEnabled,
 }: {
   map: EditorMapData;
   pois: PoiData[];
   teamSlug: string;
+  teamName: string;
   uploadsEnabled: boolean;
 }) {
   const router = useRouter();
@@ -263,14 +266,21 @@ export function MapEditor({
               </ul>
             )}
 
-            {map.published && (
-              <Link
-                href={`/${teamSlug}`}
-                className="mt-4 block rounded-xl border border-teal-700/40 px-6 py-3 text-center font-semibold text-teal-700 dark:text-teal-400"
-              >
-                View live map →
-              </Link>
-            )}
+            <div className="mt-4 flex flex-col gap-3">
+              {map.published && (
+                <Link
+                  href={`/${teamSlug}`}
+                  className="block rounded-xl border border-teal-700/40 px-6 py-3 text-center font-semibold text-teal-700 dark:text-teal-400"
+                >
+                  View live map →
+                </Link>
+              )}
+              <ShareCard
+                slug={teamSlug}
+                teamName={teamName}
+                published={map.published}
+              />
+            </div>
           </div>
         </div>
       )}

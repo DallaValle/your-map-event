@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { CreateTeamForm } from "@/components/team/CreateTeamForm";
+import { ShareCard } from "@/components/share/ShareCard";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -53,6 +54,12 @@ export default async function DashboardPage() {
           </p>
         </div>
       </header>
+
+      <ShareCard
+        slug={team.slug}
+        teamName={team.name}
+        published={maps.some((map) => map.published)}
+      />
 
       {isAdmin && (
         <Link
