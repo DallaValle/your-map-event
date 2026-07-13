@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "EventMap" ADD COLUMN     "bearing" DOUBLE PRECISION NOT NULL DEFAULT 0;

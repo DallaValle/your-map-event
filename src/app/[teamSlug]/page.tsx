@@ -75,6 +75,7 @@ export default async function PublicMapPage({ params }: PageProps) {
       <PublicMapCanvas
         center={{ lat: primaryMap.centerLat, lng: primaryMap.centerLng }}
         zoom={primaryMap.zoom}
+        bearing={primaryMap.bearing}
         pois={pois}
         team={{ name: team.name, logoUrl: team.logoUrl }}
         maxBounds={

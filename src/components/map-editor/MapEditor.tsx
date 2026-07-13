@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { setMapPublishedAction } from "@/actions/maps";
+import { setMapPublishedAction, setMapBearingAction } from "@/actions/maps";
 import { EditorMapCanvas } from "@/components/map/MapCanvas";
 import type { MapBounds } from "@/components/map/LeafletMap";
 import type { LatLng, PoiData } from "@/components/map/types";
@@ -18,6 +18,7 @@ export interface EditorMapData {
   centerLng: number;
   centerName: string;
   zoom: number;
+  bearing: number;
   published: boolean;
   boundsSWLat: number | null;
   boundsSWLng: number | null;
@@ -53,7 +54,19 @@ export function MapEditor({
     lat: map.centerLat,
     lng: map.centerLng,
   });
+  const [liveBearing, setLiveBearing] = useState(map.bearing);
   const [publishPending, startPublish] = useTransition();
+  const [bearingPending, startBearing] = useTransition();
+
+  const bearingDirty =
+    Math.abs((((liveBearing - map.bearing) % 360) + 360) % 360) > 0.5;
+
+  function saveBearing() {
+    startBearing(async () => {
+      await setMapBearingAction(map.id, liveBearing);
+      router.refresh();
+    });
+  }
 
   const bounds: MapBounds | null =
     map.boundsSWLat != null
@@ -104,13 +117,29 @@ export function MapEditor({
       <EditorMapCanvas
         center={{ lat: map.centerLat, lng: map.centerLng }}
         zoom={map.zoom}
+        bearing={map.bearing}
         pois={pois}
         draftPosition={sheetDraft}
         bounds={bounds}
         onMapClick={handleMapClick}
         onPoiClick={(poi) => openSheet({ type: "edit", poi }, { lat: poi.lat, lng: poi.lng })}
         onViewChange={setViewCenter}
+        onBearingChange={setLiveBearing}
       />
+
+      {/* Appears as soon as the rotation differs from the saved default. */}
+      {bearingDirty && !sheet && (
+        <button
+          type="button"
+          onClick={saveBearing}
+          disabled={bearingPending}
+          className="absolute left-1/2 top-16 z-[1000] -translate-x-1/2 rounded-full bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
+        >
+          {bearingPending
+            ? "Saving…"
+            : `Save ${Math.round(((liveBearing % 360) + 360) % 360)}° as default angle`}
+        </button>
+      )}
 
       {/* Top bar */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex items-center gap-2 p-3">

@@ -109,6 +109,29 @@ export async function updateMapAction(
   return { ok: true };
 }
 
+/** Persist the current rotation as the map's default orientation. */
+export async function setMapBearingAction(
+  mapId: string,
+  bearing: number,
+): Promise<ActionState> {
+  const map = await prisma.eventMap.findUnique({ where: { id: mapId } });
+  if (!map) return { ok: false, error: "Map not found" };
+  const { team } = await requireAdmin(map.teamId);
+
+  if (!Number.isFinite(bearing)) {
+    return { ok: false, error: "Invalid angle" };
+  }
+  const normalized = ((bearing % 360) + 360) % 360;
+
+  await prisma.eventMap.update({
+    where: { id: mapId },
+    data: { bearing: normalized },
+  });
+
+  await revalidateMap(team.slug, mapId);
+  return { ok: true };
+}
+
 export async function setMapPublishedAction(
   mapId: string,
   published: boolean,

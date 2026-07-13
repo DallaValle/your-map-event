@@ -3,6 +3,7 @@
 import { Marker, Rectangle, useMapEvents } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { CompassControl } from "./CompassControl";
+import { RotateControl } from "./RotateControl";
 import type { LatLng, PoiData } from "./types";
 
 function MapEvents({
@@ -32,15 +33,19 @@ function MapEvents({
 export default function EditorMapView({
   center,
   zoom,
+  bearing = 0,
   pois,
   draftPosition,
   bounds,
   onMapClick,
   onPoiClick,
   onViewChange,
+  onBearingChange,
 }: {
   center: LatLng;
   zoom: number;
+  /** Initial rotation (the map's saved default orientation). */
+  bearing?: number;
   pois: PoiData[];
   draftPosition: LatLng | null;
   /** Saved map borders, drawn as a dashed rectangle for reference. */
@@ -48,10 +53,18 @@ export default function EditorMapView({
   onMapClick: (position: LatLng) => void;
   onPoiClick: (poi: PoiData) => void;
   onViewChange?: (center: LatLng) => void;
+  onBearingChange?: (bearing: number) => void;
 }) {
   return (
-    <LeafletMap center={center} zoom={zoom} rotatable className="h-full w-full">
+    <LeafletMap
+      center={center}
+      zoom={zoom}
+      bearing={bearing}
+      rotatable
+      className="h-full w-full"
+    >
       <MapEvents onMapClick={onMapClick} onViewChange={onViewChange} />
+      <RotateControl onBearingChange={onBearingChange} />
       <CompassControl />
       {bounds && (
         <Rectangle

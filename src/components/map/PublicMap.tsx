@@ -28,12 +28,15 @@ function MapRefCapture({ onMap }: { onMap: (map: L.Map | null) => void }) {
 export default function PublicMap({
   center,
   zoom,
+  bearing = 0,
   pois,
   maxBounds,
   team,
 }: {
   center: LatLng;
   zoom: number;
+  /** The admin's saved default orientation. */
+  bearing?: number;
   pois: PoiData[];
   maxBounds?: MapBounds | null;
   team: { name: string; logoUrl: string | null };
@@ -58,6 +61,7 @@ export default function PublicMap({
       <LeafletMap
         center={center}
         zoom={zoom}
+        bearing={bearing}
         maxBounds={maxBounds}
         rotatable
         className="h-full w-full"

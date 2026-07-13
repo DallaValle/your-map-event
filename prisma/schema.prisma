@@ -32,6 +32,9 @@ model EventMap {
   centerLng   Float
   centerName  String
   zoom        Int               @default(16)
+  // Default map rotation in degrees (0 = north up); applied on load for
+  // admins and attendees alike.
+  bearing     Float             @default(0)
   published   Boolean           @default(false)
   // Optional viewing borders: attendees can't pan outside this box.
   // Either all four are set or none (enforced in the server action).

@@ -28,6 +28,7 @@ export function LeafletMap({
   zoom,
   maxBounds,
   rotatable = false,
+  bearing = 0,
   children,
   className = "h-full w-full",
 }: {
@@ -35,8 +36,10 @@ export function LeafletMap({
   zoom: number;
   /** When set, panning is elastically constrained to this box. */
   maxBounds?: MapBounds | null;
-  /** Two-finger (touch) / shift-drag (mouse) rotation. */
+  /** Two-finger (touch) / shift+scroll (mouse) rotation. */
   rotatable?: boolean;
+  /** Initial rotation in degrees (0 = north up). */
+  bearing?: number;
   children?: React.ReactNode;
   className?: string;
 }) {
@@ -44,6 +47,7 @@ export function LeafletMap({
     <MapContainer
       center={[center.lat, center.lng]}
       zoom={zoom}
+      bearing={rotatable ? bearing : 0}
       className={className}
       // Mobile-first: pinch/drag are primary; the +/- control just wastes
       // screen space on phones.
