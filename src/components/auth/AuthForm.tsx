@@ -45,6 +45,28 @@ export function AuthForm({
       return;
     }
 
+    // SPA logins (fetch + preventDefault) often slip past the browser's
+    // save-password heuristics. Handing the credential over explicitly makes
+    // Chromium-based browsers show the save prompt reliably; browsers without
+    // PasswordCredential (Safari, Firefox) fall back to their heuristics.
+    try {
+      type PasswordCredentialCtor = new (init: {
+        id: string;
+        password: string;
+        name?: string;
+      }) => Credential;
+      const PasswordCredential = (
+        window as unknown as { PasswordCredential?: PasswordCredentialCtor }
+      ).PasswordCredential;
+      if (PasswordCredential && navigator.credentials?.store) {
+        await navigator.credentials.store(
+          new PasswordCredential({ id: email, password, name: name || undefined }),
+        );
+      }
+    } catch {
+      // Saving credentials is best-effort; never block the login on it.
+    }
+
     router.push(redirectTo);
     router.refresh();
   }
@@ -68,7 +90,9 @@ export function AuthForm({
         <h1 className="text-2xl font-bold">{title}</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      {/* method="post" keeps browser password heuristics happy even though
+          submission is intercepted in JS. */}
+      <form onSubmit={handleSubmit} method="post" className="flex flex-col gap-3">
         {mode === "sign-up" && (
           <label className="flex flex-col gap-1 text-sm font-medium">
             Name
