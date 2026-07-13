@@ -32,11 +32,13 @@ export function AuthForm({
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
     const name = String(form.get("name") ?? "").trim();
+    // Unchecked = session cookie only (signed out when the browser closes).
+    const rememberMe = form.get("rememberMe") === "on";
 
     const result =
       mode === "sign-up"
         ? await authClient.signUp.email({ email, password, name })
-        : await authClient.signIn.email({ email, password, rememberMe: true });
+        : await authClient.signIn.email({ email, password, rememberMe });
 
     setPending(false);
 
@@ -128,6 +130,18 @@ export function AuthForm({
             className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
           />
         </label>
+
+        {mode === "sign-in" && (
+          <label className="flex min-h-11 items-center gap-2.5 text-sm font-medium">
+            <input
+              type="checkbox"
+              name="rememberMe"
+              defaultChecked
+              className="size-5 accent-teal-700"
+            />
+            Remember me
+          </label>
+        )}
 
         {error && (
           <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
