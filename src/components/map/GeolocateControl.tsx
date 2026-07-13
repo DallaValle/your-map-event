@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Circle, CircleMarker, useMap } from "react-leaflet";
+import { useMapControlRef } from "./control-utils";
 
 type GeoState =
   | { status: "idle" | "denied" | "unavailable" }
@@ -14,6 +15,7 @@ type GeoState =
  */
 export function GeolocateControl() {
   const map = useMap();
+  const controlRef = useMapControlRef();
   const [geo, setGeo] = useState<GeoState>({ status: "idle" });
 
   useEffect(() => {
@@ -64,7 +66,7 @@ export function GeolocateControl() {
 
       {/* Floating recenter button; kept inside the map so it can use flyTo. */}
       <div className="leaflet-bottom leaflet-right">
-        <div className="leaflet-control m-3 mb-6">
+        <div ref={controlRef} className="leaflet-control m-3 mb-6">
           <button
             type="button"
             aria-label="Show my location"

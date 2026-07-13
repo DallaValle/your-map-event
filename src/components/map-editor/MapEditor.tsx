@@ -176,14 +176,24 @@ export function MapEditor({
 
       {/* Bottom controls */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] flex items-end justify-between gap-2 p-3">
-        <button
-          type="button"
-          onClick={() => setDrawer(true)}
-          className={`${fabButton} h-12 gap-2 px-4 text-sm font-semibold`}
-        >
-          ☰ Points ({pois.length})
-        </button>
-        <p className="pointer-events-none mb-1 rounded-full bg-black/70 px-3 py-1.5 text-center text-[11px] font-medium text-white">
+        <div className="flex items-end gap-2">
+          <button
+            type="button"
+            onClick={() => setDrawer(true)}
+            className={`${fabButton} h-12 gap-2 px-4 text-sm font-semibold`}
+          >
+            ☰ Points ({pois.length})
+          </button>
+          <button
+            type="button"
+            aria-label="Map settings"
+            onClick={() => setSettings(true)}
+            className={`${fabButton} size-12 text-lg`}
+          >
+            ⚙️
+          </button>
+        </div>
+        <p className="pointer-events-none mb-1 hidden rounded-full bg-black/70 px-3 py-1.5 text-center text-[11px] font-medium text-white min-[380px]:block">
           Tap map to add
         </p>
         <button
@@ -208,51 +218,7 @@ export function MapEditor({
           <div className="max-h-[70dvh] overflow-y-auto rounded-t-3xl bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl dark:bg-neutral-950">
             <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
 
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-lg font-bold">Points of interest</h2>
-              <button
-                type="button"
-                onClick={() => {
-                  setDrawer(false);
-                  setSettings(true);
-                }}
-                className="rounded-full bg-black/5 px-3 py-2 text-sm font-semibold dark:bg-white/10"
-              >
-                ⚙️ Map settings
-              </button>
-            </div>
-
-            {/* Setup overview: everything an organizer configures, at a
-                glance. Tapping a chip jumps into settings. */}
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {[
-                { label: `🔗 /${teamSlug}/${map.slug}` },
-                {
-                  label: bounds ? "⛶ Borders set" : "⛶ No borders",
-                  muted: !bounds,
-                },
-                {
-                  label: `🧭 ${Math.round(((map.bearing % 360) + 360) % 360)}°`,
-                  muted: map.bearing === 0,
-                },
-                { label: `🔍 Zoom ${map.zoom}` },
-                { label: `📍 ${map.centerName}` },
-              ].map((chip) => (
-                <button
-                  key={chip.label}
-                  type="button"
-                  onClick={() => {
-                    setDrawer(false);
-                    setSettings(true);
-                  }}
-                  className={`max-w-full truncate rounded-full border border-black/10 px-3 py-1.5 text-xs font-medium dark:border-white/15 ${
-                    chip.muted ? "opacity-50" : ""
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
+            <h2 className="mb-3 text-lg font-bold">Points of interest</h2>
 
             {pois.length > 3 && (
               <input
@@ -333,6 +299,30 @@ export function MapEditor({
                 ✕
               </button>
             </div>
+
+            {/* Current setup at a glance. */}
+            <div className="mb-4 flex flex-wrap gap-1.5">
+              {[
+                { label: `🔗 /${teamSlug}/${map.slug}` },
+                { label: bounds ? "⛶ Borders set" : "⛶ No borders", muted: !bounds },
+                {
+                  label: `🧭 ${Math.round(((map.bearing % 360) + 360) % 360)}°`,
+                  muted: map.bearing === 0,
+                },
+                { label: `🔍 Zoom ${map.zoom}` },
+                { label: `📍 ${map.centerName}` },
+              ].map((chip) => (
+                <span
+                  key={chip.label}
+                  className={`max-w-full truncate rounded-full border border-black/10 px-3 py-1.5 text-xs font-medium dark:border-white/15 ${
+                    chip.muted ? "opacity-50" : ""
+                  }`}
+                >
+                  {chip.label}
+                </span>
+              ))}
+            </div>
+
             <MapSettingsForm map={map} />
           </div>
         </div>

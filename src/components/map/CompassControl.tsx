@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMap } from "react-leaflet";
+import { useMapControlRef } from "./control-utils";
 
 /**
  * Compass for rotatable maps: the needle mirrors the current bearing and a
@@ -9,6 +10,7 @@ import { useMap } from "react-leaflet";
  */
 export function CompassControl() {
   const map = useMap();
+  const controlRef = useMapControlRef();
   const [bearing, setBearing] = useState(0);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export function CompassControl() {
 
   return (
     <div className="leaflet-top leaflet-right">
-      <div className="leaflet-control m-3">
+      <div ref={controlRef} className="leaflet-control m-3">
         <button
           type="button"
           aria-label="Reset map to north"

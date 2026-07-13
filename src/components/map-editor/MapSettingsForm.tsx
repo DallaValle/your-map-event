@@ -17,6 +17,7 @@ export function MapSettingsForm({ map }: { map: EditorMapData }) {
     lng: map.centerLng,
   });
   const [focus, setFocus] = useState<MapFocus | null>(null);
+  const [zoom, setZoom] = useState(map.zoom);
   const [bounds, setBounds] = useState<MapBounds | null>(
     map.boundsSWLat != null
       ? {
@@ -103,7 +104,7 @@ export function MapSettingsForm({ map }: { map: EditorMapData }) {
         </span>
         <PickerMapCanvas
           center={center}
-          zoom={map.zoom}
+          zoom={zoom}
           value={center}
           onPick={setCenter}
           focus={focus}
@@ -137,15 +138,24 @@ export function MapSettingsForm({ map }: { map: EditorMapData }) {
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Default zoom ({map.zoom})
+        Default zoom: {zoom}
         <input
           name="zoom"
           type="range"
           min={12}
           max={19}
-          defaultValue={map.zoom}
+          value={zoom}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setZoom(value);
+            // Live preview: fly the picker map to the new zoom level.
+            setFocus({ lat: center.lat, lng: center.lng, zoom: value });
+          }}
           className="accent-teal-700"
         />
+        <span className="text-xs opacity-60">
+          How close the map starts for attendees — previewed live above.
+        </span>
       </label>
 
       <input type="hidden" name="centerLat" value={center.lat} />

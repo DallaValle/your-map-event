@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Rectangle, useMap } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
+import { useMapControlRef } from "./control-utils";
 import { LocationPicker } from "./LocationPicker";
 import { BoundsEditor } from "./BoundsEditor";
 import type { LatLng } from "./types";
@@ -41,9 +42,10 @@ function CaptureBoundsControl({
   onCapture: (bounds: MapBounds) => void;
 }) {
   const map = useMap();
+  const controlRef = useMapControlRef();
   return (
     <div className="leaflet-bottom leaflet-left">
-      <div className="leaflet-control m-2">
+      <div ref={controlRef} className="leaflet-control m-2">
         <button
           type="button"
           onClick={() => {
