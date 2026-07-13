@@ -3,6 +3,7 @@
 import type L from "leaflet";
 import { Marker, Popup } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
+import { poiDivIcon } from "./poi-icon";
 import type { PoiData } from "./types";
 
 /**
@@ -23,6 +24,7 @@ export function PoiMarkers({
         <Marker
           key={poi.id}
           position={[poi.lat, poi.lng]}
+          icon={poiDivIcon(poi.icon)}
           ref={(marker) => registerMarker?.(poi.id, marker)}
         >
           <Popup maxWidth={260} minWidth={200}>

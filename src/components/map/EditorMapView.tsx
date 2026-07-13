@@ -4,6 +4,7 @@ import { Marker, Rectangle, useMapEvents } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { CompassControl } from "./CompassControl";
 import { RotateControl } from "./RotateControl";
+import { poiDivIcon } from "./poi-icon";
 import type { LatLng, PoiData } from "./types";
 
 function MapEvents({
@@ -79,6 +80,7 @@ export default function EditorMapView({
         <Marker
           key={poi.id}
           position={[poi.lat, poi.lng]}
+          icon={poiDivIcon(poi.icon)}
           eventHandlers={{ click: () => onPoiClick(poi) }}
         />
       ))}

@@ -27,6 +27,8 @@ model EventMap {
   teamId      String
   team        Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   name        String
+  // Public URL segment: /[team.slug]/[map.slug]
+  slug        String            @default("")
   description String?
   centerLat   Float
   centerLng   Float
@@ -46,6 +48,7 @@ model EventMap {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
+  @@unique([teamId, slug])
   @@index([teamId])
 }
 
@@ -56,6 +59,8 @@ model PointOfInterest {
   title       String
   description String?
   imageUrl    String?
+  // Emoji shown on the map marker (defaults to a pin in the UI).
+  icon        String?
   lat         Float
   lng         Float
   createdAt   DateTime @default(now())

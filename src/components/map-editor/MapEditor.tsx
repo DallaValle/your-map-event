@@ -14,6 +14,7 @@ import { ShareCard } from "@/components/share/ShareCard";
 export interface EditorMapData {
   id: string;
   name: string;
+  slug: string;
   description: string | null;
   centerLat: number;
   centerLng: number;
@@ -221,6 +222,38 @@ export function MapEditor({
               </button>
             </div>
 
+            {/* Setup overview: everything an organizer configures, at a
+                glance. Tapping a chip jumps into settings. */}
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {[
+                { label: `🔗 /${teamSlug}/${map.slug}` },
+                {
+                  label: bounds ? "⛶ Borders set" : "⛶ No borders",
+                  muted: !bounds,
+                },
+                {
+                  label: `🧭 ${Math.round(((map.bearing % 360) + 360) % 360)}°`,
+                  muted: map.bearing === 0,
+                },
+                { label: `🔍 Zoom ${map.zoom}` },
+                { label: `📍 ${map.centerName}` },
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => {
+                    setDrawer(false);
+                    setSettings(true);
+                  }}
+                  className={`max-w-full truncate rounded-full border border-black/10 px-3 py-1.5 text-xs font-medium dark:border-white/15 ${
+                    chip.muted ? "opacity-50" : ""
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
             {pois.length > 3 && (
               <input
                 type="search"
@@ -248,7 +281,7 @@ export function MapEditor({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                       ) : (
-                        <span className="flex size-10 items-center justify-center rounded-lg bg-teal-700/10">📌</span>
+                        <span className="flex size-10 items-center justify-center rounded-lg bg-teal-700/10">{poi.icon ?? "📌"}</span>
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{poi.title}</p>
@@ -269,14 +302,14 @@ export function MapEditor({
             <div className="mt-4 flex flex-col gap-3">
               {map.published && (
                 <Link
-                  href={`/${teamSlug}`}
+                  href={`/${teamSlug}/${map.slug}`}
                   className="block rounded-xl border border-teal-700/40 px-6 py-3 text-center font-semibold text-teal-700 dark:text-teal-400"
                 >
                   View live map →
                 </Link>
               )}
               <ShareCard
-                slug={teamSlug}
+                path={`${teamSlug}/${map.slug}`}
                 teamName={teamName}
                 published={map.published}
               />

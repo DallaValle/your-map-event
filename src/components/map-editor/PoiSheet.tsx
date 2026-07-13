@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPoiAction, updatePoiAction, deletePoiAction } from "@/actions/pois";
 import { ImageField } from "@/components/upload/ImageField";
-import type { LatLng, PoiData } from "@/components/map/types";
+import { POI_ICONS, type LatLng, type PoiData } from "@/components/map/types";
 import type { ActionState } from "@/actions/types";
 
 export type PoiSheetMode =
@@ -37,6 +37,7 @@ export function PoiSheet({
 
   const [lat, setLat] = useState(position.lat.toFixed(6));
   const [lng, setLng] = useState(position.lng.toFixed(6));
+  const [icon, setIcon] = useState(isEdit ? (mode.poi.icon ?? "📍") : "📍");
 
   // Map taps update `position` from outside — mirror them into the inputs.
   // Manual typing round-trips through onPositionChange to the same value,
@@ -131,6 +132,30 @@ export function PoiSheet({
             autoFocus={!isEdit}
             className={inputClass}
           />
+
+          {/* Marker icon */}
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium opacity-70">Marker icon</span>
+            <div className="flex flex-wrap gap-1">
+              {POI_ICONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  aria-label={`Use ${emoji} as marker icon`}
+                  aria-pressed={icon === emoji}
+                  onClick={() => setIcon(emoji)}
+                  className={`flex size-9 items-center justify-center rounded-full border text-lg ${
+                    icon === emoji
+                      ? "border-teal-700 bg-teal-700/15"
+                      : "border-black/10 dark:border-white/15"
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            <input type="hidden" name="icon" value={icon} />
+          </div>
 
           <div className="flex gap-2">
             <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs opacity-70">

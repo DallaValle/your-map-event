@@ -9,11 +9,12 @@ import QRCode from "qrcode";
  * and direct links to the common socials/messengers.
  */
 export function ShareCard({
-  slug,
+  path,
   teamName,
   published,
 }: {
-  slug: string;
+  /** URL path after the origin, e.g. "demo-team/festival". */
+  path: string;
   teamName: string;
   published: boolean;
 }) {
@@ -24,9 +25,9 @@ export function ShareCard({
   const [canNativeShare, setCanNativeShare] = useState(false);
 
   useEffect(() => {
-    setUrl(`${window.location.origin}/${slug}`);
+    setUrl(`${window.location.origin}/${path}`);
     setCanNativeShare(typeof navigator !== "undefined" && !!navigator.share);
-  }, [slug]);
+  }, [path]);
 
   async function toggleQr() {
     if (qr) {
@@ -77,7 +78,7 @@ export function ShareCard({
 
       <div className="flex items-stretch gap-2">
         <code className="flex min-w-0 flex-1 items-center overflow-x-auto whitespace-nowrap rounded-xl bg-white px-3 py-2.5 text-sm font-semibold dark:bg-neutral-900">
-          {url || `…/${slug}`}
+          {url || `…/${path}`}
         </code>
         <button
           type="button"
@@ -113,7 +114,7 @@ export function ShareCard({
           <img src={qr} alt={`QR code for ${url}`} className="size-52 rounded-lg" />
           <a
             href={qr}
-            download={`${slug}-map-qr.png`}
+            download={`${path.replace(/\//g, "-")}-qr.png`}
             className="text-sm font-semibold text-teal-700 dark:text-teal-400"
           >
             ⬇ Download PNG (for posters & badges)

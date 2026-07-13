@@ -5,7 +5,20 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
+import { slugify, validateMapSlug } from "@/lib/slug";
 import type { ActionState } from "./types";
+
+/** First free slug for a team, trying base, base-2, base-3, … */
+async function uniqueMapSlug(teamId: string, base: string, excludeMapId?: string) {
+  const candidate = base || "map";
+  for (let n = 1; ; n++) {
+    const slug = n === 1 ? candidate : `${candidate}-${n}`;
+    const clash = await prisma.eventMap.findUnique({
+      where: { teamId_slug: { teamId, slug } },
+    });
+    if (!clash || clash.id === excludeMapId) return slug;
+  }
+}
 
 const optionalCoord = (min: number, max: number) =>
   z.preprocess(
@@ -63,10 +76,11 @@ function parseMapForm(formData: FormData) {
 }
 
 /** Revalidate every view a map change can affect. */
-async function revalidateMap(teamSlug: string, mapId?: string) {
+async function revalidateMap(teamSlug: string, mapId?: string, mapSlug?: string) {
   revalidatePath("/dashboard");
   if (mapId) revalidatePath(`/dashboard/maps/${mapId}`);
   revalidatePath(`/${teamSlug}`);
+  if (mapSlug) revalidatePath(`/${teamSlug}/${mapSlug}`);
 }
 
 export async function createMapAction(
@@ -82,7 +96,11 @@ export async function createMapAction(
   }
 
   const map = await prisma.eventMap.create({
-    data: { teamId: team.id, ...parsed.data },
+    data: {
+      teamId: team.id,
+      slug: await uniqueMapSlug(team.id, slugify(parsed.data.name)),
+      ...parsed.data,
+    },
   });
 
   await revalidateMap(team.slug);
@@ -103,9 +121,29 @@ export async function updateMapAction(
     return { ok: false, error: parsed.error.issues[0].message };
   }
 
-  await prisma.eventMap.update({ where: { id: mapId }, data: parsed.data });
+  // Optional map-address change (public URL segment under the team).
+  let slug = map.slug;
+  const requestedSlug = String(formData.get("slug") ?? "").trim().toLowerCase();
+  if (requestedSlug && requestedSlug !== map.slug) {
+    const slugError = validateMapSlug(requestedSlug);
+    if (slugError) return { ok: false, error: slugError };
+    const clash = await prisma.eventMap.findUnique({
+      where: { teamId_slug: { teamId: team.id, slug: requestedSlug } },
+    });
+    if (clash && clash.id !== mapId) {
+      return { ok: false, error: `"/${team.slug}/${requestedSlug}" is already taken.` };
+    }
+    slug = requestedSlug;
+  }
+
+  await prisma.eventMap.update({
+    where: { id: mapId },
+    data: { ...parsed.data, slug },
+  });
 
   await revalidateMap(team.slug, mapId);
+  revalidatePath(`/${team.slug}/${map.slug}`);
+  revalidatePath(`/${team.slug}/${slug}`);
   return { ok: true };
 }
 
@@ -128,7 +166,7 @@ export async function setMapBearingAction(
     data: { bearing: normalized },
   });
 
-  await revalidateMap(team.slug, mapId);
+  await revalidateMap(team.slug, mapId, map.slug);
   return { ok: true };
 }
 
@@ -142,7 +180,7 @@ export async function setMapPublishedAction(
 
   await prisma.eventMap.update({ where: { id: mapId }, data: { published } });
 
-  await revalidateMap(team.slug, mapId);
+  await revalidateMap(team.slug, mapId, map.slug);
   return { ok: true };
 }
 
@@ -154,6 +192,6 @@ export async function deleteMapAction(mapId: string): Promise<ActionState> {
   // POIs cascade via the schema's onDelete: Cascade.
   await prisma.eventMap.delete({ where: { id: mapId } });
 
-  await revalidateMap(team.slug);
+  await revalidateMap(team.slug, undefined, map.slug);
   redirect("/dashboard");
 }

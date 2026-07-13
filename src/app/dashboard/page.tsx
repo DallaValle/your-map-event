@@ -56,7 +56,13 @@ export default async function DashboardPage() {
       </header>
 
       <ShareCard
-        slug={team.slug}
+        // With exactly one published map, share its direct URL; otherwise the
+        // team page, which lists (or redirects to) the published maps.
+        path={
+          maps.filter((map) => map.published).length === 1
+            ? `${team.slug}/${maps.find((map) => map.published)!.slug}`
+            : team.slug
+        }
         teamName={team.name}
         published={maps.some((map) => map.published)}
       />

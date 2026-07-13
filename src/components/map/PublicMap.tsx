@@ -170,7 +170,7 @@ export default function PublicMap({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                     ) : (
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-700/10">📌</span>
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-700/10">{poi.icon ?? "📌"}</span>
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{poi.title}</p>

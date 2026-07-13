@@ -10,6 +10,8 @@ const poiSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(80),
   description: z.string().trim().max(500).optional(),
   imageUrl: z.union([z.url(), z.literal("")]).nullish(),
+  // Emoji for the marker; a couple of code points at most.
+  icon: z.string().trim().max(8).optional(),
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
 });
@@ -19,6 +21,7 @@ function parsePoiForm(formData: FormData) {
     title: formData.get("title"),
     description: formData.get("description") || undefined,
     imageUrl: formData.get("imageUrl"),
+    icon: formData.get("icon") || undefined,
     lat: formData.get("lat"),
     lng: formData.get("lng"),
   });
@@ -32,9 +35,10 @@ async function requirePoiAdmin(mapId: string) {
   return { map, team };
 }
 
-function revalidatePoi(teamSlug: string, mapId: string) {
+function revalidatePoi(teamSlug: string, mapId: string, mapSlug: string) {
   revalidatePath(`/dashboard/maps/${mapId}`);
   revalidatePath(`/${teamSlug}`);
+  revalidatePath(`/${teamSlug}/${mapSlug}`);
 }
 
 export async function createPoiAction(
@@ -42,9 +46,9 @@ export async function createPoiAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  let team;
+  let team, map;
   try {
-    ({ team } = await requirePoiAdmin(mapId));
+    ({ team, map } = await requirePoiAdmin(mapId));
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
   }
@@ -53,13 +57,13 @@ export async function createPoiAction(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
   }
-  const { imageUrl, ...rest } = parsed.data;
+  const { imageUrl, icon, ...rest } = parsed.data;
 
   await prisma.pointOfInterest.create({
-    data: { mapId, ...rest, imageUrl: imageUrl || null },
+    data: { mapId, ...rest, imageUrl: imageUrl || null, icon: icon || null },
   });
 
-  revalidatePoi(team.slug, mapId);
+  revalidatePoi(team.slug, mapId, map.slug);
   return { ok: true };
 }
 
@@ -71,9 +75,9 @@ export async function updatePoiAction(
   const poi = await prisma.pointOfInterest.findUnique({ where: { id: poiId } });
   if (!poi) return { ok: false, error: "Point of interest not found" };
 
-  let team;
+  let team, map;
   try {
-    ({ team } = await requirePoiAdmin(poi.mapId));
+    ({ team, map } = await requirePoiAdmin(poi.mapId));
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
   }
@@ -82,14 +86,14 @@ export async function updatePoiAction(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
   }
-  const { imageUrl, ...rest } = parsed.data;
+  const { imageUrl, icon, ...rest } = parsed.data;
 
   await prisma.pointOfInterest.update({
     where: { id: poiId },
-    data: { ...rest, imageUrl: imageUrl || null },
+    data: { ...rest, imageUrl: imageUrl || null, icon: icon || null },
   });
 
-  revalidatePoi(team.slug, poi.mapId);
+  revalidatePoi(team.slug, poi.mapId, map.slug);
   return { ok: true };
 }
 
@@ -97,15 +101,15 @@ export async function deletePoiAction(poiId: string): Promise<ActionState> {
   const poi = await prisma.pointOfInterest.findUnique({ where: { id: poiId } });
   if (!poi) return { ok: false, error: "Point of interest not found" };
 
-  let team;
+  let team, map;
   try {
-    ({ team } = await requirePoiAdmin(poi.mapId));
+    ({ team, map } = await requirePoiAdmin(poi.mapId));
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
   }
 
   await prisma.pointOfInterest.delete({ where: { id: poiId } });
 
-  revalidatePoi(team.slug, poi.mapId);
+  revalidatePoi(team.slug, poi.mapId, map.slug);
   return { ok: true };
 }

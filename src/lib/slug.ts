@@ -26,6 +26,17 @@ export function slugify(input: string): string {
     .slice(0, 48);
 }
 
+/** Map slugs live under a team (/team/map), so no reserved list applies. */
+export function validateMapSlug(slug: string): string | null {
+  if (slug.length < 1 || slug.length > 48) {
+    return "Map address must be between 1 and 48 characters.";
+  }
+  if (!SLUG_PATTERN.test(slug)) {
+    return "Map address may only contain lowercase letters, numbers and hyphens.";
+  }
+  return null;
+}
+
 export function validateSlug(slug: string): string | null {
   if (slug.length < 3 || slug.length > 48) {
     return "Slug must be between 3 and 48 characters.";

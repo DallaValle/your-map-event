@@ -61,6 +61,23 @@ export function MapSettingsForm({ map }: { map: EditorMapData }) {
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
+        Map address
+        <div className="flex items-center gap-1 rounded-xl border border-black/15 px-4 py-3 dark:border-white/20 dark:bg-white/5">
+          <span className="opacity-50">…/</span>
+          <input
+            name="slug"
+            required
+            defaultValue={map.slug}
+            pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            className="w-full bg-transparent text-base outline-none"
+          />
+        </div>
+        <span className="text-xs opacity-60">
+          Part of the public link — changing it breaks shared links and QR codes.
+        </span>
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm font-medium">
         Description
         <textarea
           name="description"
