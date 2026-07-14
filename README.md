@@ -187,16 +187,18 @@ The workflow at `.github/workflows/deploy-vercel.yml` deploys on every push to
    `BETTER_AUTH_URL=https://your-domain`, `UPLOADTHING_TOKEN` (optional), and
    the Google OAuth pair (optional; redirect URI
    `https://your-domain/api/auth/callback/google`).
-3. In **GitHub → repo → Settings → Secrets and variables → Actions**, add:
-   `VERCEL_TOKEN` (Vercel → Account Settings → Tokens), `VERCEL_ORG_ID`,
-   `VERCEL_PROJECT_ID` (from step 1), and `DATABASE_URL` (same Neon string —
-   the workflow uses it to run migrations).
+3. In **GitHub → repo → Settings → Secrets and variables → Actions**, add
+   three secrets: `VERCEL_TOKEN` (Vercel → Account Settings → Tokens),
+   `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` (both from step 1). The workflow
+   reads `DATABASE_URL` for migrations from the Vercel project env it pulls, so
+   it isn't duplicated here.
 4. Push to `main`. The Action builds (`prisma generate` runs via `postinstall`;
    `next build` emits the service worker), migrates, and deploys.
 
-> Prefer zero config? Vercel's native Git integration deploys this repo without
-> any workflow file. The GitHub Action is the better fit when you want deploys
-> gated on CI and migrations run in the same pipeline — which is why it's here.
+> This repo uses the GitHub Action (not Vercel's native Git integration) so
+> deploys are gated on the build passing and `prisma migrate deploy` runs in
+> the same pipeline. The Vercel Git connection is intentionally disconnected
+> (`vercel git disconnect`) so only the Action deploys — no double deploys.
 
 Custom domains per team: point the domain at Vercel and rewrite to
 `/<team-slug>` in `next.config.ts` or a middleware host check.
