@@ -1,5 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  // We build on GitHub's Ubuntu runner (debian-openssl-3.0.x) and deploy the
+  // prebuilt output to Vercel's Lambda runtime (rhel-openssl-3.0.x), so the
+  // query engine for BOTH must be bundled — otherwise the deployed function
+  // can't locate its engine and every query throws at runtime.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
