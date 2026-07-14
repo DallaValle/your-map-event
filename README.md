@@ -151,19 +151,55 @@ admins only — see `src/app/api/uploadthing/core.ts`).
 
 ## Deploying to Vercel
 
-1. Move Postgres to a managed provider (e.g. [Neon](https://neon.tech)) and
-   set `DATABASE_URL` accordingly; run `npx prisma migrate deploy` in CI or
-   locally against it.
-2. Switch auth to Postgres (see "Auth storage") — in-memory auth on
-   serverless would lose sessions on every cold start.
-3. Set env vars in Vercel: `DATABASE_URL`, `AUTH_STORAGE=postgres`,
-   `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL=https://your-domain`,
-   `UPLOADTHING_TOKEN`, and (optionally) the Google OAuth pair with redirect
-   URI `https://your-domain/api/auth/callback/google`.
-4. `vercel deploy` (or connect the Git repo). The build command is the default
-   `npm run build`, which also emits the service worker.
-5. Custom domains per team: point the domain at Vercel and rewrite to
-   `/<team-slug>` in `next.config.ts` or a middleware host check.
+Two prerequisites make the deploy actually functional, then CI ships it.
+
+### 1. Production database (Neon)
+
+Create a Postgres database (e.g. [Neon](https://neon.tech)) and keep its
+connection string — it becomes `DATABASE_URL` in Vercel and in GitHub secrets.
+
+### 2. Switch auth to Postgres (required for serverless)
+
+In-memory auth loses every session on cold start, so production must persist
+auth in Postgres:
+
+```bash
+npx @better-auth/cli generate   # appends User/Session/Account/… models to schema.prisma
+npx prisma migrate dev --name auth
+```
+
+Then set `AUTH_STORAGE=postgres` in the Vercel env (below). Local dev can stay
+on `memory` — the adapter is chosen at runtime from `AUTH_STORAGE`.
+
+### 3. Configure Vercel + deploy via GitHub Actions
+
+The workflow at `.github/workflows/deploy-vercel.yml` deploys on every push to
+`main` (production, runs `prisma migrate deploy` first) and on every PR
+(preview URL). To wire it up:
+
+1. Create the Vercel project once and link it locally to get its IDs:
+   ```bash
+   npm i -g vercel && vercel link      # writes .vercel/project.json
+   cat .vercel/project.json            # -> orgId, projectId
+   ```
+2. In **Vercel → Project → Settings → Environment Variables**, set:
+   `DATABASE_URL`, `AUTH_STORAGE=postgres`, `BETTER_AUTH_SECRET`,
+   `BETTER_AUTH_URL=https://your-domain`, `UPLOADTHING_TOKEN` (optional), and
+   the Google OAuth pair (optional; redirect URI
+   `https://your-domain/api/auth/callback/google`).
+3. In **GitHub → repo → Settings → Secrets and variables → Actions**, add:
+   `VERCEL_TOKEN` (Vercel → Account Settings → Tokens), `VERCEL_ORG_ID`,
+   `VERCEL_PROJECT_ID` (from step 1), and `DATABASE_URL` (same Neon string —
+   the workflow uses it to run migrations).
+4. Push to `main`. The Action builds (`prisma generate` runs via `postinstall`;
+   `next build` emits the service worker), migrates, and deploys.
+
+> Prefer zero config? Vercel's native Git integration deploys this repo without
+> any workflow file. The GitHub Action is the better fit when you want deploys
+> gated on CI and migrations run in the same pipeline — which is why it's here.
+
+Custom domains per team: point the domain at Vercel and rewrite to
+`/<team-slug>` in `next.config.ts` or a middleware host check.
 
 ## Project layout
 
