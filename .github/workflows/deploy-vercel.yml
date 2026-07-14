@@ -60,16 +60,14 @@ jobs:
 
       # Apply pending migrations to the production database before shipping the
       # code that expects them. Additive-only migrations keep this safe.
-      # DATABASE_URL comes from `vercel pull` above (written to
-      # .vercel/.env.production.local), so it stays in one place — the Vercel
-      # project env — instead of being duplicated as a GitHub secret.
+      # DATABASE_URL is a GitHub secret (not the Vercel pull) so migrations
+      # never depend on how the Vercel env var is stored (sensitive vars and
+      # agent contexts aren't exposed by `vercel env pull`).
       - name: Run database migrations (production only)
         if: steps.target.outputs.environment == 'production'
-        run: |
-          set -a
-          . .vercel/.env.production.local
-          set +a
-          npx prisma migrate deploy
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Deploy to Vercel
         id: deploy
