@@ -41,12 +41,15 @@ function buildAuth() {
         ? prismaAdapter(prisma, { provider: "postgresql" })
         : memoryAdapter(g.__authMemoryDb!),
     emailAndPassword: { enabled: true },
-    // Dev servers hop ports (3000 taken -> 3001), and Better Auth rejects
-    // any origin it wasn't told about. Trust every localhost port in dev;
-    // production stays locked to BETTER_AUTH_URL.
+    // Better Auth rejects any origin it wasn't told about (the "Invalid
+    // origin" error). BETTER_AUTH_URL is always trusted; additionally:
+    //   dev  -> every localhost port (dev server hops 3000 -> 3001 -> ...)
+    //   prod -> all *.vercel.app domains, so production and per-deploy
+    //           preview URLs work even if BETTER_AUTH_URL isn't an exact
+    //           match. Add your custom domain here once you have one.
     trustedOrigins:
       process.env.NODE_ENV === "production"
-        ? undefined
+        ? ["https://*.vercel.app"]
         : ["http://localhost:*", "http://127.0.0.1:*"],
     socialProviders: useGoogle
       ? {
