@@ -187,11 +187,11 @@ The workflow at `.github/workflows/deploy-vercel.yml` deploys on every push to
    `BETTER_AUTH_URL=https://your-domain`, `UPLOADTHING_TOKEN` (optional), and
    the Google OAuth pair (optional; redirect URI
    `https://your-domain/api/auth/callback/google`).
-3. In **GitHub → repo → Settings → Secrets and variables → Actions**, add
-   three secrets: `VERCEL_TOKEN` (Vercel → Account Settings → Tokens),
-   `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` (both from step 1). The workflow
-   reads `DATABASE_URL` for migrations from the Vercel project env it pulls, so
-   it isn't duplicated here.
+3. In **GitHub → repo → Settings → Secrets and variables → Actions**, add the
+   single secret `VERCEL_TOKEN` (Vercel → Account Settings → Tokens). The org
+   and project IDs live in the workflow file (they're identifiers, not
+   credentials), and `DATABASE_URL` for migrations is pulled from the Vercel
+   project env — so the token is the only GitHub secret.
 4. Push to `main`. The Action builds (`prisma generate` runs via `postinstall`;
    `next build` emits the service worker), migrates, and deploys.
 

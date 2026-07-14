@@ -14,8 +14,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  # Org/project IDs are identifiers, not credentials (they do nothing without
+  # VERCEL_TOKEN), so they live here in the clear. The ONLY GitHub secret you
+  # need to add is VERCEL_TOKEN.
+  VERCEL_ORG_ID: team_uEQHNf8APFtN9zqaRYn1d1zf
+  VERCEL_PROJECT_ID: prj_QSf7wFUXvimQh1h1kVY7sXgYIleG
 
 jobs:
   deploy:
