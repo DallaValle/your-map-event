@@ -11,7 +11,7 @@ export default async function DashboardLayout({
   const membership = await getMyTeam();
 
   return (
-    <div className="mx-auto min-h-dvh w-full max-w-lg pb-24">
+    <div className="min-h-dvh w-full pb-24">
       {children}
       <BottomNav
         teamSlug={membership?.team.slug}

@@ -22,7 +22,7 @@ export default async function TeamPage() {
     .catch(() => null);
 
   return (
-    <main className="flex flex-col gap-8 px-5 py-8">
+    <main className="mx-auto flex w-full max-w-lg flex-col gap-8 px-5 py-8">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Team settings</h1>
         <p className="text-sm opacity-70">

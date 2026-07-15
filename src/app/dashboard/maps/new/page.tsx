@@ -10,7 +10,7 @@ export default async function NewMapPage() {
   if (!membership || !isAdminRole(membership.role)) redirect("/dashboard");
 
   return (
-    <main className="flex flex-col gap-6 px-5 py-8">
+    <main className="mx-auto flex w-full max-w-lg flex-col gap-6 px-5 py-8">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">New event map</h1>
         <p className="text-sm opacity-70">

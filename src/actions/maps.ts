@@ -34,6 +34,10 @@ const mapSchema = z
     centerLat: z.coerce.number().min(-90).max(90),
     centerLng: z.coerce.number().min(-180).max(180),
     zoom: z.coerce.number().int().min(3).max(19).default(16),
+    bearing: z.preprocess(
+      (v) => (v === "" || v == null ? undefined : v),
+      z.coerce.number().optional(),
+    ),
     boundsSWLat: optionalCoord(-90, 90),
     boundsSWLng: optionalCoord(-180, 180),
     boundsNELat: optionalCoord(-90, 90),
@@ -53,6 +57,11 @@ const mapSchema = z
     const hasBounds = data.boundsSWLat !== undefined;
     return {
       ...data,
+      // Leave bearing untouched when absent so updates don't reset rotation.
+      bearing:
+        data.bearing === undefined
+          ? undefined
+          : ((data.bearing % 360) + 360) % 360,
       boundsSWLat: hasBounds ? Math.min(data.boundsSWLat!, data.boundsNELat!) : null,
       boundsNELat: hasBounds ? Math.max(data.boundsSWLat!, data.boundsNELat!) : null,
       boundsSWLng: hasBounds ? Math.min(data.boundsSWLng!, data.boundsNELng!) : null,
@@ -68,6 +77,7 @@ function parseMapForm(formData: FormData) {
     centerLat: formData.get("centerLat"),
     centerLng: formData.get("centerLng"),
     zoom: formData.get("zoom") || undefined,
+    bearing: formData.get("bearing"),
     boundsSWLat: formData.get("boundsSWLat"),
     boundsSWLng: formData.get("boundsSWLng"),
     boundsNELat: formData.get("boundsNELat"),
@@ -144,29 +154,6 @@ export async function updateMapAction(
   await revalidateMap(team.slug, mapId);
   revalidatePath(`/${team.slug}/${map.slug}`);
   revalidatePath(`/${team.slug}/${slug}`);
-  return { ok: true };
-}
-
-/** Persist the current rotation as the map's default orientation. */
-export async function setMapBearingAction(
-  mapId: string,
-  bearing: number,
-): Promise<ActionState> {
-  const map = await prisma.eventMap.findUnique({ where: { id: mapId } });
-  if (!map) return { ok: false, error: "Map not found" };
-  const { team } = await requireAdmin(map.teamId);
-
-  if (!Number.isFinite(bearing)) {
-    return { ok: false, error: "Invalid angle" };
-  }
-  const normalized = ((bearing % 360) + 360) % 360;
-
-  await prisma.eventMap.update({
-    where: { id: mapId },
-    data: { bearing: normalized },
-  });
-
-  await revalidateMap(team.slug, mapId, map.slug);
   return { ok: true };
 }
 

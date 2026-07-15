@@ -20,6 +20,15 @@ export function AuthForm({
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") ?? "/dashboard";
 
+  // In-memory auth (AUTH_STORAGE=memory) is wiped on every dev server restart,
+  // so the "remember me" cookie can't survive a reboot and you'd have to retype
+  // the seeded creds each time. Prefill them in development to make sign-in a
+  // single click. Dead-code-eliminated from production builds.
+  const devDefaults =
+    process.env.NODE_ENV === "development" && mode === "sign-in"
+      ? { email: "admin@test.com", password: "password" }
+      : null;
+
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -112,6 +121,7 @@ export function AuthForm({
             name="email"
             type="email"
             required
+            defaultValue={devDefaults?.email}
             // "username" is the token password managers key on for the
             // save/autofill prompt — "email" alone is often ignored.
             autoComplete="username"
@@ -126,6 +136,7 @@ export function AuthForm({
             type="password"
             required
             minLength={8}
+            defaultValue={devDefaults?.password}
             autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
             className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
           />
