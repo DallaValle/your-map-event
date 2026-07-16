@@ -45,3 +45,7 @@ next-env.d.ts
 public/sw.js
 public/sw.js.map
 public/swe-worker*.js
+
+# playwright
+/test-results/
+/playwright-report/

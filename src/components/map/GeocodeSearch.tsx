@@ -112,7 +112,7 @@ export function GeocodeSearch({
       )}
 
       {results && (
-        <ul className="overflow-hidden rounded-xl border border-black/10 dark:border-white/15">
+        <ul className="overflow-hidden rounded-xl border border-black/10 bg-white dark:border-white/15 dark:bg-neutral-900">
           {results.length === 0 ? (
             <li className="px-4 py-3 text-sm opacity-60">
               No places found — try a more specific search.

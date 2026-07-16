@@ -57,7 +57,7 @@ export default function PublicMap({
   }
 
   return (
-    <div className="relative h-dvh w-full">
+    <div className="relative h-full w-full">
       <LeafletMap
         center={center}
         zoom={zoom}
@@ -75,7 +75,8 @@ export default function PublicMap({
           }}
         />
         <GeolocateControl />
-        <CompassControl />
+        {/* Pushed below the team pill / menu bar overlaying the top edge. */}
+        <CompassControl className="m-3 mt-16" />
       </LeafletMap>
 
       {/* Top bar: team identity + menu. */}

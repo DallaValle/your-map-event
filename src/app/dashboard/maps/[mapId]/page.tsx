@@ -29,6 +29,7 @@ export default async function MapEditorPage({
       pois={map.pois}
       teamSlug={membership.team.slug}
       teamName={membership.team.name}
+      teamLogoUrl={membership.team.logoUrl}
       uploadsEnabled={!!process.env.UPLOADTHING_TOKEN}
     />
   );

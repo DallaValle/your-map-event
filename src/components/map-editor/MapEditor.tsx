@@ -10,6 +10,7 @@ import type { MapFocus } from "@/components/map/EditorMapView";
 import type { MapBounds } from "@/components/map/LeafletMap";
 import type { LatLng, PoiData } from "@/components/map/types";
 import { PoiSheet, type PoiSheetMode } from "./PoiSheet";
+import { PhonePreview } from "./PhonePreview";
 import { ShareCard } from "@/components/share/ShareCard";
 
 export interface EditorMapData {
@@ -51,12 +52,14 @@ export function MapEditor({
   pois,
   teamSlug,
   teamName,
+  teamLogoUrl,
   uploadsEnabled,
 }: {
   map: EditorMapData;
   pois: PoiData[];
   teamSlug: string;
   teamName: string;
+  teamLogoUrl: string | null;
   uploadsEnabled: boolean;
 }) {
   const router = useRouter();
@@ -84,9 +87,16 @@ export function MapEditor({
   );
   const [focus, setFocus] = useState<MapFocus | null>(null);
 
+  // Attendee (iPhone) preview overlay.
+  const [previewOpen, setPreviewOpen] = useState(false);
+
   // --- POI editing state ----------------------------------------------------
   const [sheet, setSheet] = useState<PoiSheetMode | null>(null);
   const [sheetDraft, setSheetDraft] = useState<LatLng | null>(null);
+  // "Placing" arms map taps to drop new points, and STAYS armed after each
+  // one so several points can be added in a row — until "Done" disarms it.
+  // Without it, taps only pan / select, so framing never creates stray points.
+  const [placing, setPlacing] = useState(false);
   const [filter, setFilter] = useState("");
 
   // --- Save engine ----------------------------------------------------------
@@ -160,13 +170,12 @@ export function MapEditor({
   }, [center, zoom, bearing, bounds]);
 
   // --- Map interaction ------------------------------------------------------
-  const mapWrapRef = useRef<HTMLDivElement>(null);
-
+  // The map card is sticky at every breakpoint, so it is always on screen —
+  // no scrollIntoView here. (An earlier version scrolled on every placed
+  // point, which read as "the map moved" even when the view was locked.)
   function openSheet(mode: PoiSheetMode, position: LatLng) {
     setSheet(mode);
     setSheetDraft(position);
-    // Bring the map back into view so tapping to reposition still works.
-    mapWrapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function closeSheet() {
@@ -174,11 +183,21 @@ export function MapEditor({
     setSheetDraft(null);
   }
 
-  // While the POI form is open, map taps MOVE the draft point; otherwise a
-  // tap starts a new point.
+  function togglePlacing() {
+    if (placing) {
+      setPlacing(false);
+      return;
+    }
+    closeSheet();
+    setPlacing(true);
+  }
+
+  // Map taps are intentional-only: they reposition the open draft, or drop a
+  // new point when placement is armed. A bare tap (framing, borders) does
+  // nothing, so nothing is created by accident.
   function handleMapClick(position: LatLng) {
     if (sheet) setSheetDraft(position);
-    else openSheet({ type: "create" }, position);
+    else if (placing) openSheet({ type: "create" }, position);
   }
 
   // --- Publish toggle -------------------------------------------------------
@@ -216,9 +235,10 @@ export function MapEditor({
 
   return (
     <div className="flex flex-col">
-      {/* Sticky top bar: navigation, title, publish, save status */}
-      <header className="sticky top-0 z-[1000] border-b border-black/10 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-neutral-950/95">
-        <div className="flex h-14 items-center gap-2 px-3">
+      {/* Sticky top bar: navigation, title, preview, publish, save status.
+          z sits above the map's Leaflet panes so it always stays in front. */}
+      <header className="sticky top-0 z-[1200] border-b border-black/10 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-neutral-950/95">
+        <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 lg:px-8">
           <Link
             href="/dashboard"
             aria-label="Back to maps"
@@ -238,6 +258,15 @@ export function MapEditor({
           </div>
           <button
             type="button"
+            onClick={() => setPreviewOpen(true)}
+            aria-label="Preview on iPhone"
+            title="Preview on iPhone"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-black/15 text-lg dark:border-white/20"
+          >
+            📱
+          </button>
+          <button
+            type="button"
             onClick={togglePublished}
             disabled={publishPending}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60 ${
@@ -251,15 +280,23 @@ export function MapEditor({
         </div>
       </header>
 
-      {/* On a wide screen: form on the left, map pinned on the right.
-          On a phone: the map sits on top and everything scrolls together. */}
-      <div className="lg:grid lg:grid-cols-[minmax(360px,40%)_1fr]">
-        {/* Map cell (right on desktop, top on mobile) — stretches to the
-            form's height so the inner map can stick while the form scrolls. */}
-        <div className="lg:col-start-2 lg:row-start-1">
+      {/* Desktop: a fixed-height two-pane shell that fills the space between
+          the header and the bottom nav — the page itself never scrolls, only
+          the form pane does, so the map physically cannot move. On a phone:
+          the map card sits on top, sticky while the page scrolls. */}
+      <div className="mx-auto w-full max-w-5xl lg:grid lg:h-[calc(100dvh-9.5rem-1px)] lg:grid-cols-[minmax(360px,30rem)_1fr] lg:gap-12 lg:overflow-hidden lg:px-8">
+        {/* Map pane — a phone-shaped card (same aspect ratio as the attendee
+            preview), so what's framed here is exactly what attendees see.
+            Centred in the fixed pane on desktop. On mobile the whole cell is
+            sticky with an opaque background, so the form scrolls underneath
+            and the map never leaves the screen. */}
+        <div className="px-4 py-3 max-lg:sticky max-lg:top-14 max-lg:z-[900] max-lg:bg-white max-lg:dark:bg-neutral-950 lg:col-start-2 lg:row-start-1 lg:flex lg:h-full lg:min-h-0 lg:items-center lg:justify-center lg:px-0">
           <div
-            ref={mapWrapRef}
-            className="relative h-[52dvh] min-h-[320px] w-full lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]"
+            className={`relative mx-auto aspect-[390/844] h-[58dvh] max-w-full overflow-hidden rounded-2xl border shadow-sm lg:h-full ${
+              bounds
+                ? "border-teal-600/70 ring-2 ring-teal-600/40"
+                : "border-black/10 dark:border-white/15"
+            }`}
           >
             <EditorMapCanvas
           center={{ lat: map.centerLat, lng: map.centerLng }}
@@ -277,17 +314,36 @@ export function MapEditor({
           onZoomChange={(z) => setZoom(clampZoom(z))}
           onBearingChange={(b) => setBearing(((b % 360) + 360) % 360)}
           onCaptureBounds={setBounds}
+          onClearBounds={() => setBounds(null)}
         />
-        {!sheet && (
-          <p className="pointer-events-none absolute inset-x-0 bottom-2 z-[500] mx-auto w-fit rounded-full bg-black/70 px-3 py-1.5 text-center text-[11px] font-medium text-white">
-            Tap the map to add a point
-          </p>
+        {/* Visible borders: while locked the viewport IS the attendee area,
+            so a dashed frame just inside the card edges marks the border. */}
+        {bounds && (
+          <>
+            <div className="pointer-events-none absolute inset-1.5 z-[500] rounded-xl border-2 border-dashed border-teal-500/90" />
+            <span className="pointer-events-none absolute right-3 top-3 z-[500] rounded-full bg-teal-700 px-2.5 py-1 text-[10px] font-semibold text-white shadow">
+              🔒 View locked
+            </span>
+          </>
+        )}
+        {placing && !sheet && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-14 z-[500] mx-auto flex w-fit items-center gap-2 rounded-full bg-black/75 px-3 py-1.5 text-[11px] font-medium text-white">
+            Tap the map to add points — one per tap
+            <button
+              type="button"
+              onClick={() => setPlacing(false)}
+              className="pointer-events-auto rounded-full bg-white/20 px-2 py-0.5 font-semibold"
+            >
+              Done
+            </button>
+          </div>
         )}
           </div>
         </div>
 
-        {/* Stacked settings — one after another, each auto-saved */}
-        <div className="flex flex-col gap-6 px-4 pb-10 pt-5 lg:col-start-1 lg:row-start-1">
+        {/* Stacked settings — one after another, each auto-saved. On desktop
+            this pane scrolls on its own inside the fixed shell. */}
+        <div className="flex flex-col gap-6 px-4 pb-10 pt-5 lg:col-start-1 lg:row-start-1 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-0 lg:py-3 lg:pr-2">
         <section className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium">
             Map name
@@ -337,14 +393,15 @@ export function MapEditor({
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">Event location</h2>
           <GeocodeSearch
+            placeholder="Search event location…"
             onSelect={(result) => {
               setFocus(result.bounds ? { ...result, bounds: result.bounds } : result);
               setCenter({ lat: result.lat, lng: result.lng });
             }}
           />
           <p className="text-xs opacity-60">
-            Search to jump the map, or pan and pinch it above — attendees open
-            the map exactly as you frame it here.
+            Search to jump the map, or pan and pinch it — attendees open the
+            map exactly as you frame it.
           </p>
 
           <label className="flex flex-col gap-1 text-sm font-medium">
@@ -365,39 +422,45 @@ export function MapEditor({
               min={ZOOM_MIN}
               max={ZOOM_MAX}
               value={clampZoom(zoom)}
+              disabled={!!bounds}
               onChange={(e) => {
                 const value = Number(e.target.value);
                 setZoom(value);
                 setFocus({ lat: center.lat, lng: center.lng, zoom: value });
               }}
-              className="accent-teal-700"
+              className="accent-teal-700 disabled:opacity-40"
             />
             <span className="text-xs opacity-60">
-              How close the map starts for attendees — previewed live above.
+              {bounds
+                ? "Zoom is frozen while the view is locked — unlock to change it."
+                : "How close the map starts for attendees — previewed live on the map."}
             </span>
           </label>
         </section>
 
-        {/* Borders: drawn on the map, summarised here. */}
+        {/* View lock: freezing the phone-shaped view captures borders,
+            orientation and zoom in one go. */}
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Map borders</h2>
+          <h2 className="text-sm font-semibold">Attendee view lock</h2>
           {bounds ? (
             <div className="flex items-center justify-between gap-2 rounded-xl bg-teal-700/10 px-4 py-3 text-sm">
               <span className="text-teal-700 dark:text-teal-400">
-                ✓ Borders set — drag the corner handles on the map to adjust
+                🔒 Locked — borders, orientation and zoom are frozen to the
+                framed view. Attendees can’t pan outside it.
               </span>
               <button
                 type="button"
                 onClick={() => setBounds(null)}
                 className="shrink-0 font-semibold text-red-600 dark:text-red-400"
               >
-                Clear
+                Unlock
               </button>
             </div>
           ) : (
             <p className="rounded-xl border border-dashed border-black/20 px-4 py-3 text-sm opacity-70 dark:border-white/25">
-              No borders — attendees can pan freely. Frame the area on the map,
-              then tap <strong>“Use current view as borders”</strong>.
+              Unlocked — attendees can pan freely. Frame the event in the
+              phone-shaped map, then tap{" "}
+              <strong>“Lock this view for attendees”</strong>.
             </p>
           )}
         </section>
@@ -408,10 +471,14 @@ export function MapEditor({
             <h2 className="text-sm font-semibold">Points of interest ({pois.length})</h2>
             <button
               type="button"
-              onClick={() => openSheet({ type: "create" }, center)}
-              className="rounded-full bg-teal-700 px-4 py-2 text-sm font-semibold text-white active:scale-[.98]"
+              onClick={togglePlacing}
+              className={`rounded-full px-4 py-2 text-sm font-semibold active:scale-[.98] ${
+                placing
+                  ? "bg-teal-700/15 text-teal-700 dark:text-teal-400"
+                  : "bg-teal-700 text-white"
+              }`}
             >
-              + Add point
+              {placing ? "✓ Done adding" : "+ Add points"}
             </button>
           </div>
 
@@ -427,7 +494,7 @@ export function MapEditor({
 
           {pois.length === 0 ? (
             <p className="rounded-xl border border-dashed border-black/20 px-4 py-8 text-center text-sm opacity-60 dark:border-white/25">
-              No points yet — tap anywhere on the map to add one.
+              No points yet — tap “+ Add points”, then tap the map once per point.
             </p>
           ) : (
             <ul className="divide-y divide-black/10 rounded-2xl border border-black/10 dark:divide-white/15 dark:border-white/15">
@@ -493,6 +560,20 @@ export function MapEditor({
         </button>
         </div>
       </div>
+
+      {/* Attendee preview inside an iPhone frame — mirrors the current
+          (possibly unsaved) framing, borders and points. */}
+      {previewOpen && (
+        <PhonePreview
+          center={center}
+          zoom={zoom}
+          bearing={bearing}
+          pois={pois}
+          bounds={bounds}
+          team={{ name: teamName, logoUrl: teamLogoUrl }}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
 
       {/* POI form: floating bottom sheet; the map stays interactive above it
           and taps reposition the draft point while it's open. */}

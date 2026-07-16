@@ -8,7 +8,12 @@ import { useMapControlRef } from "./control-utils";
  * Compass for rotatable maps: the needle mirrors the current bearing and a
  * tap animates the map back to north. Hidden while already facing north.
  */
-export function CompassControl() {
+export function CompassControl({
+  className = "m-3",
+}: {
+  /** Margin classes — lets host screens clear their own top overlays. */
+  className?: string;
+}) {
   const map = useMap();
   const controlRef = useMapControlRef();
   const [bearing, setBearing] = useState(0);
@@ -25,7 +30,7 @@ export function CompassControl() {
 
   return (
     <div className="leaflet-top leaflet-right">
-      <div ref={controlRef} className="leaflet-control m-3">
+      <div ref={controlRef} className={`leaflet-control ${className}`}>
         <button
           type="button"
           aria-label="Reset map to north"
