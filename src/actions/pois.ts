@@ -29,14 +29,14 @@ function parsePoiForm(formData: FormData) {
 
 /** Resolve the POI's map and verify the caller administers its team. */
 async function requirePoiAdmin(mapId: string) {
-  const map = await prisma.eventMap.findUnique({ where: { id: mapId } });
+  const map = await prisma.event.findUnique({ where: { id: mapId } });
   if (!map) throw new Error("Map not found");
   const { team } = await requireAdmin(map.teamId);
   return { map, team };
 }
 
 function revalidatePoi(teamSlug: string, mapId: string, mapSlug: string) {
-  revalidatePath(`/dashboard/maps/${mapId}`);
+  revalidatePath(`/dashboard/events/${mapId}`);
   revalidatePath(`/${teamSlug}`);
   revalidatePath(`/${teamSlug}/${mapSlug}`);
 }

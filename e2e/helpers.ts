@@ -12,10 +12,10 @@ export async function signIn(page: Page) {
 /** Opens the first map of the seeded team in the editor. */
 export async function openFirstMapEditor(page: Page) {
   await signIn(page);
-  const mapLink = page.locator('a[href^="/dashboard/maps/"]:not([href$="/new"])').first();
+  const mapLink = page.locator('a[href^="/dashboard/events/"]:not([href$="/new"])').first();
   await expect(mapLink).toBeVisible();
   await mapLink.click();
-  await page.waitForURL("**/dashboard/maps/**");
+  await page.waitForURL("**/dashboard/events/**");
   // The Leaflet canvas mounts client-side — wait for real tiles.
   await expect(page.locator(".leaflet-container")).toBeVisible();
   await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible({

@@ -1,6 +1,10 @@
-import { requireSession, getMyTeam, isAdminRole } from "@/lib/session";
-import { BottomNav } from "@/components/nav/BottomNav";
+import { requireSession } from "@/lib/session";
 
+/**
+ * Auth gate for the whole dashboard. Visual chrome (header, section nav,
+ * footer) lives in the `(console)` group layout, so the full-screen event
+ * editor under `/dashboard/events/[eventId]` can stay immersive.
+ */
 export default async function DashboardLayout({
   children,
 }: {
@@ -8,15 +12,5 @@ export default async function DashboardLayout({
 }) {
   // Middleware only checks cookie presence; this is the real session check.
   await requireSession();
-  const membership = await getMyTeam();
-
-  return (
-    <div className="min-h-dvh w-full pb-24">
-      {children}
-      <BottomNav
-        teamSlug={membership?.team.slug}
-        isAdmin={isAdminRole(membership?.role)}
-      />
-    </div>
-  );
+  return <>{children}</>;
 }

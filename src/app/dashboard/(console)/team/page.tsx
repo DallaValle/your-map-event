@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { TeamProfileForm } from "@/components/team/TeamProfileForm";
+import { InviteMemberForm } from "@/components/team/InviteMemberForm";
+import { InvitationActions } from "@/components/team/InvitationActions";
 
 export const metadata: Metadata = { title: "Team" };
 
@@ -21,10 +23,15 @@ export default async function TeamPage() {
     })
     .catch(() => null);
 
+  const now = Date.now();
+  const pendingInvites = (org?.invitations ?? []).filter(
+    (invite) => invite.status === "pending" && new Date(invite.expiresAt).getTime() > now,
+  );
+
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-col gap-8 px-5 py-8">
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">Team settings</h1>
+        <h1 className="text-2xl font-bold">Team</h1>
         <p className="text-sm opacity-70">
           Your logo and name appear on the public map page.
         </p>
@@ -34,6 +41,35 @@ export default async function TeamPage() {
         team={team}
         uploadsEnabled={!!process.env.UPLOADTHING_TOKEN}
       />
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
+            Invite a teammate
+          </h2>
+          <p className="mt-0.5 text-sm opacity-60">
+            Admins can edit events, maps and points; viewers can only open
+            published events.
+          </p>
+        </div>
+        <InviteMemberForm orgId={team.orgId} />
+
+        {pendingInvites.length > 0 && (
+          <ul className="divide-y divide-black/10 rounded-2xl border border-black/10 dark:divide-white/15 dark:border-white/15">
+            {pendingInvites.map((invite) => (
+              <li key={invite.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{invite.email}</p>
+                  <p className="truncate text-xs opacity-60">
+                    Invited as {isAdminRole(invite.role) ? "Admin" : "Viewer"} · pending
+                  </p>
+                </div>
+                <InvitationActions invitationId={invite.id} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
@@ -52,9 +88,6 @@ export default async function TeamPage() {
             </li>
           ))}
         </ul>
-        <p className="text-xs opacity-60">
-          Admins can edit maps and points; viewers can only open published maps.
-        </p>
       </section>
     </main>
   );

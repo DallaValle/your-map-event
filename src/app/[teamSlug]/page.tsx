@@ -11,7 +11,7 @@ async function getTeamWithPublishedMaps(teamSlug: string) {
   return prisma.team.findUnique({
     where: { slug: teamSlug },
     include: {
-      maps: {
+      events: {
         where: { published: true },
         orderBy: { updatedAt: "desc" },
         include: { _count: { select: { pois: true } } },
@@ -40,8 +40,8 @@ export default async function TeamPage({ params }: PageProps) {
   const team = await getTeamWithPublishedMaps(teamSlug);
   if (!team) notFound();
 
-  if (team.maps.length === 1) {
-    redirect(`/${team.slug}/${team.maps[0].slug}`);
+  if (team.events.length === 1) {
+    redirect(`/${team.slug}/${team.events[0].slug}`);
   }
 
   return (
@@ -56,13 +56,13 @@ export default async function TeamPage({ params }: PageProps) {
         <h1 className="text-2xl font-bold">{team.name}</h1>
       </header>
 
-      {team.maps.length === 0 ? (
+      {team.events.length === 0 ? (
         <p className="rounded-xl border border-dashed border-black/20 px-4 py-10 text-center text-sm opacity-60 dark:border-white/25">
           No published event map yet — check back closer to the event.
         </p>
       ) : (
         <ul className="space-y-3">
-          {team.maps.map((map) => (
+          {team.events.map((map) => (
             <li key={map.id}>
               <Link
                 href={`/${team.slug}/${map.slug}`}

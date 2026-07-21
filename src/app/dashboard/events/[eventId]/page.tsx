@@ -4,20 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { MapEditor } from "@/components/map-editor/MapEditor";
 
-export const metadata: Metadata = { title: "Edit map" };
+export const metadata: Metadata = { title: "Edit event" };
 
-export default async function MapEditorPage({
+export default async function EventEditorPage({
   params,
 }: {
-  params: Promise<{ mapId: string }>;
+  params: Promise<{ eventId: string }>;
 }) {
-  const { mapId } = await params;
+  const { eventId } = await params;
 
   const membership = await getMyTeam();
   if (!membership || !isAdminRole(membership.role)) redirect("/dashboard");
 
-  const map = await prisma.eventMap.findUnique({
-    where: { id: mapId },
+  const map = await prisma.event.findUnique({
+    where: { id: eventId },
     include: { pois: { orderBy: { createdAt: "asc" } } },
   });
   // Admins can only edit their own team's maps.

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { setMapPublishedAction, updateMapAction, deleteMapAction } from "@/actions/maps";
+import { setMapPublishedAction, updateMapViewAction } from "@/actions/maps";
 import { EditorMapCanvas } from "@/components/map/MapCanvas";
 import { GeocodeSearch } from "@/components/map/GeocodeSearch";
 import type { MapFocus } from "@/components/map/EditorMapView";
@@ -64,10 +64,9 @@ export function MapEditor({
 }) {
   const router = useRouter();
 
-  // --- Settings state (all controlled so we can snapshot + auto-save) -------
-  const [name, setName] = useState(map.name);
-  const [slug, setSlug] = useState(map.slug);
-  const [description, setDescription] = useState(map.description ?? "");
+  // --- Map view state (all controlled so we can snapshot + auto-save) -------
+  // Basic event info (name, address, description) is edited on the dashboard's
+  // Event page — the editor only touches the map.
   const [centerName, setCenterName] = useState(map.centerName);
   const [center, setCenter] = useState<LatLng>({
     lat: map.centerLat,
@@ -106,9 +105,6 @@ export function MapEditor({
 
   function snapshot() {
     return {
-      name,
-      slug,
-      description,
       centerName,
       centerLat: center.lat,
       centerLng: center.lng,
@@ -131,9 +127,6 @@ export function MapEditor({
     if (json === savedRef.current) return;
 
     const fd = new FormData();
-    fd.set("name", snap.name);
-    fd.set("slug", snap.slug);
-    fd.set("description", snap.description);
     fd.set("centerName", snap.centerName);
     fd.set("centerLat", String(snap.centerLat));
     fd.set("centerLng", String(snap.centerLng));
@@ -146,7 +139,7 @@ export function MapEditor({
 
     const seq = ++saveSeq.current;
     setSaveStatus("saving");
-    const result = await updateMapAction(map.id, null, fd);
+    const result = await updateMapViewAction(map.id, null, fd);
     if (seq !== saveSeq.current) return; // superseded by a newer save
     if (result?.ok) {
       savedRef.current = json;
@@ -209,17 +202,6 @@ export function MapEditor({
     });
   }
 
-  // --- Delete ---------------------------------------------------------------
-  const [deletePending, startDelete] = useTransition();
-  function handleDelete() {
-    if (!confirm(`Delete the map "${map.name}" and all its points? This cannot be undone.`)) {
-      return;
-    }
-    startDelete(async () => {
-      await deleteMapAction(map.id); // redirects to /dashboard on success
-    });
-  }
-
   const filtered = filter.trim()
     ? pois.filter((poi) =>
         poi.title.toLowerCase().includes(filter.trim().toLowerCase()),
@@ -241,19 +223,19 @@ export function MapEditor({
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 lg:px-8">
           <Link
             href="/dashboard"
-            aria-label="Back to maps"
+            aria-label="Back to event"
             className="flex size-10 shrink-0 items-center justify-center rounded-full bg-black/5 text-lg dark:bg-white/10"
           >
             ←
           </Link>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold leading-tight">{name || "Untitled map"}</p>
+            <p className="truncate text-sm font-bold leading-tight">{map.name || "Untitled event"}</p>
             <p
               className={`truncate text-[11px] leading-tight ${
                 saveStatus === "error" ? "text-red-600 dark:text-red-400" : "opacity-60"
               }`}
             >
-              {statusLabel[saveStatus] || `/${teamSlug}/${slug}`}
+              {statusLabel[saveStatus] || `/${teamSlug}/${map.slug}`}
             </p>
           </div>
           <button
@@ -280,11 +262,11 @@ export function MapEditor({
         </div>
       </header>
 
-      {/* Desktop: a fixed-height two-pane shell that fills the space between
-          the header and the bottom nav — the page itself never scrolls, only
-          the form pane does, so the map physically cannot move. On a phone:
-          the map card sits on top, sticky while the page scrolls. */}
-      <div className="mx-auto w-full max-w-5xl lg:grid lg:h-[calc(100dvh-9.5rem-1px)] lg:grid-cols-[minmax(360px,30rem)_1fr] lg:gap-12 lg:overflow-hidden lg:px-8">
+      {/* Desktop: a fixed-height two-pane shell that fills the space below the
+          editor's own header (3.5rem + 1px border) — the page itself never
+          scrolls, only the form pane does, so the map physically cannot move.
+          On a phone: the map card sits on top, sticky while the page scrolls. */}
+      <div className="mx-auto w-full max-w-5xl lg:grid lg:h-[calc(100dvh-3.5rem-1px)] lg:grid-cols-[minmax(360px,30rem)_1fr] lg:gap-12 lg:overflow-hidden lg:px-8">
         {/* Map pane — a phone-shaped card (same aspect ratio as the attendee
             preview), so what's framed here is exactly what attendees see.
             Centred in the fixed pane on desktop. On mobile the whole cell is
@@ -344,50 +326,6 @@ export function MapEditor({
         {/* Stacked settings — one after another, each auto-saved. On desktop
             this pane scrolls on its own inside the fixed shell. */}
         <div className="flex flex-col gap-6 px-4 pb-10 pt-5 lg:col-start-1 lg:row-start-1 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-0 lg:py-3 lg:pr-2">
-        <section className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Map name
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onBlur={saveNow}
-              required
-              minLength={2}
-              className={inputClass}
-            />
-          </label>
-
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Map address
-            <div className="flex items-center gap-1 rounded-xl border border-black/15 px-4 py-3 dark:border-white/20 dark:bg-white/5">
-              <span className="opacity-50">…/</span>
-              <input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                onBlur={saveNow}
-                required
-                pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                className="w-full bg-transparent text-base outline-none"
-              />
-            </div>
-            <span className="text-xs opacity-60">
-              Part of the public link — changing it breaks shared links and QR codes.
-            </span>
-          </label>
-
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Description
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onBlur={saveNow}
-              rows={2}
-              maxLength={500}
-              className={inputClass}
-            />
-          </label>
-        </section>
-
         {/* Event location: search flies the map; panning the map sets the
             attendees' default view. */}
         <section className="flex flex-col gap-3">
@@ -544,20 +482,11 @@ export function MapEditor({
             </Link>
           )}
           <ShareCard
-            path={`${teamSlug}/${slug}`}
+            path={`${teamSlug}/${map.slug}`}
             teamName={teamName}
             published={map.published}
           />
         </section>
-
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={deletePending}
-          className="mt-2 rounded-xl border border-red-300 px-6 py-3.5 font-semibold text-red-600 disabled:opacity-60 dark:border-red-900 dark:text-red-400"
-        >
-          {deletePending ? "Deleting…" : "Delete this map"}
-        </button>
         </div>
       </div>
 

@@ -10,7 +10,7 @@ interface PageProps {
 async function getPublicMap(teamSlug: string, mapSlug: string) {
   const team = await prisma.team.findUnique({ where: { slug: teamSlug } });
   if (!team) return null;
-  const map = await prisma.eventMap.findUnique({
+  const map = await prisma.event.findUnique({
     where: { teamId_slug: { teamId: team.id, slug: mapSlug } },
     include: { pois: { orderBy: { createdAt: "asc" } } },
   });

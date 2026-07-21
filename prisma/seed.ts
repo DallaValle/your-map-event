@@ -32,10 +32,10 @@ async function main() {
     },
   });
 
-  let map = await prisma.eventMap.findFirst({
+  let map = await prisma.event.findFirst({
     where: { teamId: team.id, name: "Lakeside Festival 2026" },
   });
-  map ??= await prisma.eventMap.create({
+  map ??= await prisma.event.create({
     data: {
       teamId: team.id,
       name: "Lakeside Festival 2026",

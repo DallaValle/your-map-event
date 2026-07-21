@@ -18,17 +18,24 @@ datasource db {
 // AUTH_STORAGE), so Postgres can't enforce the relation.
 
 model Team {
-  id        String     @id @default(cuid())
-  orgId     String     @unique
-  slug      String     @unique
+  id        String   @id @default(cuid())
+  orgId     String   @unique
+  slug      String   @unique
   name      String
   logoUrl   String?
-  maps      EventMap[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  events    Event[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model EventMap {
+// An Event is the top-level unit a team manages. It owns exactly one map
+// (center/zoom/bearing/borders live inline, 1:1) plus everything attached to
+// the event (points of interest today; notifications, board, campaign later).
+//
+// Stored in the legacy `EventMap` table via @@map: the table predates the
+// rename, and keeping the mapping makes the rename a code-only change with no
+// destructive migration. Code always uses `prisma.event`.
+model Event {
   id          String            @id @default(cuid())
   teamId      String
   team        Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -56,12 +63,15 @@ model EventMap {
 
   @@unique([teamId, slug])
   @@index([teamId])
+  @@map("EventMap")
 }
 
 model PointOfInterest {
   id          String   @id @default(cuid())
+  // FK column stays `mapId` (the table predates the Event rename); the
+  // relation navigates to the owning Event.
   mapId       String
-  map         EventMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  event       Event    @relation(fields: [mapId], references: [id], onDelete: Cascade)
   title       String
   description String?
   imageUrl    String?

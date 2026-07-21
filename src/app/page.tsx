@@ -9,7 +9,7 @@ export default async function LandingPage() {
 
   // Surface a few published teams so visitors can jump straight to a map.
   const teams = await prisma.team.findMany({
-    where: { maps: { some: { published: true } } },
+    where: { events: { some: { published: true } } },
     orderBy: { updatedAt: "desc" },
     take: 5,
   });

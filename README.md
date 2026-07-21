@@ -1,49 +1,112 @@
 # Your Map Event
 
-Mobile-first PWA for interactive event maps. Teams build a map of their event
-(central location + points of interest with photos), publish it, and attendees
-open `https://your-domain/<team-slug>` on their phone to see the map, search
-points of interest, and track their own live position.
+**A desktop web app for running live events in cities.** A team creates an
+event, curates its interactive map (central location + points of interest with
+photos), and publishes it. Attendees open `https://your-domain/<team-slug>` on
+their phone to see the map, browse points of interest, and track their own live
+position. The organizer works from a desktop dashboard; attendees get a
+mobile-first PWA. One event, one map, one link.
 
-## The business — user flow
+## What you manage
+
+The dashboard is the operations console for a live event, and it operates on
+**one selected event at a time**. The management chrome is constant on every
+screen: a slim **header** (the `your map event` wordmark top-left, sign in /
+sign out top-right), a **footer** with the same wordmark, and a **left
+sidebar**. At the top of the sidebar sits the **event switcher** - a compact
+dropdown to change the selected event (rare, but a team may run two events or
+keep a draft next to the live edition) and to create a new one. Below it, the
+selected event's sections, then the workspace pages:
+
+| Section | What it's for |
+|---|---|
+| **Event** | The selected event's home: basic info (name, public address, description), publish toggle, share tools, and the door into the map editor. Built today. |
+| **Notifications** | Broadcast live announcements to attendees during the event (schedule changes, weather, "gates closing in 10 min"). *Planned.* |
+| **Board** | A shared program / agenda board - line-ups, session times, the running order the whole team edits together. *Planned.* |
+| **Social campaign** | Plan and schedule the event's social posts, and generate share assets (QR codes, cards) from the published map. *Planned.* |
+| **History** | Post-event archive and analytics - attendance, most-visited points of interest, past editions. *Planned.* |
+| **Team** | Team profile (name, logo, public address) and collaboration: invite teammates by email as Admin or Viewer via a shareable invite link. Admins only. Built today. |
+| **Settings** | Personal user settings. *Planned.* |
+
+The planned sections are placeholders for now: each renders a short
+description of what will live there, so the shape of the product is visible
+before the features exist.
+
+Two screens intentionally escape the console chrome: the **map editor** (a
+full-screen immersive surface with its own header) and the **new event** flow.
+
+## The business - user flow
 
 **Who it's for:** anyone running a physical event on a site attendees don't
-know by heart — festivals, fairs, conferences, sports events, campuses. The
-organizer curates one interactive map; attendees need nothing but the link.
+know by heart - festivals, fairs, conferences, sports events, campuses. The
+organizer curates one interactive map per event; attendees need nothing but the
+link.
 
 ### 1. Organizer (Admin) sets up
 
-1. **Sign up & create a team** — the team gets a public address
+1. **Sign up & create a team** - the team gets a public address
    (`/your-team-slug`) and a profile (name + logo) shown on the map.
-2. **Create an event map** — search for the venue by name/address
-   (OpenStreetMap search), tap the map to pin the exact event center, and
-   name it (e.g. "Landiwiese, Zürich").
-3. **Frame the map** — optionally capture the current view as the map's
+2. **Create an event** - search for the venue by name/address (OpenStreetMap
+   search), click the map to pin the exact event center, and name it (e.g.
+   "Landiwiese, Zürich"). The event owns this map and all the information
+   attached to it.
+3. **Frame the map** - optionally capture the current view as the map's
    *borders* (fine-tuned by dragging corner handles): attendees can't pan
    outside the event area. Rotate the map and save the angle so "up" matches
    the venue layout.
-4. **Add points of interest** — tap anywhere on the full-screen editor map to
-   drop a point (or use the ＋ button to type exact coordinates). Each point
-   has a title, optional description and photo. Everything is editable and
-   deletable from the map or the points list.
-5. **Publish** — one tap flips the map live at `/your-team-slug`.
+4. **Add points of interest** - click anywhere on the editor map to drop a
+   point (or use the ＋ button to type exact coordinates). Each point has a
+   title, optional description and photo. Everything is editable and deletable
+   from the map or the points list.
+5. **Publish** - one click flips the event's map live at `/your-team-slug`.
 
 ### 2. Team members (Viewers)
 
-Invited teammates with the Viewer role can sign in and see the published
-maps exactly as attendees do — but can't change anything. Only Admins edit.
+Invited teammates with the Viewer role can sign in and see the published events
+exactly as attendees do - but can't change anything. Only Admins edit.
 
 ### 3. Attendees (no account)
 
-1. Open `https://your-domain/your-team-slug` on their phone — during the
+1. Open `https://your-domain/your-team-slug` on their phone - during the
    event typically via a QR code on posters/badges.
 2. See the full-screen event map with all points of interest (clustered when
-   dense), the team's branding, and — after accepting the browser prompt —
+   dense), the team's branding, and, after accepting the browser prompt,
    their **own live position** with an accuracy circle.
 3. Tap the always-visible **points list** to browse everything; picking a
    point flies the map there and opens its details (photo + description).
 4. Install it as an app (PWA) if they like; map areas they've viewed keep
    working even when the venue Wi-Fi drops.
+
+## Data model
+
+The core relation is deliberately simple:
+
+```
+Team ──< Event ──< PointOfInterest
+             │
+             └── one map (center, zoom, bearing, viewing borders) inlined on the event
+```
+
+- A **Team** is the public-facing profile of a Better Auth organization (name,
+  logo, `/team-slug`). It owns many events.
+- An **Event** is the top-level unit of work. It owns exactly **one map** - the
+  map fields (center, zoom, bearing, optional borders) live directly on the
+  event row, since it's a 1:1 relationship - plus all the information attached
+  to the event (points of interest today; notifications, board, campaign
+  later). Publishing an event puts its map online.
+- A **PointOfInterest** belongs to one event.
+
+> Implementation note: the `Event` model is stored in the `EventMap` table
+> (`@@map`) - the table predates the rename and the mapping keeps the migration
+> non-destructive. Code always talks to `prisma.event`.
+
+## Business model
+
+**Pay per event.** Creating a team and exploring the dashboard is free;
+publishing an event's map to a public link is the paid action (billed per
+published event, with future tiers for attendee volume or add-on sections like
+notifications and social campaigns). Nothing is wired to a payment provider
+yet - this section records the intended model.
 
 ## Stack
 
@@ -94,7 +157,7 @@ The dev accounts are re-created on every server start by
   2. `npx prisma migrate dev --name auth`
   3. Set `AUTH_STORAGE="postgres"` and restart.
 
-App data (teams, maps, POIs) always lives in Postgres; `Team.orgId` is a plain
+App data (teams, events, POIs) always lives in Postgres; `Team.orgId` is a plain
 string reference to the Better Auth organization (no DB-level foreign key, so
 the two storages can be switched independently).
 
@@ -102,8 +165,8 @@ the two storages can be switched independently).
 
 | | Admin (`owner`/`admin`) | Viewer (`member`) |
 |---|---|---|
-| Open published maps | ✅ | ✅ |
-| Create/edit maps & POIs | ✅ | ❌ |
+| Open published events | ✅ | ✅ |
+| Create/edit events, maps & POIs | ✅ | ❌ |
 | Team profile, logo, slug | ✅ | ❌ |
 
 Enforcement is layered: `src/middleware.ts` only checks cookie *presence*
@@ -208,7 +271,7 @@ Custom domains per team: point the domain at Vercel and rewrite to
 src/
 ├── app/
 │   ├── [teamSlug]/          # public attendee map (SEO via generateMetadata)
-│   ├── dashboard/           # admin/viewer area (maps list, editor, team)
+│   ├── dashboard/           # admin/viewer console (events + sections, editor, team)
 │   ├── (auth)/              # sign-in / sign-up
 │   ├── api/auth/[...all]/   # Better Auth handler
 │   ├── api/uploadthing/     # upload routes
