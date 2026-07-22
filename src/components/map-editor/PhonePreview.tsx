@@ -68,28 +68,34 @@ export function PhonePreview({
       >
         {/* Dynamic Island */}
         <div className="pointer-events-none absolute left-1/2 top-2 z-[10] h-6 w-24 -translate-x-1/2 rounded-full bg-black" />
-        {/* Screen */}
-        <div className="h-full w-full overflow-hidden rounded-[2.15rem] bg-neutral-100 dark:bg-neutral-900">
-          {published ? (
-            version ? (
-              <iframe
-                key={src}
-                src={src}
-                title="Attendee preview"
-                className="h-full w-full border-0"
-              />
-            ) : null
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-              <span className="text-4xl" aria-hidden>
-                🚧
-              </span>
-              <p className="font-semibold">Not published yet</p>
-              <p className="text-sm opacity-60">
-                Publish the event to preview its live attendee page here.
-              </p>
-            </div>
-          )}
+        {/* Screen. The live page has no notch awareness, so simulated status-bar
+            and home-indicator strips keep its top bar clear of the Dynamic
+            Island and its bottom bar clear of the rounded corners. */}
+        <div className="flex h-full w-full flex-col overflow-hidden rounded-[2.15rem] bg-neutral-900">
+          <div className="h-8 shrink-0" aria-hidden />
+          <div className="min-h-0 flex-1 bg-neutral-100 dark:bg-neutral-900">
+            {published ? (
+              version ? (
+                <iframe
+                  key={src}
+                  src={src}
+                  title="Attendee preview"
+                  className="h-full w-full border-0"
+                />
+              ) : null
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+                <span className="text-4xl" aria-hidden>
+                  🚧
+                </span>
+                <p className="font-semibold">Not published yet</p>
+                <p className="text-sm opacity-60">
+                  Publish the event to preview its live attendee page here.
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="h-5 shrink-0" aria-hidden />
         </div>
       </div>
     </div>
