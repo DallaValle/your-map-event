@@ -1,35 +1,29 @@
 "use client";
 
-import { useEffect } from "react";
-import { PublicMapCanvas } from "@/components/map/MapCanvas";
-import type { MapBounds } from "@/components/map/LeafletMap";
-import type { LatLng, PoiData } from "@/components/map/types";
+import { useEffect, useState } from "react";
 
 /**
- * Full-screen modal that drops the live attendee view inside an iPhone
- * frame, so an admin can see exactly how the map will look on a phone
- * without publishing or leaving the editor. It renders the real
- * PublicMap with the editor's current (possibly unsaved) framing.
+ * Full-screen modal that embeds the real attendee page inside an iPhone frame,
+ * so an admin sees exactly what visitors get - the live route itself, in an
+ * iframe, not a re-render. Only the published page is reachable; a draft has no
+ * live page yet, so we prompt to publish instead.
  */
 export function PhonePreview({
-  center,
-  zoom,
-  bearing,
-  pois,
-  bounds,
-  team,
-  eventName,
+  liveUrl,
+  published,
   onClose,
 }: {
-  center: LatLng;
-  zoom: number;
-  bearing: number;
-  pois: PoiData[];
-  bounds: MapBounds | null;
-  team: { name: string; logoUrl: string | null };
-  eventName: string;
+  liveUrl: string;
+  published: boolean;
   onClose: () => void;
 }) {
+  // Cache-bust so the iframe always loads the latest saved state (the editor
+  // auto-saves before this opens). Set on mount - client-only, no SSR.
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    setVersion(Date.now());
+  }, []);
+
   // Close on Escape; lock body scroll while open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -43,6 +37,8 @@ export function PhonePreview({
       document.body.style.overflow = prev;
     };
   }, [onClose]);
+
+  const src = version ? `${liveUrl}?preview=${version}` : liveUrl;
 
   return (
     <div
@@ -62,29 +58,38 @@ export function PhonePreview({
       </button>
 
       <p className="text-sm font-medium text-white/80">
-        How attendees will see it on their phone
+        The live attendee page, exactly as visitors see it
       </p>
 
       {/* iPhone frame. Tapping inside must not bubble up and close the modal. */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative aspect-[390/844] h-[min(80dvh,760px)] rounded-[3rem] border-[11px] border-neutral-800 bg-neutral-800 shadow-2xl ring-1 ring-black/40"
+        className="relative aspect-[390/844] h-[min(88dvh,880px)] rounded-[3rem] border-[11px] border-neutral-800 bg-neutral-800 shadow-2xl ring-1 ring-black/40"
       >
         {/* Dynamic Island */}
         <div className="pointer-events-none absolute left-1/2 top-2 z-[10] h-6 w-24 -translate-x-1/2 rounded-full bg-black" />
         {/* Screen */}
         <div className="h-full w-full overflow-hidden rounded-[2.15rem] bg-neutral-100 dark:bg-neutral-900">
-          <PublicMapCanvas
-            center={center}
-            zoom={zoom}
-            bearing={bearing}
-            pois={pois}
-            maxBounds={bounds}
-            team={team}
-            eventName={eventName}
-            // Clear the frame's Dynamic Island (top) and rounded corners (bottom).
-            chromeInsets={{ top: 2, bottom: 0.5 }}
-          />
+          {published ? (
+            version ? (
+              <iframe
+                key={src}
+                src={src}
+                title="Attendee preview"
+                className="h-full w-full border-0"
+              />
+            ) : null
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+              <span className="text-4xl" aria-hidden>
+                🚧
+              </span>
+              <p className="font-semibold">Not published yet</p>
+              <p className="text-sm opacity-60">
+                Publish the event to preview its live attendee page here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -33,7 +33,7 @@ export function PublishToggle({
           : "border border-black/15 dark:border-white/20"
       }`}
     >
-      {pending ? "…" : published ? "Live ✓ — Unpublish" : "Publish"}
+      {pending ? "…" : published ? "Live ✓ - Unpublish" : "Publish"}
     </button>
   );
 }

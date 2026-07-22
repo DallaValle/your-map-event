@@ -52,14 +52,12 @@ export function MapEditor({
   pois,
   teamSlug,
   teamName,
-  teamLogoUrl,
   uploadsEnabled,
 }: {
   map: EditorMapData;
   pois: PoiData[];
   teamSlug: string;
   teamName: string;
-  teamLogoUrl: string | null;
   uploadsEnabled: boolean;
 }) {
   const router = useRouter();
@@ -216,18 +214,11 @@ export function MapEditor({
   };
 
   return (
-    <div className="flex flex-col">
-      {/* Sticky top bar: navigation, title, preview, publish, save status.
-          z sits above the map's Leaflet panes so it always stays in front. */}
-      <header className="sticky top-0 z-[1200] border-b border-black/10 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-neutral-950/95">
+    <div className="flex h-full flex-col">
+      {/* Toolbar: title, save status, preview, publish. Navigation lives in
+          the console sidebar; z sits above the Leaflet panes. */}
+      <header className="sticky top-0 z-[1200] shrink-0 border-b border-black/10 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-neutral-950/95">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 lg:px-8">
-          <Link
-            href="/dashboard"
-            aria-label="Back to event"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-black/5 text-lg dark:bg-white/10"
-          >
-            ←
-          </Link>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold leading-tight">{map.name || "Untitled event"}</p>
             <p
@@ -257,22 +248,21 @@ export function MapEditor({
                 : "border border-black/15 dark:border-white/20"
             }`}
           >
-            {publishPending ? "…" : map.published ? "Live ✓" : "Publish"}
+            {publishPending ? "…" : map.published ? "Live ✓ - Unpublish" : "Publish"}
           </button>
         </div>
       </header>
 
-      {/* Desktop: a fixed-height two-pane shell that fills the space below the
-          editor's own header (3.5rem + 1px border) — the page itself never
-          scrolls, only the form pane does, so the map physically cannot move.
-          On a phone: the map card sits on top, sticky while the page scrolls. */}
-      <div className="mx-auto w-full max-w-5xl lg:grid lg:h-[calc(100dvh-3.5rem-1px)] lg:grid-cols-[minmax(360px,30rem)_1fr] lg:gap-12 lg:overflow-hidden lg:px-8">
+      {/* Two-pane shell filling the content area below the toolbar. Desktop:
+          a fixed grid whose form pane scrolls, so the map can't move. Mobile:
+          the whole area scrolls with the map card sticky on top. */}
+      <div className="mx-auto w-full max-w-5xl min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(360px,30rem)_1fr] lg:gap-12 lg:overflow-hidden lg:px-8">
         {/* Map pane — a phone-shaped card (same aspect ratio as the attendee
             preview), so what's framed here is exactly what attendees see.
             Centred in the fixed pane on desktop. On mobile the whole cell is
             sticky with an opaque background, so the form scrolls underneath
             and the map never leaves the screen. */}
-        <div className="px-4 py-3 max-lg:sticky max-lg:top-14 max-lg:z-[900] max-lg:bg-white max-lg:dark:bg-neutral-950 lg:col-start-2 lg:row-start-1 lg:flex lg:h-full lg:min-h-0 lg:items-center lg:justify-center lg:px-0">
+        <div className="px-4 py-3 max-lg:sticky max-lg:top-0 max-lg:z-[900] max-lg:bg-white max-lg:dark:bg-neutral-950 lg:col-start-2 lg:row-start-1 lg:flex lg:h-full lg:min-h-0 lg:items-center lg:justify-center lg:px-0">
           <div
             className={`relative mx-auto aspect-[390/844] h-[58dvh] max-w-full overflow-hidden rounded-2xl border shadow-sm lg:h-full ${
               bounds
@@ -490,17 +480,12 @@ export function MapEditor({
         </div>
       </div>
 
-      {/* Attendee preview inside an iPhone frame — mirrors the current
-          (possibly unsaved) framing, borders and points. */}
+      {/* Attendee preview inside an iPhone frame — embeds the real live page
+          so it's pixel-identical to what attendees get. */}
       {previewOpen && (
         <PhonePreview
-          center={center}
-          zoom={zoom}
-          bearing={bearing}
-          pois={pois}
-          bounds={bounds}
-          team={{ name: teamName, logoUrl: teamLogoUrl }}
-          eventName={map.name}
+          liveUrl={`/${teamSlug}/${map.slug}`}
+          published={map.published}
           onClose={() => setPreviewOpen(false)}
         />
       )}
