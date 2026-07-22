@@ -18,6 +18,7 @@ export function PhonePreview({
   pois,
   bounds,
   team,
+  eventName,
   onClose,
 }: {
   center: LatLng;
@@ -26,6 +27,7 @@ export function PhonePreview({
   pois: PoiData[];
   bounds: MapBounds | null;
   team: { name: string; logoUrl: string | null };
+  eventName: string;
   onClose: () => void;
 }) {
   // Close on Escape; lock body scroll while open.
@@ -79,6 +81,9 @@ export function PhonePreview({
             pois={pois}
             maxBounds={bounds}
             team={team}
+            eventName={eventName}
+            // Clear the frame's Dynamic Island (top) and rounded corners (bottom).
+            chromeInsets={{ top: 2, bottom: 0.5 }}
           />
         </div>
       </div>

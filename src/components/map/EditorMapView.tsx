@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import type L from "leaflet";
 import { Marker, useMap, useMapEvents } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
+import { FrozenView } from "./FrozenView";
 import { RotateControl } from "./RotateControl";
 import { useMapControlRef } from "./control-utils";
 import { poiDivIcon } from "./poi-icon";
@@ -72,17 +73,12 @@ function captureBounds(map: L.Map): MapBounds {
   };
 }
 
-interface ToggleableHandler {
-  enable(): void;
-  disable(): void;
-}
-
 /**
- * While the view is locked, all direct map gestures (pan / pinch / rotate /
- * scroll-zoom) are disabled so the framing can't drift, but taps still land
- * for placing points. Deliberate programmatic moves (location search, zoom
- * slider) still fly the map — after each one the borders are re-captured so
- * the lock invariant holds: borders always equal exactly what's on screen.
+ * While the view is locked, gestures are frozen (shared FrozenView) so the
+ * framing can't drift, but taps still land for placing points. Deliberate
+ * programmatic moves (location search, zoom slider) still fly the map — after
+ * each one the borders are re-captured so the lock invariant holds: borders
+ * always equal exactly what's on screen.
  */
 function LockController({
   locked,
@@ -94,24 +90,6 @@ function LockController({
   const map = useMap();
 
   useEffect(() => {
-    const handlers: (ToggleableHandler | undefined)[] = [
-      map.dragging,
-      map.touchZoom,
-      map.scrollWheelZoom,
-      map.doubleClickZoom,
-      map.boxZoom,
-      map.keyboard,
-      // Added by leaflet-rotate; absent when rotation is off.
-      (map as unknown as { touchRotate?: ToggleableHandler }).touchRotate,
-      (map as unknown as { shiftKeyRotate?: ToggleableHandler }).shiftKeyRotate,
-    ];
-    for (const handler of handlers) {
-      if (locked) handler?.disable();
-      else handler?.enable();
-    }
-  }, [locked, map]);
-
-  useEffect(() => {
     if (!locked) return;
     const recapture = () => onRecapture(captureBounds(map));
     map.on("moveend zoomend", recapture);
@@ -120,7 +98,7 @@ function LockController({
     };
   }, [locked, map, onRecapture]);
 
-  return null;
+  return <FrozenView active={locked} />;
 }
 
 /** In-map toggle: freeze (or release) the current framing as the attendee view. */

@@ -32,22 +32,26 @@ async function main() {
     },
   });
 
-  let map = await prisma.event.findFirst({
+  const existing = await prisma.event.findFirst({
     where: { teamId: team.id, name: "Lakeside Festival 2026" },
   });
-  map ??= await prisma.event.create({
-    data: {
-      teamId: team.id,
-      name: "Lakeside Festival 2026",
-      slug: "lakeside-festival-2026",
-      description: "Three days of music on the Zürich lakeshore.",
-      centerName: "Landiwiese, Zürich",
-      centerLat: CENTER.lat,
-      centerLng: CENTER.lng,
-      zoom: 16,
-      published: true,
-    },
-  });
+  // Refresh the display defaults (zoom) on re-seed so the demo tracks the
+  // current defaults, while leaving any admin-made framing changes otherwise.
+  const map = existing
+    ? await prisma.event.update({ where: { id: existing.id }, data: { zoom: 17 } })
+    : await prisma.event.create({
+        data: {
+          teamId: team.id,
+          name: "Lakeside Festival 2026",
+          slug: "lakeside-festival-2026",
+          description: "Three days of music on the Zürich lakeshore.",
+          centerName: "Landiwiese, Zürich",
+          centerLat: CENTER.lat,
+          centerLng: CENTER.lng,
+          zoom: 17,
+          published: true,
+        },
+      });
 
   // Recreate POIs so re-running the seed yields a clean, known state.
   await prisma.pointOfInterest.deleteMany({ where: { mapId: map.id } });

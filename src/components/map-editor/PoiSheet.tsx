@@ -80,10 +80,9 @@ export function PoiSheet({
   );
 
   const [deleting, setDeleting] = useState(false);
-  // Show the extra fields right away when the point already uses them.
-  const [expanded, setExpanded] = useState(
-    isEdit && (!!mode.poi.description || !!mode.poi.imageUrl),
-  );
+  // The description is always shown (every point should have one); the photo
+  // stays optional behind a toggle, pre-opened when the point already has one.
+  const [showPhoto, setShowPhoto] = useState(isEdit && !!mode.poi.imageUrl);
 
   async function handleDelete() {
     if (!isEdit) return;
@@ -102,7 +101,7 @@ export function PoiSheet({
 
   return (
     <div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-[1100] mx-auto max-w-md">
-      <div className="max-h-[60dvh] overflow-y-auto rounded-2xl bg-white/97 p-4 shadow-2xl backdrop-blur dark:bg-neutral-950/97">
+      <div className="max-h-[82dvh] overflow-y-auto rounded-2xl bg-white/97 p-4 shadow-2xl backdrop-blur dark:bg-neutral-950/97">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-base font-bold">
             {isEdit ? "Edit point" : "New point"}
@@ -188,35 +187,32 @@ export function PoiSheet({
             </label>
           </div>
 
-          {/* Details are collapsed by default to keep the card small. */}
-          {expanded ? (
-            <>
-              <textarea
-                name="description"
-                rows={2}
-                maxLength={500}
-                defaultValue={isEdit ? (mode.poi.description ?? "") : ""}
-                placeholder="Description (optional)"
-                aria-label="Description"
-                className={inputClass}
-              />
-              <ImageField
-                name="imageUrl"
-                label="Photo (optional)"
-                endpoint="poiImage"
-                uploadsEnabled={uploadsEnabled}
-                defaultValue={isEdit ? mode.poi.imageUrl : null}
-              />
-            </>
+          {/* Description: always shown so every point gets one. */}
+          <label className="flex flex-col gap-1 text-xs font-medium opacity-70">
+            Description
+            <textarea
+              name="description"
+              rows={2}
+              maxLength={500}
+              defaultValue={isEdit ? (mode.poi.description ?? "") : ""}
+              placeholder="What is this point? Shown to attendees on the map."
+              aria-label="Description"
+              className={`${inputClass} font-normal`}
+            />
+          </label>
+
+          {/* Photo stays optional to keep the card compact. */}
+          {showPhoto ? (
+            <ImageField
+              name="imageUrl"
+              label="Photo (optional)"
+              endpoint="poiImage"
+              uploadsEnabled={uploadsEnabled}
+              defaultValue={isEdit ? mode.poi.imageUrl : null}
+            />
           ) : (
             <>
-              {/* Keep values submitted even while the fields are collapsed. */}
-              <input
-                type="hidden"
-                name="description"
-                value={isEdit ? (mode.poi.description ?? "") : ""}
-                readOnly
-              />
+              {/* Keep the value submitted even while the field is collapsed. */}
               <input
                 type="hidden"
                 name="imageUrl"
@@ -225,10 +221,10 @@ export function PoiSheet({
               />
               <button
                 type="button"
-                onClick={() => setExpanded(true)}
+                onClick={() => setShowPhoto(true)}
                 className="self-start text-sm font-semibold text-teal-700 dark:text-teal-400"
               >
-                + Description & photo
+                + Add photo
               </button>
             </>
           )}

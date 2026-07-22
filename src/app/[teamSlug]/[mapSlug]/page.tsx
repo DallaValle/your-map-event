@@ -57,6 +57,7 @@ export default async function PublicMapPage({ params }: PageProps) {
         zoom={map.zoom}
         bearing={map.bearing}
         pois={map.pois}
+        eventName={map.name}
         team={{ name: team.name, logoUrl: team.logoUrl }}
         maxBounds={
           map.boundsSWLat != null

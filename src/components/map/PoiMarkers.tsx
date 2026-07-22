@@ -13,13 +13,26 @@ import type { PoiData } from "./types";
 export function PoiMarkers({
   pois,
   registerMarker,
+  locked = false,
 }: {
   pois: PoiData[];
   /** Lets the parent open a marker's popup programmatically (points list). */
   registerMarker?: (id: string, marker: L.Marker | null) => void;
+  /**
+   * When the attendee view is locked to a fixed frame, opening a popup must
+   * NOT pan the map. The map already sits between the nav bars (not under
+   * them), so the details stay readable without moving.
+   */
+  locked?: boolean;
 }) {
   return (
-    <MarkerClusterGroup chunkedLoading showCoverageOnHover={false}>
+    <MarkerClusterGroup
+      chunkedLoading
+      showCoverageOnHover={false}
+      // When locked, tapping a cluster must not zoom/pan the frozen view.
+      zoomToBoundsOnClick={!locked}
+      spiderfyOnMaxZoom={!locked}
+    >
       {pois.map((poi) => (
         <Marker
           key={poi.id}
@@ -27,7 +40,15 @@ export function PoiMarkers({
           icon={poiDivIcon(poi.icon)}
           ref={(marker) => registerMarker?.(poi.id, marker)}
         >
-          <Popup maxWidth={260} minWidth={200}>
+          {/* Unlocked: auto-pan the popup fully into view so a point near an
+              edge stays readable. Locked: never pan (the frame is fixed). */}
+          <Popup
+            maxWidth={260}
+            minWidth={200}
+            autoPan={!locked}
+            autoPanPaddingTopLeft={[16, 24]}
+            autoPanPaddingBottomRight={[16, 24]}
+          >
             <div className="space-y-1.5">
               {poi.imageUrl && (
                 // Plain <img>: next/image's fill/size handling fights

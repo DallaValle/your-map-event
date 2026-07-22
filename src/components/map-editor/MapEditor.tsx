@@ -32,7 +32,7 @@ export interface EditorMapData {
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-const ZOOM_MIN = 12;
+const ZOOM_MIN = 14;
 const ZOOM_MAX = 19;
 const clampZoom = (z: number) =>
   Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z)));
@@ -241,11 +241,11 @@ export function MapEditor({
           <button
             type="button"
             onClick={() => setPreviewOpen(true)}
-            aria-label="Preview on iPhone"
-            title="Preview on iPhone"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-black/15 text-lg dark:border-white/20"
+            aria-label="Preview attendee view"
+            title="Preview attendee view"
+            className="shrink-0 rounded-full border border-black/15 px-4 py-2 text-sm font-semibold dark:border-white/20"
           >
-            📱
+            Preview
           </button>
           <button
             type="button"
@@ -500,6 +500,7 @@ export function MapEditor({
           pois={pois}
           bounds={bounds}
           team={{ name: teamName, logoUrl: teamLogoUrl }}
+          eventName={map.name}
           onClose={() => setPreviewOpen(false)}
         />
       )}

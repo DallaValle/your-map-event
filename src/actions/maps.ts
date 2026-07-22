@@ -38,7 +38,7 @@ const mapViewSchema = z
     centerName: z.string().trim().min(1, "Give the event location a name").max(80),
     centerLat: z.coerce.number().min(-90).max(90),
     centerLng: z.coerce.number().min(-180).max(180),
-    zoom: z.coerce.number().int().min(3).max(19).default(16),
+    zoom: z.coerce.number().int().min(3).max(19).default(17),
     bearing: z.preprocess(
       (v) => (v === "" || v == null ? undefined : v),
       z.coerce.number().optional(),
