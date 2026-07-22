@@ -7,42 +7,64 @@ interface NavItem {
   href: string;
   label: string;
   icon: string;
+  isActive: (pathname: string) => boolean;
 }
-
-/** Per-event sections. Only "Event" is built today; the rest are stubs. */
-const EVENT_SECTIONS: NavItem[] = [
-  { href: "/dashboard", label: "Event", icon: "🗺️" },
-  { href: "/dashboard/notifications", label: "Notifications", icon: "🔔" },
-  { href: "/dashboard/board", label: "Board", icon: "📋" },
-  { href: "/dashboard/social", label: "Social campaign", icon: "📣" },
-  { href: "/dashboard/history", label: "History", icon: "🕑" },
-];
 
 /**
  * Left sidebar navigation for the console. Two groups: the selected event's
- * sections on top, then workspace-level pages (Team, Settings). On narrow
- * screens it collapses to an icon rail.
+ * sections (Dashboard, Schedule, Map editor, and the planned sections) then
+ * workspace pages (Team, Settings). Notifications live in the header bell.
+ * Collapses to an icon rail via `collapsed` (or automatically below lg).
  */
-export function SideNav({ isAdmin }: { isAdmin: boolean }) {
+export function SideNav({
+  isAdmin,
+  activeEventId,
+  collapsed = false,
+}: {
+  isAdmin: boolean;
+  activeEventId: string | null;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
+  const mapEditorHref = activeEventId
+    ? `/dashboard/events/${activeEventId}`
+    : "/dashboard/events/new";
 
-  const workspace: NavItem[] = [
-    ...(isAdmin ? [{ href: "/dashboard/team", label: "Team", icon: "👥" }] : []),
-    { href: "/dashboard/settings", label: "Settings", icon: "⚙️" },
+  const eventSections: NavItem[] = [
+    { href: "/dashboard", label: "Dashboard", icon: "🎫", isActive: (p) => p === "/dashboard" },
+    { href: "/dashboard/schedule", label: "Schedule", icon: "🗓️", isActive: (p) => p.startsWith("/dashboard/schedule") },
+    ...(isAdmin
+      ? [
+          {
+            href: mapEditorHref,
+            label: "Map editor",
+            icon: "🗺️",
+            isActive: (p: string) => p.startsWith("/dashboard/events"),
+          },
+        ]
+      : []),
+    { href: "/dashboard/board", label: "Board", icon: "📋", isActive: (p) => p.startsWith("/dashboard/board") },
+    { href: "/dashboard/social", label: "Social campaign", icon: "📣", isActive: (p) => p.startsWith("/dashboard/social") },
+    { href: "/dashboard/analytics", label: "Analytics", icon: "📊", isActive: (p) => p.startsWith("/dashboard/analytics") },
+    { href: "/dashboard/history", label: "History", icon: "🕑", isActive: (p) => p.startsWith("/dashboard/history") },
   ];
 
-  const isActive = (item: NavItem) =>
-    item.href === "/dashboard"
-      ? pathname === "/dashboard" || pathname.startsWith("/dashboard/events")
-      : pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const workspace: NavItem[] = [
+    ...(isAdmin
+      ? [{ href: "/dashboard/team", label: "Team", icon: "👥", isActive: (p: string) => p.startsWith("/dashboard/team") }]
+      : []),
+    { href: "/dashboard/settings", label: "Settings", icon: "⚙️", isActive: (p) => p.startsWith("/dashboard/settings") },
+  ];
 
   const renderItem = (item: NavItem) => (
-    <li key={item.href}>
+    <li key={`${item.label}-${item.href}`}>
       <Link
         href={item.href}
         title={item.label}
-        className={`flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium max-lg:justify-center max-lg:px-0 ${
-          isActive(item)
+        className={`flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium ${
+          collapsed ? "justify-center px-0" : "max-lg:justify-center max-lg:px-0"
+        } ${
+          item.isActive(pathname)
             ? "bg-teal-700/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-400"
             : "opacity-70 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/5"
         }`}
@@ -50,14 +72,14 @@ export function SideNav({ isAdmin }: { isAdmin: boolean }) {
         <span className="text-lg" aria-hidden>
           {item.icon}
         </span>
-        <span className="max-lg:hidden">{item.label}</span>
+        <span className={collapsed ? "hidden" : "max-lg:hidden"}>{item.label}</span>
       </Link>
     </li>
   );
 
   return (
     <nav className="flex flex-1 flex-col gap-1 px-3 pb-3">
-      <ul className="flex flex-col gap-0.5">{EVENT_SECTIONS.map(renderItem)}</ul>
+      <ul className="flex flex-col gap-0.5">{eventSections.map(renderItem)}</ul>
 
       <div className="my-2 h-px bg-black/10 dark:bg-white/10" role="separator" />
 
