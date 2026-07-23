@@ -29,7 +29,15 @@ export function PoiMarkers({
     <MarkerClusterGroup
       chunkedLoading
       showCoverageOnHover={false}
-      // When locked, tapping a cluster must not zoom/pan the frozen view.
+      // Clustering should be a last resort, not the default look: attendees
+      // browse around the event's default zoom (~17), where individual pins
+      // must stay separate even when close. So cluster only when genuinely
+      // zoomed out (16 and below) and only for markers nearly on top of each
+      // other (small radius) — a full-area overview, never the normal view.
+      maxClusterRadius={40}
+      disableClusteringAtZoom={16}
+      // Clusters expand on tap by zooming to fit their markers.
+      // When locked the frame is frozen, so tapping must not zoom/pan.
       zoomToBoundsOnClick={!locked}
       spiderfyOnMaxZoom={!locked}
     >
