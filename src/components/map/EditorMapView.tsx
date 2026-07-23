@@ -6,6 +6,7 @@ import { Marker, useMap, useMapEvents } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { FrozenView } from "./FrozenView";
 import { RotateControl } from "./RotateControl";
+import { ZoomControl } from "./ZoomControl";
 import { useMapControlRef } from "./control-utils";
 import { poiDivIcon } from "./poi-icon";
 import type { LatLng, PoiData } from "./types";
@@ -191,9 +192,11 @@ export default function EditorMapView({
         onZoomChange={onZoomChange}
       />
       <FlyToFocus focus={focus} />
-      {/* Rotation buttons hidden while locked — orientation is frozen too.
+      {/* Rotation + zoom buttons are hidden while locked — the whole framing
+          (orientation and zoom included) is frozen then.
           No compass here — the rotate control already shows the bearing. */}
       {!locked && <RotateControl onBearingChange={onBearingChange} />}
+      {!locked && <ZoomControl />}
       {onCaptureBounds && (
         <>
           <LockController locked={locked} onRecapture={onCaptureBounds} />

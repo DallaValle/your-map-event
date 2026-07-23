@@ -342,28 +342,6 @@ export function MapEditor({
               className={inputClass}
             />
           </label>
-
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Default zoom: {zoom}
-            <input
-              type="range"
-              min={ZOOM_MIN}
-              max={ZOOM_MAX}
-              value={clampZoom(zoom)}
-              disabled={!!bounds}
-              onChange={(e) => {
-                const value = Number(e.target.value);
-                setZoom(value);
-                setFocus({ lat: center.lat, lng: center.lng, zoom: value });
-              }}
-              className="accent-teal-700 disabled:opacity-40"
-            />
-            <span className="text-xs opacity-60">
-              {bounds
-                ? "Zoom is frozen while the view is locked — unlock to change it."
-                : "How close the map starts for attendees — previewed live on the map."}
-            </span>
-          </label>
         </section>
 
         {/* View lock: freezing the phone-shaped view captures borders,
