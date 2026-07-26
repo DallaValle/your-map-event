@@ -3,12 +3,13 @@ import { openFirstMapEditor, signIn } from "./helpers";
 
 /** Open the Lakeside event's map editor (known points, deterministic). */
 async function openLakesideEditor(page: Page) {
-  await page.locator("aside").getByRole("button").first().click();
+  await page.getByRole("button", { name: "Switch event" }).click();
   await page.getByRole("option", { name: /Lakeside Festival 2026/ }).click();
   // Wait for the overview to switch before opening the editor, else the
   // Map-editor link still points at the previously-active event.
   await expect(page.getByRole("heading", { name: "Lakeside Festival 2026" })).toBeVisible();
-  await page.getByRole("link", { name: /Map editor/i }).click();
+  // Sidebar link (scoped — the overview also has a "Map editor" card).
+  await page.locator("aside").getByRole("link", { name: "Map editor" }).click();
   await page.waitForURL("**/dashboard/events/**");
   await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible({ timeout: 20_000 });
   await page.waitForTimeout(800);

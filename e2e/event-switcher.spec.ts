@@ -12,7 +12,7 @@ test("switching events updates the whole overview, form included", async ({ page
   await signIn(page);
 
   // Open the switcher; need at least two events to switch between.
-  await page.locator("aside").getByRole("button").first().click();
+  await page.getByRole("button", { name: "Switch event" }).click();
   const options = page.getByRole("option");
   const count = await options.count();
   test.skip(count < 2, "needs a second event in the dev database");

@@ -77,6 +77,7 @@ export function EventSwitcher({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={pending}
+        aria-label="Switch event"
         aria-expanded={open}
         aria-haspopup="listbox"
         className="flex w-full items-center gap-2.5 rounded-xl border border-black/10 px-3 py-2.5 text-left hover:bg-black/5 disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"

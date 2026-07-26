@@ -11,29 +11,29 @@ mobile-first PWA. One event, one map, one link.
 
 The dashboard is the operations console for a live event, and it operates on
 **one selected event at a time**. The management chrome is constant on every
-screen: a slim **header** (the `your map event` wordmark top-left, sign in /
-sign out top-right), a **footer** with the same wordmark, and a **left
-sidebar**. At the top of the sidebar sits the **event switcher** - a compact
-dropdown to change the selected event (rare, but a team may run two events or
-keep a draft next to the live edition) and to create a new one. Below it, the
-selected event's sections, then the workspace pages:
+screen (including the map editor): a slim **header** (the `your map event`
+wordmark top-left; a notifications **bell** and the **account menu** - avatar
+that opens the user's picture, name, email and sign out - top-right), a
+**footer** wordmark, and a **collapsible left sidebar**. At the top of the
+sidebar sits the **event switcher** - a compact dropdown to change the selected
+event (rare, but a team may run two events or keep a draft next to the live
+edition) and to create a new one. Below it, the selected event's sections, then
+the workspace pages:
 
 | Section | What it's for |
 |---|---|
 | **Event** | The selected event's home: basic info (name, public address, description), publish toggle, share tools, and the door into the map editor. Built today. |
-| **Notifications** | Broadcast live announcements to attendees during the event (schedule changes, weather, "gates closing in 10 min"). *Planned.* |
+| **Map editor** | Frame the venue, lock the attendee view, and place points of interest for the selected event. Admins only. Built today. |
 | **Board** | A shared program / agenda board - line-ups, session times, the running order the whole team edits together. *Planned.* |
 | **Social campaign** | Plan and schedule the event's social posts, and generate share assets (QR codes, cards) from the published map. *Planned.* |
 | **History** | Post-event archive and analytics - attendance, most-visited points of interest, past editions. *Planned.* |
 | **Team** | Team profile (name, logo, public address) and collaboration: invite teammates by email as Admin or Viewer via a shareable invite link. Admins only. Built today. |
 | **Settings** | Personal user settings. *Planned.* |
 
-The planned sections are placeholders for now: each renders a short
-description of what will live there, so the shape of the product is visible
-before the features exist.
-
-Two screens intentionally escape the console chrome: the **map editor** (a
-full-screen immersive surface with its own header) and the **new event** flow.
+**Notifications** live behind the header bell (broadcast live announcements to
+attendees - schedule changes, weather, "gates closing in 10 min"). The planned
+sections are placeholders for now: each renders a short description of what will
+live there, so the shape of the product is visible before the features exist.
 
 ## The business - user flow
 
