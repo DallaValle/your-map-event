@@ -103,10 +103,9 @@ Team ──< Event ──< PointOfInterest
 ## Business model
 
 **Pay per event.** Creating a team and exploring the dashboard is free;
-publishing an event's map to a public link is the paid action (billed per
-published event, with future tiers for attendee volume or add-on sections like
-notifications and social campaigns). Nothing is wired to a payment provider
-yet - this section records the intended model.
+creating a new event is the paid action (mock checkout today; real provider
+later). Map setup and publish happen after create. Future tiers may cover
+attendee volume or add-ons like notifications and social campaigns.
 
 ## Stack
 

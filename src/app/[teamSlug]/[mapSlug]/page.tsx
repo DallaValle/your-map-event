@@ -35,7 +35,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${map.name} – ${team.name}`,
       description,
-      ...(team.logoUrl ? { images: [team.logoUrl] } : {}),
+      ...(map.logoUrl
+        ? { images: [map.logoUrl] }
+        : team.logoUrl
+          ? { images: [team.logoUrl] }
+          : {}),
     },
   };
 }
@@ -58,7 +62,8 @@ export default async function PublicMapPage({ params }: PageProps) {
         bearing={map.bearing}
         pois={map.pois}
         eventName={map.name}
-        team={{ name: team.name, logoUrl: team.logoUrl }}
+        eventLogoUrl={map.logoUrl}
+        team={{ name: team.name }}
         maxBounds={
           map.boundsSWLat != null
             ? {

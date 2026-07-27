@@ -33,7 +33,8 @@ export default async function TeamPage() {
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Team</h1>
         <p className="text-sm opacity-70">
-          Your logo and name appear on the public map page.
+          Team name shows under the event title on the public map. Event logos
+          are set per event on the dashboard.
         </p>
       </div>
 

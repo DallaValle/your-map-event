@@ -16,7 +16,7 @@ export default async function EventPage() {
   // No team yet (fresh account or social sign-up): offer to create one.
   if (!membership) {
     return (
-      <main className="mx-auto flex w-full max-w-lg flex-col gap-6 px-6 py-10">
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-6 py-10">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Create your team</h1>
           <p className="text-sm opacity-70">
@@ -24,7 +24,7 @@ export default async function EventPage() {
           </p>
         </div>
         <CreateTeamForm />
-      </main>
+      </div>
     );
   }
 
@@ -33,37 +33,42 @@ export default async function EventPage() {
 
   const event = await getActiveEvent(team.id, isAdmin);
 
-  // No event yet: everything on this page is per-event, so create one first.
+  // No event yet: fill the content pane and center a clear first-run card.
   if (!event) {
     return (
-      <main className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 px-6 py-20 text-center">
-        <span className="flex size-16 items-center justify-center rounded-2xl bg-teal-700/10 text-3xl" aria-hidden>
-          🗺️
-        </span>
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">No event yet</h1>
-          <p className="text-sm opacity-70">
-            {isAdmin
-              ? "Create your first event: pick the venue, build the map, publish the link."
-              : "No published events yet. Check back soon!"}
-          </p>
-        </div>
-        {isAdmin && (
-          <Link
-            href="/dashboard/events/new"
-            className="rounded-xl bg-teal-700 px-6 py-3 font-semibold text-white active:scale-[.98]"
+      <div className="flex min-h-full items-center justify-center px-6 py-12">
+        <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-black/10 bg-white px-8 py-10 text-center shadow-sm dark:border-white/10 dark:bg-white/5">
+          <span
+            className="flex size-16 items-center justify-center rounded-2xl bg-teal-700/10 text-3xl"
+            aria-hidden
           >
-            + New event
-          </Link>
-        )}
-      </main>
+            🗺️
+          </span>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight">No event yet</h1>
+            <p className="text-balance text-sm leading-relaxed opacity-70">
+              {isAdmin
+                ? "Pay for your first event, give it a name, then build the map from this dashboard."
+                : "No published events yet. Check back soon!"}
+            </p>
+          </div>
+          {isAdmin && (
+            <Link
+              href="/dashboard/events/new"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-teal-700 px-6 py-3 font-semibold text-white active:scale-[.98]"
+            >
+              + New event
+            </Link>
+          )}
+        </div>
+      </div>
     );
   }
 
   const poiCount = await prisma.pointOfInterest.count({ where: { mapId: event.id } });
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
       {/* Event header: identity + live state, actions on the right. */}
       <header className="flex flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1">
@@ -137,8 +142,10 @@ export default async function EventPage() {
                 name: event.name,
                 slug: event.slug,
                 description: event.description,
+                logoUrl: event.logoUrl,
               }}
               teamSlug={team.slug}
+              uploadsEnabled={!!process.env.UPLOADTHING_TOKEN}
             />
           </section>
 
@@ -155,6 +162,6 @@ export default async function EventPage() {
           </section>
         </>
       )}
-    </main>
+    </div>
   );
 }

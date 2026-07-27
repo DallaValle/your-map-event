@@ -21,7 +21,7 @@ export function ImageField({
 }: {
   name: string;
   label: string;
-  endpoint: "teamLogo" | "poiImage";
+  endpoint: "teamLogo" | "eventLogo" | "poiImage";
   uploadsEnabled: boolean;
   defaultValue?: string | null;
 }) {

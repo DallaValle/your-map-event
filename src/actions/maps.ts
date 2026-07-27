@@ -31,6 +31,7 @@ const optionalCoord = (min: number, max: number) =>
 const eventInfoSchema = z.object({
   name: z.string().trim().min(2, "Event name must be at least 2 characters").max(80),
   description: z.string().trim().max(500).optional(),
+  logoUrl: z.union([z.url(), z.literal("")]).nullish(),
 });
 
 const mapViewSchema = z
@@ -96,6 +97,21 @@ async function revalidateMap(teamSlug: string, mapId?: string, mapSlug?: string)
   if (mapSlug) revalidatePath(`/${teamSlug}/${mapSlug}`);
 }
 
+// Neutral defaults until the admin frames the venue in the map editor.
+// (Zurich-ish center — same fallback the old create form used.)
+const NEW_EVENT_MAP_DEFAULTS = {
+  centerLat: 47.3769,
+  centerLng: 8.5417,
+  centerName: "Set in map editor",
+  zoom: 16,
+  bearing: 0,
+} as const;
+
+/**
+ * Create an event after the (currently mock) checkout step.
+ * Only the name is collected at create time; location/zoom/POIs come later
+ * in the map editor. Lands on the dashboard overview with this event active.
+ */
 export async function createMapAction(
   teamId: string,
   _prev: ActionState,
@@ -103,29 +119,29 @@ export async function createMapAction(
 ): Promise<ActionState> {
   const { team } = await requireAdmin(teamId);
 
+  // Mock checkout gate: the client only submits this after the pay step.
+  // Swap for a real Stripe session / webhook check when payments go live.
+  if (formData.get("paymentConfirmed") !== "1") {
+    return { ok: false, error: "Payment is required before creating an event." };
+  }
+
   const info = eventInfoSchema.safeParse({
     name: formData.get("name"),
-    description: formData.get("description") || undefined,
   });
   if (!info.success) {
     return { ok: false, error: info.error.issues[0].message };
-  }
-
-  const view = parseMapViewForm(formData);
-  if (!view.success) {
-    return { ok: false, error: view.error.issues[0].message };
   }
 
   const map = await prisma.event.create({
     data: {
       teamId: team.id,
       slug: await uniqueMapSlug(team.id, slugify(info.data.name)),
-      ...info.data,
-      ...view.data,
+      name: info.data.name,
+      ...NEW_EVENT_MAP_DEFAULTS,
     },
   });
 
-  // A newly created event becomes the dashboard's selected event.
+  // Newly created event becomes the dashboard's selected event.
   (await cookies()).set(ACTIVE_EVENT_COOKIE, map.id, {
     path: "/",
     sameSite: "lax",
@@ -133,11 +149,11 @@ export async function createMapAction(
   });
 
   await revalidateMap(team.slug);
-  redirect(`/dashboard/events/${map.id}`);
+  redirect("/dashboard");
 }
 
 /**
- * Basic event info (name, public address, description) — edited on the
+ * Basic event info (name, logo, public address, description) — edited on the
  * dashboard's Event page, not in the map editor.
  */
 export async function updateEventInfoAction(
@@ -152,6 +168,7 @@ export async function updateEventInfoAction(
   const parsed = eventInfoSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description") || undefined,
+    logoUrl: formData.get("logoUrl"),
   });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
@@ -172,9 +189,15 @@ export async function updateEventInfoAction(
     slug = requestedSlug;
   }
 
+  const { name, description, logoUrl } = parsed.data;
   await prisma.event.update({
     where: { id: eventId },
-    data: { ...parsed.data, description: parsed.data.description ?? null, slug },
+    data: {
+      name,
+      description: description ?? null,
+      logoUrl: logoUrl || null,
+      slug,
+    },
   });
 
   await revalidateMap(team.slug, eventId);

@@ -31,6 +31,10 @@ export const ourFileRouter = {
     .middleware(async ({ req }) => requireAdminUploader(req))
     .onUploadComplete(async ({ file }) => ({ url: file.ufsUrl })),
 
+  eventLogo: f({ image: { maxFileSize: "2MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => requireAdminUploader(req))
+    .onUploadComplete(async ({ file }) => ({ url: file.ufsUrl })),
+
   poiImage: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => requireAdminUploader(req))
     .onUploadComplete(async ({ file }) => ({ url: file.ufsUrl })),

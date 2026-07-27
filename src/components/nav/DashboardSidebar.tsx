@@ -41,7 +41,17 @@ export function DashboardSidebar({
         collapsed ? "w-16" : "w-60"
       }`}
     >
-      <div className={`flex px-2 pt-2 max-lg:hidden ${collapsed ? "justify-center" : "justify-end"}`}>
+      <div className={collapsed ? "hidden" : "max-lg:hidden"}>
+        <EventSwitcher events={events} activeEventId={activeEventId} isAdmin={isAdmin} />
+      </div>
+
+      <SideNav isAdmin={isAdmin} activeEventId={activeEventId} collapsed={collapsed} />
+
+      <div
+        className={`mt-auto flex px-2 pb-2 max-lg:hidden ${
+          collapsed ? "justify-center" : "justify-end"
+        }`}
+      >
         <button
           type="button"
           onClick={toggle}
@@ -53,12 +63,6 @@ export function DashboardSidebar({
           <span aria-hidden>{collapsed ? "»" : "«"}</span>
         </button>
       </div>
-
-      <div className={collapsed ? "hidden" : "max-lg:hidden"}>
-        <EventSwitcher events={events} activeEventId={activeEventId} isAdmin={isAdmin} />
-      </div>
-
-      <SideNav isAdmin={isAdmin} activeEventId={activeEventId} collapsed={collapsed} />
     </aside>
   );
 }

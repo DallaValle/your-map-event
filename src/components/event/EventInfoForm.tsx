@@ -2,21 +2,30 @@
 
 import { useActionState } from "react";
 import { updateEventInfoAction } from "@/actions/maps";
+import { ImageField } from "@/components/upload/ImageField";
 import type { ActionState } from "@/actions/types";
 
 const inputClass =
   "rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5";
 
 /**
- * Basic event info (everything NOT related to the map): name, public address
- * and description. Map framing, borders and points live in the map editor.
+ * Basic event info (everything NOT related to the map): name, logo, public
+ * address and description. Map framing, borders and points live in the editor.
  */
 export function EventInfoForm({
   event,
   teamSlug,
+  uploadsEnabled,
 }: {
-  event: { id: string; name: string; slug: string; description: string | null };
+  event: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    logoUrl: string | null;
+  };
   teamSlug: string;
+  uploadsEnabled: boolean;
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     updateEventInfoAction.bind(null, event.id),
@@ -36,6 +45,17 @@ export function EventInfoForm({
           className={inputClass}
         />
       </label>
+
+      <ImageField
+        name="logoUrl"
+        label="Event logo"
+        endpoint="eventLogo"
+        uploadsEnabled={uploadsEnabled}
+        defaultValue={event.logoUrl}
+      />
+      <p className="-mt-2 text-xs opacity-60">
+        Shown in the attendee map top bar. Prefer a square image.
+      </p>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
         Public address

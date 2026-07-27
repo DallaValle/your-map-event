@@ -43,6 +43,8 @@ model Event {
   // Public URL segment: /[team.slug]/[map.slug]
   slug        String            @default("")
   description String?
+  // Shown in the attendee map top bar (event branding, not the team logo).
+  logoUrl     String?
   centerLat   Float
   centerLng   Float
   centerName  String

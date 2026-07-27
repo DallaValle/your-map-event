@@ -2,30 +2,35 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getMyTeam, isAdminRole } from "@/lib/session";
-import { NewMapForm } from "@/components/map-editor/NewMapForm";
+import { NewEventFlow } from "@/components/event/NewEventFlow";
 
-export const metadata: Metadata = { title: "New event" };
+export const metadata: Metadata = { title: "Pricing" };
 
 export default async function NewEventPage() {
   const membership = await getMyTeam();
   if (!membership || !isAdminRole(membership.role)) redirect("/dashboard");
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-col gap-6 px-5 py-8">
-      <Link
-        href="/dashboard"
-        className="inline-flex w-fit items-center gap-1.5 text-sm opacity-70 hover:opacity-100"
-      >
-        <span aria-hidden>←</span> Back to events
-      </Link>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold">New event</h1>
-        <p className="text-sm opacity-70">
-          Set the basics now, then build the map and add points of interest
-          next.
-        </p>
+    <div className="flex min-h-full justify-center px-6 py-10">
+      <div className="flex w-full max-w-lg flex-col gap-6">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold uppercase tracking-wide opacity-50">
+            Pricing
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight">New event</h1>
+          <p className="text-sm leading-relaxed opacity-70">
+            Pay for the event, give it a name, then build the map from your
+            dashboard.
+          </p>
+        </div>
+        <NewEventFlow teamId={membership.team.id} />
+        <Link
+          href="/dashboard"
+          className="inline-flex w-fit items-center gap-1.5 text-sm opacity-70 hover:opacity-100"
+        >
+          <span aria-hidden>←</span> Back to dashboard
+        </Link>
       </div>
-      <NewMapForm teamId={membership.team.id} />
-    </main>
+    </div>
   );
 }

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
+    "db:clean": "tsx scripts/clean-db.ts --yes",
     "test:e2e": "playwright test"
   },
   "dependencies": {

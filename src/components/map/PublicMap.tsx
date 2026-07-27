@@ -22,10 +22,10 @@ function MapRefCapture({ onMap }: { onMap: (map: L.Map | null) => void }) {
 
 /**
  * Attendee screen: a full-bleed rotatable map framed by a top navigation bar
- * (team identity) and a bottom navigation bar (points list, locate, recenter).
- * The points list expands into a sheet above the bottom bar; selecting a point
- * flies the map there and opens its popup — unless the view is locked, in
- * which case the map stays put and only the details open.
+ * (event logo + name) and a bottom navigation bar (points list, locate,
+ * recenter). The points list expands into a sheet above the bottom bar;
+ * selecting a point flies the map there and opens its popup — unless the view
+ * is locked, in which case the map stays put and only the details open.
  */
 export default function PublicMap({
   center,
@@ -35,6 +35,7 @@ export default function PublicMap({
   maxBounds,
   team,
   eventName,
+  eventLogoUrl,
   chromeInsets,
 }: {
   center: LatLng;
@@ -43,9 +44,11 @@ export default function PublicMap({
   bearing?: number;
   pois: PoiData[];
   maxBounds?: MapBounds | null;
-  team: { name: string; logoUrl: string | null };
-  /** Shown in the top bar alongside the team icon. */
+  team: { name: string };
+  /** Shown in the top bar alongside the event logo. */
   eventName: string;
+  /** Event branding in the top bar (falls back to a pin if missing). */
+  eventLogoUrl?: string | null;
   /**
    * Extra clearance (in rem) for the top and bottom bars, on top of the device
    * safe-area insets. Real devices supply their own insets; this is for
@@ -110,11 +113,17 @@ export default function PublicMap({
         style={{ paddingTop: `calc(max(0.5rem, env(safe-area-inset-top)) + ${topInset}rem)` }}
       >
         <div className="flex items-center gap-2.5 px-4 pb-2.5 pt-0.5">
-          {team.logoUrl ? (
+          {eventLogoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={team.logoUrl} alt="" className="size-8 shrink-0 rounded-full object-cover" />
+            <img
+              src={eventLogoUrl}
+              alt=""
+              className="size-8 shrink-0 rounded-full object-cover"
+            />
           ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-teal-700/10 text-sm">📍</span>
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-teal-700/10 text-sm">
+              📍
+            </span>
           )}
           <div className="min-w-0">
             <p className="truncate font-semibold leading-tight">{eventName}</p>

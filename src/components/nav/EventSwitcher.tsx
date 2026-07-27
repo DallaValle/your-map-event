@@ -61,14 +61,24 @@ export function EventSwitcher({
   }
 
   if (events.length === 0) {
-    return isAdmin ? (
-      <Link
-        href="/dashboard/events/new"
-        className="m-3 rounded-xl border border-dashed border-teal-700/50 px-3 py-2.5 text-center text-sm font-semibold text-teal-700 dark:text-teal-400"
-      >
-        + New event
-      </Link>
-    ) : null;
+    return (
+      <div className="m-3 rounded-xl border border-dashed border-black/15 px-3 py-3 dark:border-white/15">
+        <p className="text-sm font-semibold">No event yet</p>
+        <p className="mt-0.5 text-[11px] leading-snug opacity-60">
+          {isAdmin
+            ? "Pay and name your first event to open the console."
+            : "Nothing published for this team yet."}
+        </p>
+        {isAdmin && (
+          <Link
+            href="/dashboard/events/new"
+            className="mt-3 flex min-h-10 items-center justify-center rounded-lg bg-teal-700 px-3 text-sm font-semibold text-white active:scale-[.98]"
+          >
+            + New event
+          </Link>
+        )}
+      </div>
+    );
   }
 
   return (
