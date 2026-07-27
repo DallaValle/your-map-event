@@ -4,6 +4,10 @@ import { nextCookies } from "better-auth/next-js";
 import { memoryAdapter, type MemoryDB } from "better-auth/adapters/memory";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@/lib/prisma";
+import { sanitizeBetterAuthUrlEnv } from "@/lib/auth-url";
+
+// Invalid BETTER_AUTH_URL (e.g. redacted pull placeholders) crash betterAuth().
+sanitizeBetterAuthUrlEnv();
 
 // Both the memory DB and the auth instance MUST be globalThis singletons:
 // Next.js bundles server components, route handlers, and server actions as
