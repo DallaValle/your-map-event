@@ -66,8 +66,45 @@ async function main() {
     })),
   });
 
+  const program = await prisma.program.upsert({
+    where: { eventId: map.id },
+    update: {},
+    create: { eventId: map.id },
+  });
+  await prisma.programSession.deleteMany({ where: { programId: program.id } });
+  // Local festival evening so Board order and the Schedule hour grid stay obvious.
+  const at = (hour: number, minute = 0) => new Date(2026, 6, 18, hour, minute);
+  await prisma.programSession.createMany({
+    data: [
+      {
+        programId: program.id,
+        title: "Gates open",
+        startsAt: at(16, 0),
+        endsAt: at(16, 30),
+        location: "Main Entrance",
+        sortOrder: 0,
+      },
+      {
+        programId: program.id,
+        title: "Opening remarks",
+        startsAt: at(18, 0),
+        endsAt: at(18, 30),
+        location: "Main Stage",
+        sortOrder: 1,
+      },
+      {
+        programId: program.id,
+        title: "Headliner",
+        startsAt: at(20, 0),
+        endsAt: at(22, 0),
+        location: "Main Stage",
+        sortOrder: 2,
+      },
+    ],
+  });
+
   console.log(
-    `Seeded team "demo-team" with map "${map.name}" and ${POIS.length} POIs.`,
+    `Seeded team "demo-team" with map "${map.name}", ${POIS.length} POIs and 3 sessions.`,
   );
 }
 
