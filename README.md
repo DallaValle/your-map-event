@@ -25,13 +25,13 @@ the workspace pages:
 | **Event** | The selected event's home: basic info (name, public address, description), publish toggle, share tools, and the door into the map editor. Built today. |
 | **Map editor** | Frame the venue, lock the attendee view, and place points of interest for the selected event. Admins only. Built today. |
 | **Board** | A shared program / agenda board - line-ups, session times, the running order the whole team edits together. *Planned.* |
-| **Social campaign** | Plan and schedule the event's social posts, and generate share assets (QR codes, cards) from the published map. *Planned.* |
+| **Social campaign** | Plan and schedule the event's social posts, and generate share assets (QR codes, cards) from the published map. Built today. |
 | **History** | Post-event archive and analytics - attendance, most-visited points of interest, past editions. *Planned.* |
 | **Team** | Team profile (name, logo, public address) and collaboration: invite teammates by email as Admin or Viewer via a shareable invite link. Admins only. Built today. |
 | **Settings** | Personal user settings. *Planned.* |
 
 **Notifications** live behind the header bell (broadcast live announcements to
-attendees - schedule changes, weather, "gates closing in 10 min"). The planned
+attendees - schedule changes, weather, "gates closing in 10 min"). The remaining planned
 sections are placeholders for now: each renders a short description of what will
 live there, so the shape of the product is visible before the features exist.
 
@@ -84,7 +84,8 @@ The core relation is deliberately simple:
 ```
 Team ──< Event ──< PointOfInterest
              │
-             └── one map (center, zoom, bearing, viewing borders) inlined on the event
+             ├── one map (center, zoom, bearing, viewing borders) inlined on the event
+             └── SocialCampaign ──< ScheduledPost
 ```
 
 - A **Team** is the public-facing profile of a Better Auth organization (name,
@@ -279,6 +280,7 @@ src/
 ├── components/
 │   ├── map/                 # ALL Leaflet code (client-only, behind MapCanvas)
 │   ├── map-editor/          # editor UI (no Leaflet imports)
+│   ├── social/              # campaign planner + poster QR
 │   └── ...
 ├── lib/                     # auth, prisma, session helpers, slug rules
 ├── instrumentation.ts       # dev seed for in-memory auth
