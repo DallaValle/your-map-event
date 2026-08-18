@@ -60,6 +60,7 @@ model Event {
   boundsNELat Float?
   boundsNELng Float?
   pois        PointOfInterest[]
+  campaign    SocialCampaign?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
@@ -196,4 +197,30 @@ model Invitation {
   @@index([organizationId])
   @@index([email])
   @@map("invitation")
+}
+
+// One social campaign per event: share-asset planning plus a post queue.
+// Posts are planner-only (draft / scheduled / done) - no live network publish.
+model SocialCampaign {
+  id        String          @id @default(cuid())
+  eventId   String          @unique
+  event     Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  posts     ScheduledPost[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model ScheduledPost {
+  id          String         @id @default(cuid())
+  campaignId  String
+  campaign    SocialCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  body        String
+  channel     String         @default("x")
+  status      String         @default("draft")
+  scheduledAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([campaignId])
 }
