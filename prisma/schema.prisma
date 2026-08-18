@@ -197,3 +197,18 @@ model Invitation {
   @@index([email])
   @@map("invitation")
 }
+
+// Personal settings for a signed-in user. `userId` is a plain string
+// reference (no FK): auth data may live in the Better Auth memory adapter
+// in dev, so Postgres can't enforce the relation.
+model UserPreference {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  emailNotifications  Boolean  @default(true)
+  pushNotifications   Boolean  @default(true)
+  eventAnnouncements  Boolean  @default(true)
+  // system | light | dark — tokens themselves live in milestone 1.
+  theme               String   @default("system")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
