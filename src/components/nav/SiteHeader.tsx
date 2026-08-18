@@ -36,7 +36,14 @@ function Avatar({ user, className }: { user: HeaderUser; className: string }) {
  * bell and the account avatar (right). The avatar opens a menu with the user's
  * picture, name, email and a sign-out button.
  */
-export function SiteHeader({ user }: { user: HeaderUser | null }) {
+export function SiteHeader({
+  user,
+  unreadCount = 0,
+}: {
+  user: HeaderUser | null;
+  /** Unread announcements for the selected event. Hidden when 0. */
+  unreadCount?: number;
+}) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -75,11 +82,19 @@ export function SiteHeader({ user }: { user: HeaderUser | null }) {
       <div className="flex items-center gap-1">
         <Link
           href="/dashboard/notifications"
-          aria-label="Notifications"
+          aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
           title="Notifications"
-          className="flex size-9 items-center justify-center rounded-full text-lg hover:bg-black/5 dark:hover:bg-white/10"
+          className="relative flex size-9 items-center justify-center rounded-full text-lg hover:bg-black/5 dark:hover:bg-white/10"
         >
           <span aria-hidden>🔔</span>
+          {unreadCount > 0 && (
+            <span
+              data-testid="notif-badge"
+              className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-700 px-1 text-[10px] font-bold leading-none text-white"
+            >
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </Link>
 
         {user && (

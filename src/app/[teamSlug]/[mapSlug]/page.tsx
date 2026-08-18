@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PublicMapCanvas } from "@/components/map/MapCanvas";
+import { getLatestAnnouncement } from "@/lib/notifications";
+import { AnnouncementBanner } from "@/components/notifications/AnnouncementBanner";
 
 interface PageProps {
   params: Promise<{ teamSlug: string; mapSlug: string }>;
@@ -49,6 +51,7 @@ export default async function PublicMapPage({ params }: PageProps) {
   const result = await getPublicMap(teamSlug, mapSlug);
   if (!result) notFound();
   const { team, map } = result;
+  const latest = await getLatestAnnouncement(map.id);
 
   return (
     <main className="relative h-dvh w-full">
@@ -73,6 +76,9 @@ export default async function PublicMapPage({ params }: PageProps) {
                 neLng: map.boundsNELng!,
               }
             : null
+        }
+        banner={
+          latest ? <AnnouncementBanner title={latest.title} body={latest.body} /> : undefined
         }
       />
     </main>

@@ -60,6 +60,7 @@ model Event {
   boundsNELat Float?
   boundsNELng Float?
   pois        PointOfInterest[]
+  notifications Notification[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
@@ -85,6 +86,20 @@ model PointOfInterest {
   updatedAt   DateTime @updatedAt
 
   @@index([mapId])
+}
+
+// Live announcement sent to attendees of one event. Unread state for the
+// dashboard bell is a cookie (attendees have no account), not a row here.
+model Notification {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  title      String
+  body       String
+  authorName String
+  createdAt  DateTime @default(now())
+
+  @@index([eventId, createdAt])
 }
 
 model User {

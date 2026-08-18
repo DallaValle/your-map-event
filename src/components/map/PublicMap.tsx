@@ -37,6 +37,7 @@ export default function PublicMap({
   eventName,
   eventLogoUrl,
   chromeInsets,
+  banner,
 }: {
   center: LatLng;
   zoom: number;
@@ -56,6 +57,8 @@ export default function PublicMap({
    * rounded corners would otherwise clip the bars. Defaults to none.
    */
   chromeInsets?: { top?: number; bottom?: number };
+  /** Optional overlay at the top of the map (live announcement, etc.). */
+  banner?: React.ReactNode;
 }) {
   const topInset = chromeInsets?.top ?? 0;
   const bottomInset = chromeInsets?.bottom ?? 0;
@@ -134,6 +137,11 @@ export default function PublicMap({
 
       {/* Map fills the space between the bars. */}
       <div className="relative min-h-0 flex-1">
+        {banner && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-[1050] p-3">
+            <div className="pointer-events-auto">{banner}</div>
+          </div>
+        )}
         <LeafletMap
           center={center}
           zoom={zoom}
