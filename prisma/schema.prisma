@@ -60,6 +60,7 @@ model Event {
   boundsNELat Float?
   boundsNELng Float?
   pois        PointOfInterest[]
+  program     Program?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
@@ -196,4 +197,34 @@ model Invitation {
   @@index([organizationId])
   @@index([email])
   @@map("invitation")
+}
+
+// A Program is the event's running order. 1:1 with Event so session fields
+// never land on the Event row (map data stays there). Board and Schedule
+// share these rows.
+model Program {
+  id        String           @id @default(cuid())
+  eventId   String           @unique
+  event     Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sessions  ProgramSession[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+// One slot on the program. Board edits these; Schedule renders the same
+// rows hour by hour.
+model ProgramSession {
+  id         String   @id @default(cuid())
+  programId  String
+  program    Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  title      String
+  startsAt   DateTime
+  endsAt     DateTime
+  location   String?
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([programId, sortOrder])
+  @@index([programId, startsAt])
 }
