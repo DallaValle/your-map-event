@@ -147,6 +147,7 @@ export default function EditorMapView({
   center,
   zoom,
   bearing = 0,
+  layout,
   pois,
   draftPosition,
   bounds,
@@ -163,6 +164,8 @@ export default function EditorMapView({
   zoom: number;
   /** Initial rotation (the map's saved default orientation). */
   bearing?: number;
+  /** Basemap layout (streets, light, dark, satellite, outdoors). */
+  layout?: string | null;
   pois: PoiData[];
   draftPosition: LatLng | null;
   /** Saved borders. When set (and editable), the view is locked to them. */
@@ -183,6 +186,7 @@ export default function EditorMapView({
       center={center}
       zoom={zoom}
       bearing={bearing}
+      layout={layout}
       rotatable
       className="h-full w-full"
     >

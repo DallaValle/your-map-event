@@ -45,6 +45,8 @@ model Event {
   description String?
   // Shown in the attendee map top bar (event branding, not the team logo).
   logoUrl     String?
+  // Basemap preset: streets | light | dark | satellite | outdoors
+  mapLayout   String            @default("streets")
   centerLat   Float
   centerLng   Float
   centerName  String

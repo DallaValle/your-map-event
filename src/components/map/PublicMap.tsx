@@ -31,6 +31,7 @@ export default function PublicMap({
   center,
   zoom,
   bearing = 0,
+  layout,
   pois,
   maxBounds,
   team,
@@ -42,6 +43,8 @@ export default function PublicMap({
   zoom: number;
   /** The admin's saved default orientation. */
   bearing?: number;
+  /** Basemap layout saved on the event. */
+  layout?: string | null;
   pois: PoiData[];
   maxBounds?: MapBounds | null;
   team: { name: string };
@@ -138,6 +141,7 @@ export default function PublicMap({
           center={center}
           zoom={zoom}
           bearing={bearing}
+          layout={layout}
           maxBounds={maxBounds}
           rotatable
           className="h-full w-full"

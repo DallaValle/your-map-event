@@ -60,6 +60,7 @@ export default async function PublicMapPage({ params }: PageProps) {
         center={{ lat: map.centerLat, lng: map.centerLng }}
         zoom={map.zoom}
         bearing={map.bearing}
+        layout={map.mapLayout}
         pois={map.pois}
         eventName={map.name}
         eventLogoUrl={map.logoUrl}
