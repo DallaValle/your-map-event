@@ -5,9 +5,8 @@ import type L from "leaflet";
 import { useMap } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { PoiMarkers } from "./PoiMarkers";
-import { GeolocateLayer, type GeoState } from "./GeolocateLayer";
+import { GeolocateLayer, isInsideBounds, type GeoState } from "./GeolocateLayer";
 import { CompassControl } from "./CompassControl";
-import { FrozenView } from "./FrozenView";
 import type { LatLng, PoiData } from "./types";
 
 /** Hands the Leaflet map instance to overlays living outside the container. */
@@ -20,12 +19,69 @@ function MapRefCapture({ onMap }: { onMap: (map: L.Map | null) => void }) {
   return null;
 }
 
+interface MapView {
+  lat: number;
+  lng: number;
+  zoom: number;
+  bearing: number;
+}
+
+/**
+ * Attendee camera rules: stay inside the event borders, double-click zooms in
+ * one step, and report the current view up for the wrapper's data attributes.
+ */
+function AttendeeMapBehavior({ onView }: { onView: (view: MapView) => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const syncView = () => {
+      const c = map.getCenter();
+      onView({
+        lat: c.lat,
+        lng: c.lng,
+        zoom: map.getZoom(),
+        bearing: map.getBearing?.() ?? 0,
+      });
+    };
+
+    // One zoom level per double-click, not a jump to a street-level zoom.
+    map.options.zoomDelta = 1;
+    map.doubleClickZoom?.enable();
+
+    const applyMinZoom = () => {
+      const bounds = map.options.maxBounds;
+      if (!bounds) return;
+      const size = map.getSize();
+      if (!size.x || !size.y) return;
+      const min = map.getBoundsZoom(bounds, true);
+      if (!Number.isFinite(min)) return;
+      map.setMinZoom(min);
+      if (map.getZoom() < min) map.setZoom(min);
+    };
+
+    applyMinZoom();
+    syncView();
+    map.on("resize", applyMinZoom);
+    map.on("moveend", syncView);
+    map.on("zoomend", syncView);
+    map.on("rotate", syncView);
+    return () => {
+      map.off("resize", applyMinZoom);
+      map.off("moveend", syncView);
+      map.off("zoomend", syncView);
+      map.off("rotate", syncView);
+    };
+  }, [map, onView]);
+
+  return null;
+}
+
 /**
  * Attendee screen: a full-bleed rotatable map framed by a top navigation bar
  * (event logo + name) and a bottom navigation bar (points list, locate,
  * recenter). The points list expands into a sheet above the bottom bar;
- * selecting a point flies the map there and opens its popup — unless the view
- * is locked, in which case the map stays put and only the details open.
+ * selecting a point flies the map there and opens its popup. Event borders
+ * are a hard limit, not a frozen camera: pan and zoom stay inside them.
  */
 export default function PublicMap({
   center,
@@ -62,25 +118,32 @@ export default function PublicMap({
 }) {
   const topInset = chromeInsets?.top ?? 0;
   const bottomInset = chromeInsets?.bottom ?? 0;
-  // Locked = the admin froze the attendee view to a fixed box; selecting a
-  // point must reveal its details without moving the map.
+  // Borders are the event limit. Popups must not auto-pan past them.
   const locked = !!maxBounds;
 
   const [map, setMap] = useState<L.Map | null>(null);
   const markerRefs = useRef(new Map<string, L.Marker>());
   const [listOpen, setListOpen] = useState(false);
   const [geo, setGeo] = useState<GeoState>({ status: "idle" });
+  const [offMapNotice, setOffMapNotice] = useState(false);
+  const [view, setView] = useState<MapView>({
+    lat: center.lat,
+    lng: center.lng,
+    zoom,
+    bearing,
+  });
   const onGeoChange = useCallback((state: GeoState) => setGeo(state), []);
+  const onView = useCallback((next: MapView) => setView(next), []);
+
+  useEffect(() => {
+    if (!offMapNotice) return;
+    const t = window.setTimeout(() => setOffMapNotice(false), 5000);
+    return () => window.clearTimeout(t);
+  }, [offMapNotice]);
 
   function goToPoi(poi: PoiData) {
     setListOpen(false);
     if (!map) return;
-    // Locked view: the frame is fixed, so don't fly or zoom — just open the
-    // point's details in place (auto-pan is off while locked).
-    if (locked) {
-      markerRefs.current.get(poi.id)?.openPopup();
-      return;
-    }
     map.flyTo([poi.lat, poi.lng], Math.max(map.getZoom(), 18));
     // The marker may still be inside a cluster mid-flight; opening after the
     // fly-in (~0.8s) is reliable at popup zoom levels.
@@ -89,19 +152,18 @@ export default function PublicMap({
 
   function locateMe() {
     if (!map || geo.status !== "active" || geo.lat == null || geo.lng == null) return;
+    if (maxBounds && !isInsideBounds(geo.lat, geo.lng, maxBounds)) {
+      setOffMapNotice(true);
+      return;
+    }
+    setOffMapNotice(false);
     map.flyTo([geo.lat, geo.lng], Math.max(map.getZoom(), 17));
   }
 
   function recenter() {
     if (!map) return;
-    if (maxBounds) {
-      map.flyToBounds([
-        [maxBounds.swLat, maxBounds.swLng],
-        [maxBounds.neLat, maxBounds.neLng],
-      ]);
-    } else {
-      map.flyTo([center.lat, center.lng], zoom);
-    }
+    map.setBearing?.(bearing);
+    map.flyTo([center.lat, center.lng], zoom);
   }
 
   const navButton =
@@ -136,7 +198,14 @@ export default function PublicMap({
       </div>
 
       {/* Map fills the space between the bars. */}
-      <div className="relative min-h-0 flex-1">
+      <div
+        className="relative min-h-0 flex-1"
+        data-testid="live-map-view"
+        data-lat={view.lat}
+        data-lng={view.lng}
+        data-zoom={view.zoom}
+        data-bearing={view.bearing}
+      >
         <LeafletMap
           center={center}
           zoom={zoom}
@@ -147,6 +216,7 @@ export default function PublicMap({
           className="h-full w-full"
         >
           <MapRefCapture onMap={setMap} />
+          <AttendeeMapBehavior onView={onView} />
           <PoiMarkers
             pois={pois}
             locked={locked}
@@ -155,12 +225,19 @@ export default function PublicMap({
               else markerRefs.current.delete(id);
             }}
           />
-          <GeolocateLayer onChange={onGeoChange} />
+          <GeolocateLayer onChange={onGeoChange} maxBounds={maxBounds} />
           <CompassControl className="m-3" />
-          {/* A locked attendee view is fully frozen: nothing the visitor does
-              moves the map, so selecting a point only reveals its details. */}
-          <FrozenView active={locked} />
         </LeafletMap>
+        {offMapNotice && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-[1050] flex justify-center px-4">
+            <p
+              role="status"
+              className="rounded-2xl bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg dark:bg-white dark:text-neutral-900"
+            >
+              You are not on the map
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Points list: expands into a sheet above the bottom bar. */}
