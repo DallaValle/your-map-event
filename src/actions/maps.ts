@@ -8,6 +8,11 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { ACTIVE_EVENT_COOKIE } from "@/lib/active-event";
 import { slugify, validateMapSlug } from "@/lib/slug";
+import {
+  DEFAULT_MAP_LAYOUT,
+  MAP_LAYOUT_IDS,
+  type MapLayoutId,
+} from "@/components/map/map-layouts";
 import type { ActionState } from "./types";
 
 /** First free slug for a team, trying base, base-2, base-3, … */
@@ -34,12 +39,21 @@ const eventInfoSchema = z.object({
   logoUrl: z.union([z.url(), z.literal("")]).nullish(),
 });
 
+const mapLayoutSchema = z
+  .string()
+  .optional()
+  .transform((v) => {
+    if (v && (MAP_LAYOUT_IDS as string[]).includes(v)) return v as MapLayoutId;
+    return DEFAULT_MAP_LAYOUT;
+  });
+
 const mapViewSchema = z
   .object({
     centerName: z.string().trim().min(1, "Give the event location a name").max(80),
     centerLat: z.coerce.number().min(-90).max(90),
     centerLng: z.coerce.number().min(-180).max(180),
     zoom: z.coerce.number().int().min(3).max(19).default(17),
+    mapLayout: mapLayoutSchema,
     bearing: z.preprocess(
       (v) => (v === "" || v == null ? undefined : v),
       z.coerce.number().optional(),
@@ -81,6 +95,7 @@ function parseMapViewForm(formData: FormData) {
     centerLat: formData.get("centerLat"),
     centerLng: formData.get("centerLng"),
     zoom: formData.get("zoom") || undefined,
+    mapLayout: formData.get("mapLayout") || undefined,
     bearing: formData.get("bearing"),
     boundsSWLat: formData.get("boundsSWLat"),
     boundsSWLng: formData.get("boundsSWLng"),
@@ -105,6 +120,7 @@ const NEW_EVENT_MAP_DEFAULTS = {
   centerName: "Set in map editor",
   zoom: 16,
   bearing: 0,
+  mapLayout: DEFAULT_MAP_LAYOUT,
 } as const;
 
 /**

@@ -8,13 +8,18 @@ import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import "./leaflet-icon-fix";
 import type { LatLng } from "./types";
+import {
+  DEFAULT_MAP_LAYOUT,
+  resolveMapLayout,
+  type MapLayoutId,
+} from "./map-layouts";
 
 /**
  * The only component that touches Leaflet's DOM API directly. It must never
  * be imported by server code — MapCanvas dynamic-imports it with ssr: false.
  *
- * OSM tile usage policy: single canonical host (the {s} subdomains are
- * deprecated) and visible attribution are required.
+ * Tile usage: each layout declares its own host + attribution. OSM still uses
+ * the single canonical host (the {s} subdomains are deprecated there).
  */
 export interface MapBounds {
   swLat: number;
@@ -29,6 +34,7 @@ export function LeafletMap({
   maxBounds,
   rotatable = false,
   bearing = 0,
+  layout = DEFAULT_MAP_LAYOUT,
   children,
   className = "h-full w-full",
 }: {
@@ -40,9 +46,13 @@ export function LeafletMap({
   rotatable?: boolean;
   /** Initial rotation in degrees (0 = north up). */
   bearing?: number;
+  /** Basemap preset (streets, light, dark, satellite, outdoors). */
+  layout?: MapLayoutId | string | null;
   children?: React.ReactNode;
   className?: string;
 }) {
+  const basemap = resolveMapLayout(layout);
+
   return (
     <MapContainer
       center={[center.lat, center.lng]}
@@ -67,10 +77,12 @@ export function LeafletMap({
           }
         : {})}
     >
+      {/* key remounts tiles when the admin switches layout */}
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        maxZoom={19}
+        key={basemap.id}
+        url={basemap.url}
+        attribution={basemap.attribution}
+        maxZoom={basemap.maxZoom}
       />
       {children}
     </MapContainer>

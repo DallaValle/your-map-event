@@ -22,13 +22,17 @@ const serwist = new Serwist({
   navigationPreload: true,
   runtimeCaching: [
     {
-      // OSM tiles: cache-first so tiles the attendee already viewed keep
-      // working with a flaky connection on the event grounds. This caches
-      // opportunistically only (no bulk prefetch), which complies with the
-      // OSM tile usage policy. Bounded so we never hoard the tile pyramid.
-      matcher: ({ url }) => url.origin === "https://tile.openstreetmap.org",
+      // Map tiles (OSM, Carto, Esri, OpenTopoMap): cache-first so tiles the
+      // attendee already viewed keep working with a flaky connection on the
+      // event grounds. Opportunistic only (no bulk prefetch). Bounded so we
+      // never hoard the tile pyramid.
+      matcher: ({ url }) =>
+        url.origin === "https://tile.openstreetmap.org" ||
+        url.hostname.endsWith("basemaps.cartocdn.com") ||
+        url.hostname === "server.arcgisonline.com" ||
+        url.hostname.endsWith("tile.opentopomap.org"),
       handler: new CacheFirst({
-        cacheName: "osm-tiles",
+        cacheName: "map-tiles",
         plugins: [
           new ExpirationPlugin({
             maxEntries: 250,

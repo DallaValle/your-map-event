@@ -9,6 +9,13 @@ import { GeocodeSearch } from "@/components/map/GeocodeSearch";
 import type { MapFocus } from "@/components/map/EditorMapView";
 import type { MapBounds } from "@/components/map/LeafletMap";
 import type { LatLng, PoiData } from "@/components/map/types";
+import {
+  DEFAULT_MAP_LAYOUT,
+  MAP_LAYOUTS,
+  MAP_LAYOUT_IDS,
+  isMapLayoutId,
+  type MapLayoutId,
+} from "@/components/map/map-layouts";
 import { PoiSheet, type PoiSheetMode } from "./PoiSheet";
 import { PhonePreview } from "./PhonePreview";
 import { ShareCard } from "@/components/share/ShareCard";
@@ -23,6 +30,7 @@ export interface EditorMapData {
   centerName: string;
   zoom: number;
   bearing: number;
+  mapLayout: string;
   published: boolean;
   boundsSWLat: number | null;
   boundsSWLng: number | null;
@@ -72,6 +80,9 @@ export function MapEditor({
   });
   const [zoom, setZoom] = useState(map.zoom);
   const [bearing, setBearing] = useState(map.bearing);
+  const [mapLayout, setMapLayout] = useState<MapLayoutId>(
+    isMapLayoutId(map.mapLayout) ? map.mapLayout : DEFAULT_MAP_LAYOUT,
+  );
   const [bounds, setBounds] = useState<MapBounds | null>(
     map.boundsSWLat != null
       ? {
@@ -108,6 +119,7 @@ export function MapEditor({
       centerLng: center.lng,
       zoom,
       bearing,
+      mapLayout,
       boundsSWLat: bounds?.swLat ?? "",
       boundsSWLng: bounds?.swLng ?? "",
       boundsNELat: bounds?.neLat ?? "",
@@ -130,6 +142,7 @@ export function MapEditor({
     fd.set("centerLng", String(snap.centerLng));
     fd.set("zoom", String(snap.zoom));
     fd.set("bearing", String(snap.bearing));
+    fd.set("mapLayout", snap.mapLayout);
     fd.set("boundsSWLat", String(snap.boundsSWLat));
     fd.set("boundsSWLng", String(snap.boundsSWLng));
     fd.set("boundsNELat", String(snap.boundsNELat));
@@ -158,7 +171,7 @@ export function MapEditor({
   useEffect(() => {
     const t = setTimeout(() => saveRef.current(), 700);
     return () => clearTimeout(t);
-  }, [center, zoom, bearing, bounds]);
+  }, [center, zoom, bearing, bounds, mapLayout]);
 
   // --- Map interaction ------------------------------------------------------
   // The map card is sticky at every breakpoint, so it is always on screen —
@@ -274,6 +287,7 @@ export function MapEditor({
           center={{ lat: map.centerLat, lng: map.centerLng }}
           zoom={map.zoom}
           bearing={map.bearing}
+          layout={mapLayout}
           pois={pois}
           draftPosition={sheetDraft}
           bounds={bounds}
@@ -342,6 +356,45 @@ export function MapEditor({
               className={inputClass}
             />
           </label>
+        </section>
+
+        {/* Basemap style for editor + live attendee map. */}
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">Map layout</h2>
+            <p className="mt-0.5 text-xs opacity-60">
+              Choose how the map looks for you and for attendees.
+            </p>
+          </div>
+          <div
+            role="radiogroup"
+            aria-label="Map layout"
+            className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+          >
+            {MAP_LAYOUT_IDS.map((id) => {
+              const option = MAP_LAYOUTS[id];
+              const selected = mapLayout === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setMapLayout(id)}
+                  className={`rounded-xl border px-3 py-3 text-left transition-colors ${
+                    selected
+                      ? "border-teal-700 bg-teal-700/10 ring-1 ring-teal-700/40 dark:border-teal-400"
+                      : "border-black/10 hover:border-black/25 dark:border-white/15 dark:hover:border-white/30"
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{option.label}</span>
+                  <span className="mt-0.5 block text-xs opacity-60">
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         {/* View lock: freezing the phone-shaped view captures borders,
