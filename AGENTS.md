@@ -129,10 +129,20 @@ Precise, short, important things only:
 ## Milestone
 https://github.com/DallaValle/your-map-event/milestone/<n>
 
+## Database
+- Migration: yes (`prisma/migrations/<name>/`) | no
+- Preview: works | will break
+
 ## Test plan
 - e2e: `e2e/<name>.spec.ts`
 - What to click on the preview
 ```
+
+Every PR must say whether it includes a Prisma migration and whether the Vercel preview will work.
+Preview deploys do **not** run `prisma migrate deploy`. Only a merge to `main` does.
+Preview and production share the same Neon database, so a PR that reads a new column or table will break on the preview URL until that migration has already run in production.
+If there is no migration, write `Migration: no` and `Preview: works`.
+If there is a migration, name the folder and say `Preview: will break` unless the column/table already exists on Neon.
 
 Commits stay Conventional Commits (`feat(map): …`, `fix(settings): …`, `test(board): …`).
 
