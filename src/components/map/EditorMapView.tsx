@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import type L from "leaflet";
 import { Marker, useMap, useMapEvents } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
-import { FrozenView } from "./FrozenView";
 import { RotateControl } from "./RotateControl";
 import { ZoomControl } from "./ZoomControl";
 import { useMapControlRef } from "./control-utils";
@@ -34,6 +33,8 @@ function MapEvents({
     moveend() {
       const center = map.getCenter();
       onViewChange?.({ lat: center.lat, lng: center.lng });
+      // Pan-while-zoomed can leave parent zoom stale; keep it in sync.
+      onZoomChange?.(map.getZoom());
     },
     zoomend() {
       onZoomChange?.(map.getZoom());
@@ -74,32 +75,43 @@ function captureBounds(map: L.Map): MapBounds {
   };
 }
 
+interface ToggleableHandler {
+  enable(): void;
+  disable(): void;
+}
+
 /**
- * While the view is locked, gestures are frozen (shared FrozenView) so the
- * framing can't drift, but taps still land for placing points. Deliberate
- * programmatic moves (location search, zoom slider) still fly the map — after
- * each one the borders are re-captured so the lock invariant holds: borders
- * always equal exactly what's on screen.
+ * Editor-only lock: freeze pan/rotate so the attendee frame doesn't drift,
+ * but keep zoom (wheel, pinch, +/-) so points are easy to place. Does not
+ * recapture borders - the saved attendee lock stays as it was when locked.
+ * Attendee maps use FrozenView separately and stay fully frozen.
  */
-function LockController({
-  locked,
-  onRecapture,
-}: {
-  locked: boolean;
-  onRecapture: (bounds: MapBounds) => void;
-}) {
+function EditorLock({ locked }: { locked: boolean }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!locked) return;
-    const recapture = () => onRecapture(captureBounds(map));
-    map.on("moveend zoomend", recapture);
-    return () => {
-      map.off("moveend zoomend", recapture);
-    };
-  }, [locked, map, onRecapture]);
+    const rotate: (ToggleableHandler | undefined)[] = [
+      (map as unknown as { touchRotate?: ToggleableHandler }).touchRotate,
+      (map as unknown as { shiftKeyRotate?: ToggleableHandler }).shiftKeyRotate,
+    ];
 
-  return <FrozenView active={locked} />;
+    if (locked) {
+      map.dragging.disable();
+      map.boxZoom.disable();
+      map.keyboard.disable();
+      for (const handler of rotate) handler?.disable();
+      map.touchZoom.enable();
+      map.scrollWheelZoom.enable();
+      map.doubleClickZoom.enable();
+    } else {
+      map.dragging.enable();
+      map.boxZoom.enable();
+      map.keyboard.enable();
+      for (const handler of rotate) handler?.enable();
+    }
+  }, [locked, map]);
+
+  return null;
 }
 
 /** In-map toggle: freeze (or release) the current framing as the attendee view. */
@@ -137,10 +149,10 @@ function LockViewControl({
 /**
  * The single admin editing surface. The map card is phone-shaped, so what's
  * visible here IS the attendee view:
- * - "+ Add point" arms a tap to place a POI; tap a marker to edit
+ * - "+ Add point" arms a tap to place a POI; tap a marker to edit (no pan)
  * - pan / pinch / rotate to define the attendees' default view (reported out
  *   via onViewChange / onZoomChange / onBearingChange so the parent can save)
- * - lock the view to freeze borders + orientation + zoom exactly as framed
+ * - lock the view to freeze the attendee frame; editor zoom stays available
  * Selection UI and the settings form live outside the map in MapEditor.
  */
 export default function EditorMapView({
@@ -196,14 +208,13 @@ export default function EditorMapView({
         onZoomChange={onZoomChange}
       />
       <FlyToFocus focus={focus} />
-      {/* Rotation + zoom buttons are hidden while locked — the whole framing
-          (orientation and zoom included) is frozen then.
-          No compass here — the rotate control already shows the bearing. */}
+      {/* Orientation stays frozen with the attendee lock; zoom does not.
+          No compass here - the rotate control already shows the bearing. */}
       {!locked && <RotateControl onBearingChange={onBearingChange} />}
-      {!locked && <ZoomControl />}
+      <ZoomControl />
       {onCaptureBounds && (
         <>
-          <LockController locked={locked} onRecapture={onCaptureBounds} />
+          <EditorLock locked={locked} />
           <LockViewControl
             locked={locked}
             onLock={onCaptureBounds}
@@ -216,11 +227,18 @@ export default function EditorMapView({
           key={poi.id}
           position={[poi.lat, poi.lng]}
           icon={poiDivIcon(poi.icon)}
+          // Leaflet 1.9 pans to a focused marker by default; a click must
+          // only open the sheet, never shift the framed view.
+          autoPanOnFocus={false}
           eventHandlers={{ click: () => onPoiClick(poi) }}
         />
       ))}
       {draftPosition && (
-        <Marker position={[draftPosition.lat, draftPosition.lng]} opacity={0.6} />
+        <Marker
+          position={[draftPosition.lat, draftPosition.lng]}
+          opacity={0.6}
+          autoPanOnFocus={false}
+        />
       )}
     </LeafletMap>
   );
