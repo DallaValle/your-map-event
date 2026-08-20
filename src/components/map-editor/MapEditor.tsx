@@ -17,7 +17,6 @@ import {
   type MapLayoutId,
 } from "@/components/map/map-layouts";
 import { PoiSheet, type PoiSheetMode } from "./PoiSheet";
-import { PhonePreview } from "./PhonePreview";
 import { ShareCard } from "@/components/share/ShareCard";
 
 export interface EditorMapData {
@@ -95,9 +94,6 @@ export function MapEditor({
   );
   const [focus, setFocus] = useState<MapFocus | null>(null);
 
-  // Attendee (iPhone) preview overlay.
-  const [previewOpen, setPreviewOpen] = useState(false);
-
   // --- POI editing state ----------------------------------------------------
   const [sheet, setSheet] = useState<PoiSheetMode | null>(null);
   const [sheetDraft, setSheetDraft] = useState<LatLng | null>(null);
@@ -112,19 +108,60 @@ export function MapEditor({
   const [saveError, setSaveError] = useState<string | null>(null);
   const saveSeq = useRef(0);
 
+  // While the attendee view is locked, editor zoom/pan is working-copy only.
+  // Persist the frame captured at lock time so placing points cannot rewrite
+  // the live borders, zoom, or center.
+  const lockedViewRef = useRef<{
+    centerLat: number;
+    centerLng: number;
+    zoom: number;
+    bearing: number;
+  } | null>(
+    map.boundsSWLat != null
+      ? {
+          centerLat: map.centerLat,
+          centerLng: map.centerLng,
+          zoom: map.zoom,
+          bearing: map.bearing,
+        }
+      : null,
+  );
+
   function snapshot() {
+    const frozen = lockedViewRef.current;
     return {
       centerName,
-      centerLat: center.lat,
-      centerLng: center.lng,
-      zoom,
-      bearing,
+      centerLat: frozen?.centerLat ?? center.lat,
+      centerLng: frozen?.centerLng ?? center.lng,
+      zoom: frozen?.zoom ?? zoom,
+      bearing: frozen?.bearing ?? bearing,
       mapLayout,
       boundsSWLat: bounds?.swLat ?? "",
       boundsSWLng: bounds?.swLng ?? "",
       boundsNELat: bounds?.neLat ?? "",
       boundsNELng: bounds?.neLng ?? "",
     };
+  }
+
+  function handleCaptureBounds(next: MapBounds) {
+    lockedViewRef.current = {
+      centerLat: center.lat,
+      centerLng: center.lng,
+      zoom,
+      bearing,
+    };
+    setBounds(next);
+  }
+
+  function handleClearBounds() {
+    const frozen = lockedViewRef.current;
+    if (frozen) {
+      setCenter({ lat: frozen.centerLat, lng: frozen.centerLng });
+      setZoom(frozen.zoom);
+      setBearing(frozen.bearing);
+    }
+    lockedViewRef.current = null;
+    setBounds(null);
   }
 
   // Serialized snapshot of what's currently persisted, so redundant saves
@@ -242,15 +279,28 @@ export function MapEditor({
               {statusLabel[saveStatus] || `/${teamSlug}/${map.slug}`}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setPreviewOpen(true)}
-            aria-label="Preview attendee view"
-            title="Preview attendee view"
-            className="shrink-0 rounded-full border border-black/15 px-4 py-2 text-sm font-semibold dark:border-white/20"
-          >
-            Preview
-          </button>
+          {map.published ? (
+            <a
+              href={`/${teamSlug}/${map.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Preview attendee view"
+              title="Open the live attendee page in a new tab"
+              className="shrink-0 rounded-full border border-black/15 px-4 py-2 text-sm font-semibold dark:border-white/20"
+            >
+              Preview
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              aria-label="Preview attendee view"
+              title="Publish the event to preview the live attendee page"
+              className="shrink-0 rounded-full border border-black/15 px-4 py-2 text-sm font-semibold opacity-60 dark:border-white/20"
+            >
+              Preview
+            </button>
+          )}
           <button
             type="button"
             onClick={togglePublished}
@@ -299,8 +349,8 @@ export function MapEditor({
           onViewChange={setCenter}
           onZoomChange={(z) => setZoom(clampZoom(z))}
           onBearingChange={(b) => setBearing(((b % 360) + 360) % 360)}
-          onCaptureBounds={setBounds}
-          onClearBounds={() => setBounds(null)}
+          onCaptureBounds={handleCaptureBounds}
+          onClearBounds={handleClearBounds}
         />
         {/* Visible borders: while locked the viewport IS the attendee area,
             so a dashed frame just inside the card edges marks the border. */}
@@ -338,7 +388,7 @@ export function MapEditor({
             placeholder="Search event location…"
             onSelect={(result) => {
               setFocus(result.bounds ? { ...result, bounds: result.bounds } : result);
-              setCenter({ lat: result.lat, lng: result.lng });
+              if (!bounds) setCenter({ lat: result.lat, lng: result.lng });
             }}
           />
           <p className="text-xs opacity-60">
@@ -404,12 +454,12 @@ export function MapEditor({
           {bounds ? (
             <div className="flex items-center justify-between gap-2 rounded-xl bg-teal-700/10 px-4 py-3 text-sm">
               <span className="text-teal-700 dark:text-teal-400">
-                🔒 Locked — borders, orientation and zoom are frozen to the
-                framed view. Attendees can’t pan outside it.
+                🔒 Locked for attendees - borders, orientation and zoom stay
+                as framed. You can still zoom here to place points.
               </span>
               <button
                 type="button"
-                onClick={() => setBounds(null)}
+                onClick={handleClearBounds}
                 className="shrink-0 font-semibold text-red-600 dark:text-red-400"
               >
                 Unlock
@@ -510,16 +560,6 @@ export function MapEditor({
         </section>
         </div>
       </div>
-
-      {/* Attendee preview inside an iPhone frame — embeds the real live page
-          so it's pixel-identical to what attendees get. */}
-      {previewOpen && (
-        <PhonePreview
-          liveUrl={`/${teamSlug}/${map.slug}`}
-          published={map.published}
-          onClose={() => setPreviewOpen(false)}
-        />
-      )}
 
       {/* POI form: floating bottom sheet; the map stays interactive above it
           and taps reposition the draft point while it's open. */}
