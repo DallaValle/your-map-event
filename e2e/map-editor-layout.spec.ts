@@ -63,6 +63,19 @@ test.describe("map editor layout", () => {
     expect(map.x).toBeGreaterThan(form.x + form.width);
   });
 
+  test("attribution is compact and still credits the tiles", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "run once");
+    await openFirstMapEditor(page);
+
+    const attr = page.locator(".leaflet-control-attribution");
+    await expect(attr).toBeVisible();
+    await expect(attr).not.toHaveText(/Leaflet/i);
+    await expect(attr).not.toHaveText("");
+
+    const box = (await attr.boundingBox())!;
+    expect(box.height).toBeLessThan(22);
+  });
+
   test("add-points mode stays armed for multiple points", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "flow is identical; run once");
     await openFirstMapEditor(page);

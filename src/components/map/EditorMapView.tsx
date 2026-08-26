@@ -128,8 +128,7 @@ function LockViewControl({
   const controlRef = useMapControlRef();
   return (
     <div className="leaflet-bottom leaflet-left">
-      {/* mb-6 keeps the button clear of the OSM attribution line. */}
-      <div ref={controlRef} className="leaflet-control m-2 mb-6">
+      <div ref={controlRef} className="leaflet-control m-2">
         <button
           type="button"
           onClick={() => (locked ? onUnlock() : onLock(captureBounds(map)))}
