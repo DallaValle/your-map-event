@@ -139,29 +139,34 @@ test.describe("editor: points", () => {
     await expect(page.getByRole("heading", { name: "Event location" })).toBeVisible();
   });
 
-  test("locked attendee map: selecting a point never moves it", async ({ page }, testInfo) => {
+  test("locked attendee map: selecting a point keeps details on screen", async ({
+    page,
+  }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "run once");
 
     await signIn(page);
     await setLakesideLock(page, true);
 
-    // The real attendee view (now locked). A reference marker's screen position
-    // is the reliable movement detector - the map-pane transform is reset by
-    // Leaflet after any auto-pan, so it can't tell.
+    // The real attendee view, now bordered: the camera is no longer frozen,
+    // so what matters is that the details land inside the map, not that the
+    // map held still.
     await page.goto("/demo-team/lakeside-festival-2026");
     await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible({ timeout: 20_000 });
     await page.waitForTimeout(1200);
 
-    const ref = page.locator(".leaflet-marker-icon").filter({ hasText: "💧" }).first();
-    const before = (await ref.boundingBox())!;
-
     // Click a point near the edge - the classic auto-pan-to-the-right trigger.
     await page.locator(".leaflet-marker-icon").filter({ hasText: "🍺" }).first().click();
-    await page.waitForTimeout(1200);
+    const popup = page.locator(".leaflet-popup");
+    await expect(popup).toBeVisible();
+    await expect(popup).toContainText("Local craft beer");
 
-    const after = (await ref.boundingBox())!;
-    expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(2);
-    expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(2);
+    // Borders are a hard limit: the bubble slides instead of the map panning.
+    const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
+    const popupBox = (await popup.boundingBox())!;
+    expect(popupBox.x).toBeGreaterThanOrEqual(mapBox.x - 1);
+    expect(popupBox.y).toBeGreaterThanOrEqual(mapBox.y - 1);
+    expect(popupBox.x + popupBox.width).toBeLessThanOrEqual(mapBox.x + mapBox.width + 1);
+    expect(popupBox.y + popupBox.height).toBeLessThanOrEqual(mapBox.y + mapBox.height + 1);
 
     // Restore the demo to unlocked.
     await page.goto("/dashboard");

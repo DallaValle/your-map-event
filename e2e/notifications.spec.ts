@@ -33,6 +33,18 @@ test("send announcement, bell badge, attendee map banner", async ({ page }) => {
   try {
     await signIn(page);
 
+    // Pin the dashboard to the demo event. Without the cookie getActiveEvent
+    // falls back to the most recently updated event, which is whatever event
+    // an earlier spec happened to create.
+    await page.context().addCookies([
+      {
+        name: "activeEventId",
+        value: event!.id,
+        url: "http://localhost:3999",
+      },
+    ]);
+    await page.reload();
+
     const bell = page.getByRole("link", { name: /Notifications/ });
     await expect(bell).toHaveAttribute("aria-label", "Notifications, 1 unread");
     await expect(page.getByTestId("notif-badge")).toHaveText("1");
