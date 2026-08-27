@@ -1,7 +1,8 @@
 "use client";
 
-import { MapContainer, TileLayer } from "react-leaflet";
+import { AttributionControl, MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "./leaflet-attribution.css";
 // Patches L.Map with rotation support (bearing, two-finger rotate).
 import "leaflet-rotate";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
@@ -62,7 +63,8 @@ export function LeafletMap({
       // Mobile-first: pinch/drag are primary; the +/- control just wastes
       // screen space on phones.
       zoomControl={false}
-      attributionControl
+      // Custom control below: no "Leaflet" prefix, compact OSM/tile credit.
+      attributionControl={false}
       rotate={rotatable}
       touchRotate={rotatable}
       shiftKeyRotate={rotatable}
@@ -77,6 +79,7 @@ export function LeafletMap({
           }
         : {})}
     >
+      <AttributionControl prefix={false} position="bottomright" />
       {/* key remounts tiles when the admin switches layout */}
       <TileLayer
         key={basemap.id}
