@@ -30,9 +30,10 @@ the workspace pages:
 | **Team** | Team profile (name, logo, public address) and collaboration: invite teammates by email as Admin or Viewer via a shareable invite link. Admins only. Built today. |
 | **Settings** | Personal user settings. *Planned.* |
 
-**Notifications** live behind the header bell (broadcast live announcements to
-attendees - schedule changes, weather, "gates closing in 10 min"). The planned
-sections are placeholders for now: each renders a short description of what will
+**Notifications** live behind the header bell: compose a live announcement for
+the selected event, see what was sent, and an unread count on the bell. The
+latest announcement also appears on the attendee map. The planned sections
+below are still placeholders: each renders a short description of what will
 live there, so the shape of the product is visible before the features exist.
 
 ## The business - user flow
@@ -84,7 +85,8 @@ The core relation is deliberately simple:
 ```
 Team ──< Event ──< PointOfInterest
              │
-             └── one map (center, zoom, bearing, viewing borders) inlined on the event
+             ├── one map (center, zoom, bearing, viewing borders) inlined on the event
+             └──< Notification (live announcements)
 ```
 
 - A **Team** is the public-facing profile of a Better Auth organization (name,
@@ -92,7 +94,7 @@ Team ──< Event ──< PointOfInterest
 - An **Event** is the top-level unit of work. It owns exactly **one map** - the
   map fields (center, zoom, bearing, optional borders) live directly on the
   event row, since it's a 1:1 relationship - plus all the information attached
-  to the event (points of interest today; notifications, board, campaign
+  to the event (points of interest, live notifications; board and campaign
   later). Publishing an event puts its map online.
 - A **PointOfInterest** belongs to one event.
 
