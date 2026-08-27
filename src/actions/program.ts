@@ -4,17 +4,41 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
+import { MAX_SESSION_DAYS, parseWallClock } from "@/lib/program-time";
 import type { ActionState } from "./types";
+
+const MAX_SPAN_MS = MAX_SESSION_DAYS * 24 * 60 * 60 * 1000;
+
+/**
+ * A `datetime-local` field is a wall clock with no offset. Parsing it as UTC
+ * keeps the hour the organizer typed; `z.coerce.date()` would read it in the
+ * server's timezone, and would also accept a missing field as the epoch.
+ */
+function wallClockField(label: string) {
+  return z.unknown().transform((value, ctx) => {
+    const date = parseWallClock(value);
+    if (!date) {
+      ctx.addIssue({ code: "custom", message: `${label} is required` });
+      return z.NEVER;
+    }
+    return date;
+  });
+}
 
 const sessionSchema = z
   .object({
     title: z.string().trim().min(1, "Title is required").max(80),
-    startsAt: z.coerce.date({ error: "Start time is required" }),
-    endsAt: z.coerce.date({ error: "End time is required" }),
+    startsAt: wallClockField("Start time"),
+    endsAt: wallClockField("End time"),
     location: z.string().trim().max(80).optional(),
   })
   .refine((data) => data.endsAt.getTime() > data.startsAt.getTime(), {
     message: "End time must be after start time",
+    path: ["endsAt"],
+  })
+  // Without a cap a mistyped year renders thousands of hour rows on Schedule.
+  .refine((data) => data.endsAt.getTime() - data.startsAt.getTime() <= MAX_SPAN_MS, {
+    message: `A session cannot run longer than ${MAX_SESSION_DAYS} days`,
     path: ["endsAt"],
   });
 

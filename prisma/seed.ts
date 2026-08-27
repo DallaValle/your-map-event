@@ -73,7 +73,9 @@ async function main() {
   });
   await prisma.programSession.deleteMany({ where: { programId: program.id } });
   // Local festival evening so Board order and the Schedule hour grid stay obvious.
-  const at = (hour: number, minute = 0) => new Date(2026, 6, 18, hour, minute);
+  // Wall clocks anchored to UTC, matching how the actions store what an
+  // organizer types - a local-time Date would seed a different hour per host.
+  const at = (hour: number, minute = 0) => new Date(Date.UTC(2026, 6, 18, hour, minute));
   await prisma.programSession.createMany({
     data: [
       {

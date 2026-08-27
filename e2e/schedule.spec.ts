@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { signIn, signInViewer } from "./helpers";
+import { clearE2ESessions, disconnectPrisma } from "./program-fixtures";
 
 test.describe("schedule", () => {
+  test.beforeEach(clearE2ESessions);
+  test.afterAll(disconnectPrisma);
+
   test("shows the same board sessions hour by hour", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "flow is identical; run once");
 
@@ -21,16 +25,52 @@ test.describe("schedule", () => {
     await page.goto("/dashboard/schedule");
     await expect(page.getByRole("heading", { name: "Schedule" })).toBeVisible();
 
-    const hour = page.getByRole("listitem", { name: "11:00" });
+    // Scope by day: the demo programme owns hour rows on other days.
+    const day = page
+      .locator("section")
+      .filter({ has: page.getByRole("heading", { name: "Sunday 19 Jul 2026" }) });
+
+    const hour = day.getByRole("listitem", { name: "11:00" });
     await expect(hour).toBeVisible();
     await expect(hour.getByRole("heading", { name: title })).toBeVisible();
-    await expect(hour.getByText("Tent A")).toBeVisible();
-    await expect(hour.getByText("11:00 - 12:30")).toBeVisible();
+    await expect(hour).toContainText("Tent A");
+    await expect(hour).toContainText("11:00 - 12:30");
 
-    // The hour after start is on the grid (session runs into 12:00) and empty of this title.
-    const nextHour = page.getByRole("listitem", { name: "12:00" });
+    // A session is listed in every hour it runs, not only the hour it starts:
+    // 12:00 must not read as free while the workshop is still on.
+    const nextHour = day.getByRole("listitem", { name: "12:00" });
     await expect(nextHour).toBeVisible();
-    await expect(nextHour.getByRole("heading", { name: title })).toHaveCount(0);
+    await expect(nextHour.getByRole("heading", { name: title })).toBeVisible();
+  });
+
+  test("a session crossing midnight lands under both days", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "flow is identical; run once");
+
+    await signIn(page);
+    await page.goto("/dashboard/board");
+
+    const title = `E2E Afterparty ${Date.now()}`;
+    const form = page.getByRole("form", { name: "Add session" });
+    await form.getByLabel("Title").fill(title);
+    await form.getByLabel("Start").fill("2026-07-21T23:00");
+    await form.getByLabel("End").fill("2026-07-22T01:00");
+    await form.getByRole("button", { name: "Add session" }).click();
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+
+    await page.goto("/dashboard/schedule");
+
+    // 23:00 belongs to the 21st; 00:00 must sit under the 22nd, never as a
+    // stray "00:00" row appended to the 21st.
+    const tuesday = page
+      .locator("section")
+      .filter({ has: page.getByRole("heading", { name: "Tuesday 21 Jul 2026" }) });
+    const wednesday = page
+      .locator("section")
+      .filter({ has: page.getByRole("heading", { name: "Wednesday 22 Jul 2026" }) });
+
+    await expect(tuesday.getByRole("listitem", { name: "23:00" })).toContainText(title);
+    await expect(tuesday.getByRole("listitem", { name: "00:00" })).toHaveCount(0);
+    await expect(wednesday.getByRole("listitem", { name: "00:00" })).toContainText(title);
   });
 
   test("viewer can read the schedule but cannot edit", async ({ page }, testInfo) => {
