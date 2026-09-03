@@ -24,16 +24,16 @@ the workspace pages:
 |---|---|
 | **Event** | The selected event's home: basic info (name, public address, description), publish toggle, share tools, and the door into the map editor. Built today. |
 | **Map editor** | Frame the venue, lock the attendee view, and place points of interest for the selected event. Admins only. Built today. |
-| **Board** | A shared program / agenda board - line-ups, session times, the running order the whole team edits together. *Planned.* |
-| **Social campaign** | Plan and schedule the event's social posts, and generate share assets (QR codes, cards) from the published map. *Planned.* |
+| **Board** | A shared program / agenda board - line-ups, session times, the running order the whole team edits together. Built today. |
+| **Social campaign** | Plan and schedule the event's social posts, and generate share assets (QR codes, cards) from the published map. Built today. |
 | **History** | Post-event archive and analytics - attendance, most-visited points of interest, past editions. *Planned.* |
 | **Team** | Team profile (name, logo, public address) and collaboration: invite teammates by email as Admin or Viewer via a shareable invite link. Admins only. Built today. |
 | **Settings** | Personal user settings. *Planned.* |
 
 **Notifications** live behind the header bell: compose a live announcement for
 the selected event, see what was sent, and an unread count on the bell. The
-latest announcement also appears on the attendee map. The planned sections
-below are still placeholders: each renders a short description of what will
+latest announcement also appears on the attendee map. The remaining planned
+sections are still placeholders: each renders a short description of what will
 live there, so the shape of the product is visible before the features exist.
 
 ## The business - user flow
@@ -86,7 +86,9 @@ The core relation is deliberately simple:
 Team ──< Event ──< PointOfInterest
              │
              ├── one map (center, zoom, bearing, viewing borders) inlined on the event
-             └──< Notification (live announcements)
+             ├── Notification (live announcements)
+             ├── Program ──< ProgramSession
+             └── SocialCampaign ──< ScheduledPost
 ```
 
 - A **Team** is the public-facing profile of a Better Auth organization (name,
@@ -94,8 +96,8 @@ Team ──< Event ──< PointOfInterest
 - An **Event** is the top-level unit of work. It owns exactly **one map** - the
   map fields (center, zoom, bearing, optional borders) live directly on the
   event row, since it's a 1:1 relationship - plus all the information attached
-  to the event (points of interest, live notifications; board and campaign
-  later). Publishing an event puts its map online.
+  to the event (points of interest, live notifications, program, social
+  campaign). Publishing an event puts its map online.
 - A **PointOfInterest** belongs to one event.
 
 > Implementation note: the `Event` model is stored in the `EventMap` table
@@ -281,6 +283,7 @@ src/
 ├── components/
 │   ├── map/                 # ALL Leaflet code (client-only, behind MapCanvas)
 │   ├── map-editor/          # editor UI (no Leaflet imports)
+│   ├── social/              # campaign planner + poster QR
 │   └── ...
 ├── lib/                     # auth, prisma, session helpers, slug rules
 ├── instrumentation.ts       # dev seed for in-memory auth

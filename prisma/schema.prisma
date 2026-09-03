@@ -30,7 +30,7 @@ model Team {
 
 // An Event is the top-level unit a team manages. It owns exactly one map
 // (center/zoom/bearing/borders live inline, 1:1) plus everything attached to
-// the event (points of interest today; notifications, board, campaign later).
+// the event (points of interest, notifications, program, campaign).
 //
 // Stored in the legacy `EventMap` table via @@map: the table predates the
 // rename, and keeping the mapping makes the rename a code-only change with no
@@ -64,8 +64,9 @@ model Event {
   pois          PointOfInterest[]
   notifications Notification[]
   program       Program?
+  campaign      SocialCampaign?
   createdAt     DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  updatedAt     DateTime          @updatedAt
 
   @@unique([teamId, slug])
   @@index([teamId])
@@ -259,4 +260,30 @@ model ProgramSession {
 
   @@index([programId, sortOrder])
   @@index([programId, startsAt])
+}
+
+// One social campaign per event: share-asset planning plus a post queue.
+// Posts are planner-only (draft / scheduled / done) - no live network publish.
+model SocialCampaign {
+  id        String          @id @default(cuid())
+  eventId   String          @unique
+  event     Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  posts     ScheduledPost[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model ScheduledPost {
+  id          String         @id @default(cuid())
+  campaignId  String
+  campaign    SocialCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  body        String
+  channel     String         @default("x")
+  status      String         @default("draft")
+  scheduledAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([campaignId])
 }
