@@ -1,12 +1,20 @@
 import { expect, type Page } from "@playwright/test";
 
 /** Signs in through the real form, exactly like a user would. */
-export async function signIn(page: Page) {
+export async function signIn(
+  page: Page,
+  email = "admin@test.com",
+  password = "password",
+) {
   await page.goto("/sign-in");
-  await page.locator('input[type="email"]').fill("admin@test.com");
-  await page.locator('input[type="password"]').fill("password");
+  await page.locator('input[type="email"]').fill(email);
+  await page.locator('input[type="password"]').fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
   await page.waitForURL("**/dashboard");
+}
+
+export async function signInViewer(page: Page) {
+  await signIn(page, "view@test.com");
 }
 
 /** Opens the first map of the seeded team in the editor. */

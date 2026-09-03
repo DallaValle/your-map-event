@@ -1,14 +1,32 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { SectionPlaceholder } from "@/components/section/SectionPlaceholder";
+import { getMyTeam, isAdminRole } from "@/lib/session";
+import { getActiveEvent } from "@/lib/active-event";
+import { getBoardSessions } from "@/lib/program";
+import { BoardView } from "@/components/board/BoardView";
+import { EmptyEventState } from "@/components/board/EmptyEventState";
 
 export const metadata: Metadata = { title: "Board" };
 
-export default function BoardPage() {
+export default async function BoardPage() {
+  const membership = await getMyTeam();
+  if (!membership) redirect("/dashboard");
+
+  const isAdmin = isAdminRole(membership.role);
+  const event = await getActiveEvent(membership.team.id, isAdmin);
+
+  if (!event) {
+    return <EmptyEventState isAdmin={isAdmin} section="Board" />;
+  }
+
+  const sessions = await getBoardSessions(event.id);
+
   return (
-    <SectionPlaceholder
-      icon="📋"
-      title="Board"
-      description="A shared program board for your team: line-ups, session times and the running order, edited together and ready to publish to the event map."
+    <BoardView
+      eventId={event.id}
+      eventName={event.name}
+      sessions={sessions}
+      isAdmin={isAdmin}
     />
   );
 }
