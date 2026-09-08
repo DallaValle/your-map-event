@@ -143,6 +143,8 @@ export default async function EventPage() {
                 slug: event.slug,
                 description: event.description,
                 logoUrl: event.logoUrl,
+                startTime: event.startTime?.toISOString() ?? null,
+                endTime: event.endTime?.toISOString() ?? null,
               }}
               teamSlug={team.slug}
               uploadsEnabled={!!process.env.UPLOADTHING_TOKEN}

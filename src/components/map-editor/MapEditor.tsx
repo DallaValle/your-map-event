@@ -18,6 +18,8 @@ import {
 } from "@/components/map/map-layouts";
 import { PoiSheet, type PoiSheetMode } from "./PoiSheet";
 import { ShareCard } from "@/components/share/ShareCard";
+import { isScheduled, type ActivityDTO } from "@/lib/activity";
+import { formatRange } from "@/lib/schedule-time";
 
 export interface EditorMapData {
   id: string;
@@ -57,12 +59,14 @@ const inputClass =
 export function MapEditor({
   map,
   pois,
+  activities = [],
   teamSlug,
   teamName,
   uploadsEnabled,
 }: {
   map: EditorMapData;
   pois: PoiData[];
+  activities?: ActivityDTO[];
   teamSlug: string;
   teamName: string;
   uploadsEnabled: boolean;
@@ -526,9 +530,26 @@ export function MapEditor({
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{poi.title}</p>
-                      {poi.description && (
-                        <p className="truncate text-xs opacity-60">{poi.description}</p>
-                      )}
+                      {(() => {
+                        const acts = activities.filter((a) => a.poiId === poi.id);
+                        const next = acts.find(isScheduled);
+                        if (acts.length > 0) {
+                          return (
+                            <p className="truncate text-xs opacity-60">
+                              {acts.length} act{acts.length === 1 ? "" : "s"}
+                              {next
+                                ? ` · ${formatRange(next.startTime!, next.endTime!)}`
+                                : " · unscheduled"}
+                            </p>
+                          );
+                        }
+                        if (poi.description) {
+                          return (
+                            <p className="truncate text-xs opacity-60">{poi.description}</p>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                     <span className="text-sm opacity-40">Edit</span>
                   </button>
@@ -569,6 +590,7 @@ export function MapEditor({
           mode={sheet}
           position={sheetDraft}
           uploadsEnabled={uploadsEnabled}
+          activities={activities}
           onClose={closeSheet}
           onPositionChange={setSheetDraft}
         />

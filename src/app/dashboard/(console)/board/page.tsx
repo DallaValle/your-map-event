@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { getActiveEvent } from "@/lib/active-event";
-import { getBoardSessions } from "@/lib/program";
+import { getEventActivities, getEventSchedulePois } from "@/lib/activity-data";
 import { BoardView } from "@/components/board/BoardView";
 import { EmptyEventState } from "@/components/board/EmptyEventState";
 
@@ -19,13 +19,17 @@ export default async function BoardPage() {
     return <EmptyEventState isAdmin={isAdmin} section="Board" />;
   }
 
-  const sessions = await getBoardSessions(event.id);
+  const [activities, pois] = await Promise.all([
+    getEventActivities(event.id),
+    getEventSchedulePois(event.id),
+  ]);
 
   return (
     <BoardView
       eventId={event.id}
       eventName={event.name}
-      sessions={sessions}
+      activities={activities}
+      pois={pois}
       isAdmin={isAdmin}
     />
   );

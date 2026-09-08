@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateEventInfoAction } from "@/actions/maps";
 import { ImageField } from "@/components/upload/ImageField";
+import { toLocalInputValue } from "@/lib/schedule-time";
 import type { ActionState } from "@/actions/types";
 
 const inputClass =
@@ -23,6 +24,8 @@ export function EventInfoForm({
     slug: string;
     description: string | null;
     logoUrl: string | null;
+    startTime: string | null;
+    endTime: string | null;
   };
   teamSlug: string;
   uploadsEnabled: boolean;
@@ -87,6 +90,30 @@ export function EventInfoForm({
           Shown in link previews when the event is shared.
         </span>
       </label>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm font-medium">
+          Event start
+          <input
+            name="startTime"
+            type="datetime-local"
+            defaultValue={toLocalInputValue(event.startTime)}
+            className={inputClass}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-sm font-medium">
+          Event end
+          <input
+            name="endTime"
+            type="datetime-local"
+            defaultValue={toLocalInputValue(event.endTime)}
+            className={inputClass}
+          />
+        </label>
+      </div>
+      <p className="-mt-2 text-xs opacity-60">
+        Operating hours for the schedule timeline. Leave empty until you know them.
+      </p>
 
       {state && !state.ok && (
         <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">

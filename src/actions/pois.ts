@@ -37,6 +37,8 @@ async function requirePoiAdmin(mapId: string) {
 
 function revalidatePoi(teamSlug: string, mapId: string, mapSlug: string) {
   revalidatePath(`/dashboard/events/${mapId}`);
+  revalidatePath("/dashboard/schedule");
+  revalidatePath("/dashboard/board");
   revalidatePath(`/${teamSlug}`);
   revalidatePath(`/${teamSlug}/${mapSlug}`);
 }
