@@ -37,8 +37,16 @@ async function main() {
   });
   // Refresh the display defaults (zoom) on re-seed so the demo tracks the
   // current defaults, while leaving any admin-made framing changes otherwise.
+  // Wall clocks anchored to UTC, matching how the actions store what an
+  // organizer types - a local-time Date would seed a different hour per host.
+  const at = (day: number, hour: number, minute = 0) =>
+    new Date(Date.UTC(2026, 6, day, hour, minute));
+
   const map = existing
-    ? await prisma.event.update({ where: { id: existing.id }, data: { zoom: 17 } })
+    ? await prisma.event.update({
+        where: { id: existing.id },
+        data: { zoom: 17, startTime: at(18, 10), endTime: at(20, 23) },
+      })
     : await prisma.event.create({
         data: {
           teamId: team.id,
@@ -50,10 +58,13 @@ async function main() {
           centerLng: CENTER.lng,
           zoom: 17,
           published: true,
+          startTime: at(18, 10),
+          endTime: at(20, 23),
         },
       });
 
   // Recreate POIs so re-running the seed yields a clean, known state.
+  await prisma.activity.deleteMany({ where: { eventId: map.id } });
   await prisma.pointOfInterest.deleteMany({ where: { mapId: map.id } });
   await prisma.pointOfInterest.createMany({
     data: POIS.map(({ title, icon, description, dLat, dLng }) => ({
@@ -65,48 +76,87 @@ async function main() {
       lng: CENTER.lng + dLng,
     })),
   });
+  const poiRows = await prisma.pointOfInterest.findMany({ where: { mapId: map.id } });
+  const poiId = Object.fromEntries(poiRows.map((row) => [row.title, row.id]));
 
-  const program = await prisma.program.upsert({
-    where: { eventId: map.id },
-    update: {},
-    create: { eventId: map.id },
-  });
-  await prisma.programSession.deleteMany({ where: { programId: program.id } });
-  // Local festival evening so Board order and the Schedule hour grid stay obvious.
-  // Wall clocks anchored to UTC, matching how the actions store what an
-  // organizer types - a local-time Date would seed a different hour per host.
-  const at = (hour: number, minute = 0) => new Date(Date.UTC(2026, 6, 18, hour, minute));
-  await prisma.programSession.createMany({
+  await prisma.activity.createMany({
     data: [
       {
-        programId: program.id,
-        title: "Gates open",
-        startsAt: at(16, 0),
-        endsAt: at(16, 30),
-        location: "Main Entrance",
-        sortOrder: 0,
+        eventId: map.id,
+        name: "DJ Solaris",
+        type: "performance",
+        poiId: poiId["Main Stage"],
+        startTime: at(18, 14),
+        endTime: at(18, 15, 30),
       },
       {
-        programId: program.id,
-        title: "Opening remarks",
-        startsAt: at(18, 0),
-        endsAt: at(18, 30),
-        location: "Main Stage",
-        sortOrder: 1,
+        eventId: map.id,
+        name: "AURORA",
+        type: "performance",
+        poiId: poiId["Main Stage"],
+        startTime: at(18, 16),
+        endTime: at(18, 17, 30),
       },
       {
-        programId: program.id,
-        title: "Headliner",
-        startsAt: at(20, 0),
-        endsAt: at(22, 0),
-        location: "Main Stage",
-        sortOrder: 2,
+        eventId: map.id,
+        name: "The Chemical Garden",
+        type: "performance",
+        poiId: poiId["Main Stage"],
+        startTime: at(18, 19),
+        endTime: at(18, 21),
+      },
+      {
+        eventId: map.id,
+        name: "The Neon Wolves",
+        type: "performance",
+        poiId: poiId["Beer Garden"],
+        startTime: at(18, 16, 30),
+        endTime: at(18, 18),
+      },
+      {
+        eventId: map.id,
+        name: "Lila Rose Collective",
+        type: "workshop",
+        poiId: poiId["Food Court"],
+        startTime: at(18, 18),
+        endTime: at(18, 19),
+      },
+      {
+        eventId: map.id,
+        name: "Gates open",
+        type: "other",
+        poiId: poiId["Main Entrance"],
+        startTime: at(18, 16),
+        endTime: at(18, 16, 30),
+      },
+      {
+        eventId: map.id,
+        name: "Opening remarks",
+        type: "talk",
+        poiId: poiId["Main Stage"],
+        startTime: at(18, 12),
+        endTime: at(18, 12, 30),
+      },
+      {
+        eventId: map.id,
+        name: "Midnight Bloom",
+        type: "performance",
+      },
+      {
+        eventId: map.id,
+        name: "Echo Valley",
+        type: "performance",
+      },
+      {
+        eventId: map.id,
+        name: "Solar Drift",
+        type: "workshop",
       },
     ],
   });
 
   console.log(
-    `Seeded team "demo-team" with map "${map.name}", ${POIS.length} POIs and 3 sessions.`,
+    `Seeded team "demo-team" with map "${map.name}", ${POIS.length} POIs and 10 activities.`,
   );
 }
 

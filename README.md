@@ -22,9 +22,10 @@ the workspace pages:
 
 | Section | What it's for |
 |---|---|
-| **Event** | The selected event's home: basic info (name, public address, description), publish toggle, share tools, and the door into the map editor. Built today. |
-| **Map editor** | Frame the venue, lock the attendee view, and place points of interest for the selected event. Admins only. Built today. |
-| **Board** | A shared program / agenda board - line-ups, session times, the running order the whole team edits together. Built today. |
+| **Event** | The selected event's home: basic info (name, hours, public address, description), publish toggle, share tools, and the door into the map editor. Built today. |
+| **Map editor** | Frame the venue, lock the attendee view, and place points of interest for the selected event. Admins only. Built today. Each point can hold activities that also appear on the schedule. |
+| **Schedule** | Timeline builder: activities on a day/hour grid, rows are map locations. Drag from the library or add an act on a point in the map editor. Built today. |
+| **Board** | The same activities as a running-order list. Built today. |
 | **Social campaign** | Plan and schedule the event's social posts, and generate share assets (QR codes, cards) from the published map. Built today. |
 | **History** | Post-event archive and analytics - attendance, most-visited points of interest, past editions. *Planned.* |
 | **Team** | Team profile (name, logo, public address) and collaboration: invite teammates by email as Admin or Viewer via a shareable invite link. Admins only. Built today. |
@@ -59,7 +60,10 @@ link.
    point (or use the ＋ button to type exact coordinates). Each point has a
    title, optional description and photo. Everything is editable and deletable
    from the map or the points list.
-5. **Publish** - one click flips the event's map live at `/your-team-slug`.
+5. **Build the schedule** - add activities (name, type, start, end) on a
+   location in the map editor, or from the timeline library, then drag them
+   onto a day/hour slot.
+6. **Publish** - one click flips the event's map live at `/your-team-slug`.
 
 ### 2. Team members (Viewers)
 
@@ -84,10 +88,10 @@ The core relation is deliberately simple:
 
 ```
 Team ──< Event ──< PointOfInterest
-             │
-             ├── one map (center, zoom, bearing, viewing borders) inlined on the event
+             │         └── Activity.poiId (optional)
+             ├── startTime / endTime (operating window)
+             ├── Activity[] (name, type, startTime, endTime)
              ├── Notification (live announcements)
-             ├── Program ──< ProgramSession
              └── SocialCampaign ──< ScheduledPost
 ```
 
@@ -96,9 +100,13 @@ Team ──< Event ──< PointOfInterest
 - An **Event** is the top-level unit of work. It owns exactly **one map** - the
   map fields (center, zoom, bearing, optional borders) live directly on the
   event row, since it's a 1:1 relationship - plus all the information attached
-  to the event (points of interest, live notifications, program, social
-  campaign). Publishing an event puts its map online.
-- A **PointOfInterest** belongs to one event.
+  to the event (points of interest, live notifications, activities, social
+  campaign). `startTime` / `endTime` are the event's operating window for the
+  schedule canvas. Publishing an event puts its map online.
+- A **PointOfInterest** belongs to one event. Activities may pin to a point so
+  the timeline rows match the map.
+- An **Activity** belongs to one event: `name`, `type` (performance, food, talk,
+  workshop, other), optional `startTime` / `endTime` (empty = unscheduled).
 
 > Implementation note: the `Event` model is stored in the `EventMap` table
 > (`@@map`) - the table predates the rename and the mapping keeps the migration

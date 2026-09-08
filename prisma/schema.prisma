@@ -30,7 +30,7 @@ model Team {
 
 // An Event is the top-level unit a team manages. It owns exactly one map
 // (center/zoom/bearing/borders live inline, 1:1) plus everything attached to
-// the event (points of interest, notifications, program, campaign).
+// the event (points of interest, notifications, activities, campaign).
 //
 // Stored in the legacy `EventMap` table via @@map: the table predates the
 // rename, and keeping the mapping makes the rename a code-only change with no
@@ -45,6 +45,10 @@ model Event {
   description String?
   // Shown in the attendee map top bar (event branding, not the team logo).
   logoUrl     String?
+  // Operating window for the schedule timeline. Stored as venue wall clocks
+  // anchored to UTC (same convention as Activity times).
+  startTime   DateTime?
+  endTime     DateTime?
   // Basemap preset: streets | light | dark | satellite | outdoors
   mapLayout   String            @default("streets")
   centerLat   Float
@@ -63,7 +67,7 @@ model Event {
   boundsNELng Float?
   pois          PointOfInterest[]
   notifications Notification[]
-  program       Program?
+  activities    Activity[]
   campaign      SocialCampaign?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -86,6 +90,7 @@ model PointOfInterest {
   icon        String?
   lat         Float
   lng         Float
+  activities  Activity[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -232,34 +237,24 @@ model UserPreference {
   updatedAt          DateTime @updatedAt
 }
 
-// A Program is the event's running order. 1:1 with Event so session fields
-// never land on the Event row (map data stays there). Board and Schedule
-// share these rows.
-model Program {
+// A scheduled (or still-unplaced) act on the event timeline. Optional poiId
+// pins it to a map location so the schedule rows match the map editor.
+model Activity {
   id        String           @id @default(cuid())
-  eventId   String           @unique
+  eventId   String
   event     Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  sessions  ProgramSession[]
+  poiId     String?
+  poi       PointOfInterest? @relation(fields: [poiId], references: [id], onDelete: SetNull)
+  name      String
+  // performance | food | talk | workshop | other
+  type      String
+  startTime DateTime?
+  endTime   DateTime?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-}
 
-// One slot on the program. Board edits these; Schedule renders the same
-// rows hour by hour.
-model ProgramSession {
-  id        String   @id @default(cuid())
-  programId String
-  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
-  title     String
-  startsAt  DateTime
-  endsAt    DateTime
-  location  String?
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([programId, sortOrder])
-  @@index([programId, startsAt])
+  @@index([eventId, startTime])
+  @@index([poiId])
 }
 
 // One social campaign per event: share-asset planning plus a post queue.

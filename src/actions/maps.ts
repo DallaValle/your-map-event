@@ -13,6 +13,7 @@ import {
   MAP_LAYOUT_IDS,
   type MapLayoutId,
 } from "@/components/map/map-layouts";
+import { parseWallClock } from "@/lib/schedule-time";
 import type { ActionState } from "./types";
 
 /** First free slug for a team, trying base, base-2, base-3, … */
@@ -205,6 +206,19 @@ export async function updateEventInfoAction(
     slug = requestedSlug;
   }
 
+  const startRaw = formData.get("startTime");
+  const endRaw = formData.get("endTime");
+  const startTime = startRaw ? parseWallClock(startRaw) : null;
+  const endTime = endRaw ? parseWallClock(endRaw) : null;
+  if (startRaw && !startTime) return { ok: false, error: "Event start is invalid" };
+  if (endRaw && !endTime) return { ok: false, error: "Event end is invalid" };
+  if ((startTime && !endTime) || (!startTime && endTime)) {
+    return { ok: false, error: "Set both event start and end, or leave both empty." };
+  }
+  if (startTime && endTime && endTime.getTime() <= startTime.getTime()) {
+    return { ok: false, error: "Event end must be after start" };
+  }
+
   const { name, description, logoUrl } = parsed.data;
   await prisma.event.update({
     where: { id: eventId },
@@ -213,10 +227,14 @@ export async function updateEventInfoAction(
       description: description ?? null,
       logoUrl: logoUrl || null,
       slug,
+      startTime,
+      endTime,
     },
   });
 
   await revalidateMap(team.slug, eventId);
+  revalidatePath("/dashboard/schedule");
+  revalidatePath("/dashboard/board");
   revalidatePath(`/${team.slug}/${event.slug}`);
   revalidatePath(`/${team.slug}/${slug}`);
   return { ok: true };

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createPoiAction, updatePoiAction, deletePoiAction } from "@/actions/pois";
 import { ImageField } from "@/components/upload/ImageField";
 import { POI_ICONS, type LatLng, type PoiData } from "@/components/map/types";
+import type { ActivityDTO } from "@/lib/activity";
+import { PoiScheduleSection } from "./PoiScheduleSection";
 import type { ActionState } from "@/actions/types";
 
 export type PoiSheetMode =
@@ -22,6 +24,9 @@ export function PoiSheet({
   mode,
   position,
   uploadsEnabled,
+  activities = [],
+  eventStartTime = null,
+  eventEndTime = null,
   onClose,
   onPositionChange,
 }: {
@@ -29,6 +34,9 @@ export function PoiSheet({
   mode: PoiSheetMode;
   position: LatLng;
   uploadsEnabled: boolean;
+  activities?: ActivityDTO[];
+  eventStartTime?: string | null;
+  eventEndTime?: string | null;
   onClose: () => void;
   onPositionChange: (position: LatLng) => void;
 }) {
@@ -255,6 +263,17 @@ export function PoiSheet({
             </button>
           </div>
         </form>
+
+        {isEdit && (
+          <PoiScheduleSection
+            eventId={mapId}
+            poiId={mode.poi.id}
+            poiTitle={mode.poi.title}
+            activities={activities}
+            defaultStart={eventStartTime}
+            defaultEnd={eventEndTime}
+          />
+        )}
       </div>
     </div>
   );

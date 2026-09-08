@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { getActiveEvent } from "@/lib/active-event";
-import { getScheduleSessions } from "@/lib/program";
-import { ScheduleView } from "@/components/schedule/ScheduleView";
+import { getEventActivities, getEventSchedulePois } from "@/lib/activity-data";
+import { TimelineBuilder } from "@/components/schedule/TimelineBuilder";
 import { EmptyEventState } from "@/components/board/EmptyEventState";
 
 export const metadata: Metadata = { title: "Schedule" };
@@ -19,7 +19,26 @@ export default async function SchedulePage() {
     return <EmptyEventState isAdmin={isAdmin} section="Schedule" />;
   }
 
-  const sessions = await getScheduleSessions(event.id);
+  const [activities, pois] = await Promise.all([
+    getEventActivities(event.id),
+    getEventSchedulePois(event.id),
+  ]);
 
-  return <ScheduleView eventName={event.name} sessions={sessions} />;
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+    <TimelineBuilder
+      event={{
+        id: event.id,
+        name: event.name,
+        startTime: event.startTime?.toISOString() ?? null,
+        endTime: event.endTime?.toISOString() ?? null,
+        published: event.published,
+      }}
+      activities={activities}
+      pois={pois}
+      isAdmin={isAdmin}
+      editorHref={isAdmin ? `/dashboard/events/${event.id}` : null}
+    />
+    </div>
+  );
 }
