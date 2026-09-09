@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { BrandMark } from "@/components/nav/BrandMark";
+import { SiteFooter } from "@/components/nav/SiteFooter";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 /**
  * Shared sign-in / sign-up form. Kept as one component because the two flows
@@ -93,12 +96,11 @@ export function AuthForm({
   const title = mode === "sign-up" ? "Create your account" : "Welcome back";
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-6 px-6 py-12">
-      <div className="space-y-1 text-center">
-        <span className="text-4xl" aria-hidden>
-          🗺️
-        </span>
-        <h1 className="text-2xl font-bold">{title}</h1>
+    <div className="flex min-h-dvh flex-col">
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-12">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <BrandMark size={56} />
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
       </div>
 
       {/* method="post" keeps browser password heuristics happy even though
@@ -165,11 +167,11 @@ export function AuthForm({
           disabled={pending}
           className="mt-1 rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          {pending
-            ? "Please wait…"
-            : mode === "sign-up"
-              ? "Create account"
-              : "Sign in"}
+          <PendingLabel
+            pending={pending}
+            label={mode === "sign-up" ? "Create account" : "Sign in"}
+            pendingLabel="Please wait…"
+          />
         </button>
       </form>
 
@@ -208,5 +210,7 @@ export function AuthForm({
         )}
       </p>
     </main>
+    <SiteFooter />
+    </div>
   );
 }

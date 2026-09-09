@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { BrandMark, Wordmark } from "./BrandMark";
 
 export interface HeaderUser {
   name: string;
@@ -72,11 +73,9 @@ export function SiteHeader({
 
   return (
     <header className="sticky top-0 z-[1200] flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4">
-      <Link href="/dashboard" className="flex items-baseline gap-1.5 text-sm font-semibold tracking-tight">
-        <span aria-hidden>📍</span>
-        <span>
-          your map <span className="text-brand">event</span>
-        </span>
+      <Link href="/dashboard" className="flex items-center gap-2 text-sm">
+        <BrandMark size={28} />
+        <Wordmark />
       </Link>
 
       <div className="flex items-center gap-1">

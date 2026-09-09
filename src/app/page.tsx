@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { BrandMark } from "@/components/nav/BrandMark";
+import { SiteFooter } from "@/components/nav/SiteFooter";
 
 export default async function LandingPage() {
   const session = await getSession();
@@ -15,11 +17,10 @@ export default async function LandingPage() {
   });
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6 py-12 text-center">
-      <div className="space-y-3">
-        <span className="text-5xl" aria-hidden>
-          🗺️
-        </span>
+    <div className="flex min-h-dvh flex-col">
+    <main className="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-12 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <BrandMark size={72} />
         <h1 className="text-3xl font-bold tracking-tight">Your Map Event</h1>
         <p className="mx-auto max-w-sm text-balance text-sm opacity-70">
           Build an interactive map of your event, add points of interest, and
@@ -75,5 +76,7 @@ export default async function LandingPage() {
         </div>
       )}
     </main>
+    <SiteFooter />
+    </div>
   );
 }

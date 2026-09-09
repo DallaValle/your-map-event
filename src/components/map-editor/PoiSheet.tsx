@@ -8,6 +8,7 @@ import { POI_ICONS, type LatLng, type PoiData } from "@/components/map/types";
 import type { ActivityDTO } from "@/lib/activity";
 import { PoiScheduleSection } from "./PoiScheduleSection";
 import type { ActionState } from "@/actions/types";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 export type PoiSheetMode =
   | { type: "create" }
@@ -251,7 +252,7 @@ export function PoiSheet({
                 disabled={deleting}
                 className="rounded-xl border border-red-300 px-4 py-3 font-semibold text-red-600 disabled:opacity-60 dark:border-red-900 dark:text-red-400"
               >
-                {deleting ? "…" : "Delete"}
+                <PendingLabel pending={deleting} label="Delete" pendingLabel="Deleting…" />
               </button>
             )}
             <button
@@ -259,7 +260,11 @@ export function PoiSheet({
               disabled={pending}
               className="flex-1 rounded-xl bg-brand px-5 py-3 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
             >
-              {pending ? "Saving…" : isEdit ? "Save" : "Add point"}
+              <PendingLabel
+                pending={pending}
+                label={isEdit ? "Save" : "Add point"}
+                pendingLabel="Saving…"
+              />
             </button>
           </div>
         </form>

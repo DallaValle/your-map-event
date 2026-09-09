@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createTeamAction } from "@/actions/team";
 import { slugify } from "@/lib/slug";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 export function CreateTeamForm() {
   const [state, formAction, pending] = useActionState(createTeamAction, null);
@@ -50,7 +51,7 @@ export function CreateTeamForm() {
         disabled={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        {pending ? "Creating…" : "Create team"}
+        <PendingLabel pending={pending} label="Create team" pendingLabel="Creating…" />
       </button>
     </form>
   );

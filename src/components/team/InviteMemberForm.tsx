@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 const inputClass =
   "rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5";
@@ -73,7 +74,7 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
           disabled={pending}
           className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          {pending ? "Inviting…" : "Invite"}
+          <PendingLabel pending={pending} label="Invite" pendingLabel="Inviting…" />
         </button>
       </div>
 

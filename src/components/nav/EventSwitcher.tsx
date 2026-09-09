@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setActiveEventAction } from "@/actions/active-event";
+import { Spinner } from "@/components/ui/Spinner";
 
 export interface SwitchableEvent {
   id: string;
@@ -99,8 +100,9 @@ export function EventSwitcher({
           aria-hidden
         />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold">
-            {pending ? "Switching…" : (active?.name ?? "Select an event")}
+          <span className="flex items-center gap-2 truncate text-sm font-semibold">
+            {pending ? <Spinner className="size-3.5 shrink-0" /> : null}
+            <span className="truncate">{pending ? "Switching…" : (active?.name ?? "Select an event")}</span>
           </span>
           <span className="block truncate text-[11px] opacity-60">
             {active ? (active.published ? "Live" : "Draft") : `${events.length} events`}

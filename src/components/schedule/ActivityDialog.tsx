@@ -10,6 +10,7 @@ import {
 import { ACTIVITY_TYPES, type ActivityDTO, type SchedulePoi } from "@/lib/activity";
 import { toLocalInputValue } from "@/lib/schedule-time";
 import type { ActionState } from "@/actions/types";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 const inputClass =
   "rounded-xl border border-black/15 px-3 py-2.5 text-sm outline-brand dark:border-white/20 dark:bg-white/5";
@@ -186,7 +187,11 @@ export function ActivityDialog({
               disabled={pending}
               className="ml-auto rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60"
             >
-              {pending ? "Saving…" : isEdit ? "Save" : "Add activity"}
+              <PendingLabel
+                pending={pending}
+                label={isEdit ? "Save" : "Add activity"}
+                pendingLabel="Saving…"
+              />
             </button>
           </div>
         </form>

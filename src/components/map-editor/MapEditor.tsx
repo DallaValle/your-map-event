@@ -20,6 +20,7 @@ import { PoiSheet, type PoiSheetMode } from "./PoiSheet";
 import { ShareCard } from "@/components/share/ShareCard";
 import { isScheduled, type ActivityDTO } from "@/lib/activity";
 import { formatRange } from "@/lib/schedule-time";
+import { PendingLabel, Spinner } from "@/components/ui/Spinner";
 
 export interface EditorMapData {
   id: string;
@@ -280,7 +281,10 @@ export function MapEditor({
                 saveStatus === "error" ? "text-red-600 dark:text-red-400" : "opacity-60"
               }`}
             >
-              {statusLabel[saveStatus] || `/${teamSlug}/${map.slug}`}
+              <span className="inline-flex items-center gap-1.5">
+                {saveStatus === "saving" ? <Spinner className="size-3" /> : null}
+                {statusLabel[saveStatus] || `/${teamSlug}/${map.slug}`}
+              </span>
             </p>
           </div>
           {map.published ? (
@@ -315,7 +319,11 @@ export function MapEditor({
                 : "border border-black/15 dark:border-white/20"
             }`}
           >
-            {publishPending ? "…" : map.published ? "Live ✓ - Unpublish" : "Publish"}
+            <PendingLabel
+              pending={publishPending}
+              label={map.published ? "Live ✓ - Unpublish" : "Publish"}
+              pendingLabel="Saving…"
+            />
           </button>
         </div>
       </header>

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { createMapAction } from "@/actions/maps";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 /** Placeholder price until Stripe (or similar) is wired up. */
 const EVENT_PRICE_LABEL = "$29";
@@ -66,7 +67,11 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
           disabled={paying}
           className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          {paying ? "Processing…" : `Pay ${EVENT_PRICE_LABEL} and continue`}
+          <PendingLabel
+            pending={paying}
+            label={`Pay ${EVENT_PRICE_LABEL} and continue`}
+            pendingLabel="Processing…"
+          />
         </button>
       </div>
     );
@@ -118,7 +123,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
         disabled={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        {pending ? "Creating…" : "Create event"}
+        <PendingLabel pending={pending} label="Create event" pendingLabel="Creating…" />
       </button>
     </form>
   );

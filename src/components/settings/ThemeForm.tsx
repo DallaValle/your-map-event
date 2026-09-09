@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateThemeAction } from "@/actions/settings";
 import { asTheme, type ThemePreference } from "@/components/settings/prefs";
 import { applyThemeClass } from "@/components/theme/apply-theme";
+import { PendingLabel } from "@/components/ui/Spinner";
 import type { ActionState } from "@/actions/types";
 
 const OPTIONS: { value: ThemePreference; label: string; hint: string }[] = [
@@ -75,7 +76,7 @@ export function ThemeForm({ theme }: { theme: ThemePreference }) {
         disabled={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        {pending ? "Saving…" : "Save appearance"}
+        <PendingLabel pending={pending} label="Save appearance" pendingLabel="Saving…" />
       </button>
     </form>
   );

@@ -8,6 +8,7 @@ import {
 } from "@/actions/social";
 import { PostComposer } from "@/components/social/PostComposer";
 import { channelLabel, formatWallClock, type PostStatus } from "@/lib/social";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 type PlannerPost = {
   id: string;
@@ -132,7 +133,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 }
                 className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
               >
-                Schedule
+                <PendingLabel pending={pending} label="Schedule" pendingLabel="Saving…" />
               </button>
               <button
                 type="button"
@@ -140,7 +141,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 onClick={() => run(() => setScheduledPostStatusAction(post.id, "done"))}
                 className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
               >
-                Mark done
+                <PendingLabel pending={pending} label="Mark done" pendingLabel="Saving…" />
               </button>
             </>
           )}
@@ -152,7 +153,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 onClick={() => run(() => setScheduledPostStatusAction(post.id, "done"))}
                 className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-brand-fg disabled:opacity-60"
               >
-                Mark done
+                <PendingLabel pending={pending} label="Mark done" pendingLabel="Saving…" />
               </button>
               <button
                 type="button"
@@ -160,7 +161,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 onClick={() => run(() => setScheduledPostStatusAction(post.id, "draft"))}
                 className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
               >
-                Back to draft
+                <PendingLabel pending={pending} label="Back to draft" pendingLabel="Saving…" />
               </button>
             </>
           )}
@@ -171,7 +172,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
               onClick={() => run(() => setScheduledPostStatusAction(post.id, "draft"))}
               className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
             >
-              Back to draft
+              <PendingLabel pending={pending} label="Back to draft" pendingLabel="Saving…" />
             </button>
           )}
           <button
@@ -180,7 +181,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
             onClick={() => run(() => deleteScheduledPostAction(post.id))}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 disabled:opacity-60 dark:text-red-400"
           >
-            Delete
+            <PendingLabel pending={pending} label="Delete" pendingLabel="Deleting…" />
           </button>
         </div>
       )}

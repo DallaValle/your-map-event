@@ -21,6 +21,7 @@ import {
   type ScheduleEvent,
   type SchedulePoi,
 } from "@/lib/activity";
+import { PendingLabel } from "@/components/ui/Spinner";
 import {
   DEFAULT_DURATION_MS,
   HOUR_MS,
@@ -308,7 +309,11 @@ export function TimelineBuilder({
             className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-brand-fg"
             aria-live="polite"
           >
-            {pending ? "Saving…" : saveError ? "Save failed" : "Saved"}
+            <PendingLabel
+              pending={pending}
+              label={saveError ? "Save failed" : "Saved"}
+              pendingLabel="Saving…"
+            />
           </span>
         </div>
       </header>
@@ -811,7 +816,7 @@ function EventWindowBar({
         disabled={pending}
         className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-fg disabled:opacity-60"
       >
-        {pending ? "Saving…" : "Apply"}
+        <PendingLabel pending={pending} label="Apply" pendingLabel="Saving…" />
       </button>
       {event.startTime && event.endTime && (
         <button type="button" onClick={onClose} className="text-sm font-semibold text-muted">

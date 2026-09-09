@@ -7,6 +7,7 @@ import { createActivityAction, deleteActivityAction } from "@/actions/activities
 import { ACTIVITY_TYPES, activityTypeMeta, isScheduled, type ActivityDTO } from "@/lib/activity";
 import { formatRange, toLocalInputValue } from "@/lib/schedule-time";
 import type { ActionState } from "@/actions/types";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 const inputClass =
   "rounded-xl border border-black/15 px-3 py-2 text-sm outline-brand dark:border-white/20 dark:bg-white/5";
@@ -139,7 +140,7 @@ export function PoiScheduleSection({
           disabled={pending}
           className="rounded-xl bg-brand-soft px-3 py-2 text-sm font-semibold text-brand disabled:opacity-60 text-brand"
         >
-          {pending ? "Adding…" : "+ Add to schedule"}
+          <PendingLabel pending={pending} label="+ Add to schedule" pendingLabel="Adding…" />
         </button>
       </form>
     </section>
