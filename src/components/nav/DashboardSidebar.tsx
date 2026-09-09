@@ -37,7 +37,7 @@ export function DashboardSidebar({
 
   return (
     <aside
-      className={`flex shrink-0 flex-col border-r border-black/10 transition-[width] dark:border-white/10 max-lg:w-16 ${
+      className={`flex shrink-0 flex-col border-r border-line bg-surface transition-[width] max-lg:w-16 ${
         collapsed ? "w-16" : "w-60"
       }`}
     >

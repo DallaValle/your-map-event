@@ -111,7 +111,7 @@ export function AuthForm({
               name="name"
               required
               autoComplete="name"
-              className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+              className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
             />
           </label>
         )}
@@ -126,7 +126,7 @@ export function AuthForm({
             // save/autofill prompt — "email" alone is often ignored.
             autoComplete="username"
             inputMode="email"
-            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -138,7 +138,7 @@ export function AuthForm({
             minLength={8}
             defaultValue={devDefaults?.password}
             autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
-            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
           />
         </label>
 
@@ -148,7 +148,7 @@ export function AuthForm({
               type="checkbox"
               name="rememberMe"
               defaultChecked
-              className="size-5 accent-teal-700"
+              className="size-5 accent-brand"
             />
             Remember me
           </label>
@@ -163,7 +163,7 @@ export function AuthForm({
         <button
           type="submit"
           disabled={pending}
-          className="mt-1 rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+          className="mt-1 rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
           {pending
             ? "Please wait…"
@@ -194,14 +194,14 @@ export function AuthForm({
         {mode === "sign-up" ? (
           <>
             Already have an account?{" "}
-            <Link href="/sign-in" className="font-semibold text-teal-700 dark:text-teal-400">
+            <Link href="/sign-in" className="font-semibold text-brand">
               Sign in
             </Link>
           </>
         ) : (
           <>
             New here?{" "}
-            <Link href="/sign-up" className="font-semibold text-teal-700 dark:text-teal-400">
+            <Link href="/sign-up" className="font-semibold text-brand">
               Create an account
             </Link>
           </>

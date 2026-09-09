@@ -150,6 +150,7 @@ export async function updateThemeAction(
   });
   await setThemeCookie(parsed.data.theme);
 
+  revalidatePath("/", "layout");
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }

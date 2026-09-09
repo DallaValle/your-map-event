@@ -21,7 +21,7 @@ export default async function NotificationsPage() {
         </div>
         <Link
           href="/dashboard"
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-teal-700 px-6 py-3 font-semibold text-white active:scale-[.98]"
+          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
         >
           Go to dashboard
         </Link>
@@ -38,7 +38,7 @@ export default async function NotificationsPage() {
       <div className="flex min-h-full items-center justify-center px-6 py-12">
         <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-black/10 bg-white px-8 py-10 text-center shadow-sm dark:border-white/10 dark:bg-white/5">
           <span
-            className="flex size-16 items-center justify-center rounded-2xl bg-teal-700/10 text-3xl"
+            className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-3xl"
             aria-hidden
           >
             🔔
@@ -54,7 +54,7 @@ export default async function NotificationsPage() {
           {isAdmin && (
             <Link
               href="/dashboard/events/new"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-teal-700 px-6 py-3 font-semibold text-white active:scale-[.98]"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
             >
               + New event
             </Link>

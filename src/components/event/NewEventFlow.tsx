@@ -47,7 +47,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
               "Team access and live publish controls",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2.5">
-                <span className="mt-0.5 text-teal-700 dark:text-teal-400" aria-hidden>
+                <span className="mt-0.5 text-brand" aria-hidden>
                   ✓
                 </span>
                 <span>{item}</span>
@@ -64,7 +64,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
           type="button"
           onClick={handleMockPay}
           disabled={paying}
-          className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+          className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
           {paying ? "Processing…" : `Pay ${EVENT_PRICE_LABEL} and continue`}
         </button>
@@ -76,9 +76,9 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
     <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="paymentConfirmed" value="1" />
 
-      <div className="flex items-center gap-2 text-xs font-medium text-teal-700 dark:text-teal-400">
+      <div className="flex items-center gap-2 text-xs font-medium text-brand">
         <span
-          className="flex size-5 items-center justify-center rounded-full bg-teal-700/10 text-[10px]"
+          className="flex size-5 items-center justify-center rounded-full bg-brand-soft text-[10px]"
           aria-hidden
         >
           ✓
@@ -95,7 +95,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
           maxLength={80}
           autoFocus
           placeholder="Summer Festival 2026"
-          className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+          className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
         />
       </label>
 
@@ -116,7 +116,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+        className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
         {pending ? "Creating…" : "Create event"}
       </button>

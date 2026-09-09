@@ -21,7 +21,7 @@ export function AnnouncementBanner({
     >
       <div className="flex items-start gap-2.5">
         <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-teal-700/10 text-sm"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm"
           aria-hidden
         >
           🔔

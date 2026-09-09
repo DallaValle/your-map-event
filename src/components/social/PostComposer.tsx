@@ -6,7 +6,7 @@ import type { ActionState } from "@/actions/types";
 import { POST_CHANNELS } from "@/lib/social";
 
 const inputClass =
-  "rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5";
+  "rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5";
 
 export function PostComposer({ eventId }: { eventId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -67,7 +67,7 @@ export function PostComposer({ eventId }: { eventId: string }) {
           name="status"
           value="draft"
           disabled={pending}
-          className="rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+          className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
           {pending ? "Saving…" : "Save draft"}
         </button>

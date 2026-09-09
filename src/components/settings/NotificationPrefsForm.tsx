@@ -43,7 +43,7 @@ export function NotificationPrefsForm({
                 type="checkbox"
                 name={pref.name}
                 defaultChecked={defaults[pref.name]}
-                className="mt-0.5 size-5 accent-teal-700"
+                className="mt-0.5 size-5 accent-brand"
               />
               <span>
                 <span className="block text-sm font-medium">{pref.label}</span>
@@ -60,7 +60,7 @@ export function NotificationPrefsForm({
         </p>
       )}
       {state?.ok && (
-        <p className="rounded-lg bg-teal-700/10 px-3 py-2 text-sm text-teal-700 dark:text-teal-400">
+        <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
           Preferences saved.
         </p>
       )}
@@ -68,7 +68,7 @@ export function NotificationPrefsForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+        className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
         {pending ? "Saving…" : "Save preferences"}
       </button>

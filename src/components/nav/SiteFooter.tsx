@@ -4,7 +4,7 @@
  */
 export function SiteFooter() {
   return (
-    <div className="border-t border-black/10 bg-white/95 px-5 py-1.5 text-center text-[11px] opacity-50 backdrop-blur dark:border-white/10 dark:bg-neutral-950/95">
+    <div className="border-t border-line bg-surface px-5 py-1.5 text-center text-[11px] text-muted">
       your map event
     </div>
   );

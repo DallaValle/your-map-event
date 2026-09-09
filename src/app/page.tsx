@@ -31,13 +31,13 @@ export default async function LandingPage() {
       <div className="flex w-full max-w-xs flex-col gap-3">
         <Link
           href="/sign-in"
-          className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white active:scale-[.98]"
+          className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg active:scale-[.98]"
         >
           Sign in
         </Link>
         <Link
           href="/sign-up"
-          className="rounded-xl border border-teal-700/40 px-6 py-3.5 font-semibold text-teal-700 active:scale-[.98] dark:text-teal-400"
+          className="rounded-xl border border-brand/40 px-6 py-3.5 font-semibold text-brand active:scale-[.98]"
         >
           Create a team
         </Link>
@@ -63,7 +63,7 @@ export default async function LandingPage() {
                       className="size-8 rounded-full object-cover"
                     />
                   ) : (
-                    <span className="flex size-8 items-center justify-center rounded-full bg-teal-700/10 text-sm">
+                    <span className="flex size-8 items-center justify-center rounded-full bg-brand-soft text-sm">
                       📍
                     </span>
                   )}

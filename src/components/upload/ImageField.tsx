@@ -53,7 +53,7 @@ export function ImageField({
             onUploadError={(e) => setError(e.message)}
             appearance={{
               button:
-                "ut-ready:bg-teal-700 ut-uploading:bg-teal-700/60 w-full rounded-xl py-3 text-sm font-semibold",
+                "ut-ready:bg-brand ut-uploading:bg-brand-soft w-full rounded-xl py-3 text-sm font-semibold",
               allowedContent: "text-xs opacity-60",
             }}
           />
@@ -66,7 +66,7 @@ export function ImageField({
           placeholder="https://… (image URL)"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+          className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
         />
       )}
 

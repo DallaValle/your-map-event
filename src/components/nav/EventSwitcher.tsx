@@ -72,7 +72,7 @@ export function EventSwitcher({
         {isAdmin && (
           <Link
             href="/dashboard/events/new"
-            className="mt-3 flex min-h-10 items-center justify-center rounded-lg bg-teal-700 px-3 text-sm font-semibold text-white active:scale-[.98]"
+            className="mt-3 flex min-h-10 items-center justify-center rounded-lg bg-brand px-3 text-sm font-semibold text-brand-fg active:scale-[.98]"
           >
             + New event
           </Link>
@@ -94,7 +94,7 @@ export function EventSwitcher({
       >
         <span
           className={`size-2 shrink-0 rounded-full ${
-            active?.published ? "bg-teal-600" : "bg-neutral-400"
+            active?.published ? "bg-brand" : "bg-neutral-400"
           }`}
           aria-hidden
         />
@@ -128,7 +128,7 @@ export function EventSwitcher({
                 >
                   <span
                     className={`size-2 shrink-0 rounded-full ${
-                      event.published ? "bg-teal-600" : "bg-neutral-400"
+                      event.published ? "bg-brand" : "bg-neutral-400"
                     }`}
                     aria-hidden
                   />
@@ -139,7 +139,7 @@ export function EventSwitcher({
                     </span>
                   </span>
                   {event.id === activeEventId && (
-                    <span className="shrink-0 text-teal-700 dark:text-teal-400" aria-hidden>
+                    <span className="shrink-0 text-brand" aria-hidden>
                       ✓
                     </span>
                   )}
@@ -151,7 +151,7 @@ export function EventSwitcher({
             <Link
               href="/dashboard/events/new"
               onClick={() => setOpen(false)}
-              className="block border-t border-black/10 px-3 py-2.5 text-sm font-semibold text-teal-700 hover:bg-black/5 dark:border-white/15 dark:text-teal-400 dark:hover:bg-white/10"
+              className="block border-t border-black/10 px-3 py-2.5 text-sm font-semibold text-brand hover:bg-black/5 dark:border-white/15 text-brand dark:hover:bg-white/10"
             >
               + New event
             </Link>

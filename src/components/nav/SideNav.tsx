@@ -120,8 +120,8 @@ export function SideNav({
             collapsed ? "justify-center px-0" : "max-lg:justify-center max-lg:px-0"
           } ${
             active
-              ? "bg-teal-700/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-400"
-              : "opacity-70 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/5"
+              ? "bg-brand-soft text-brand"
+              : "text-muted hover:bg-brand-soft hover:text-foreground"
           }`}
         >
           <span className="text-lg" aria-hidden>

@@ -57,7 +57,7 @@ function CaptureBoundsControl({
               neLng: b.getNorthEast().lng,
             });
           }}
-          className="rounded-lg bg-teal-700 px-3 py-2 text-xs font-semibold text-white shadow-lg"
+          className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-brand-fg shadow-lg"
         >
           ⛶ Use current view as borders
         </button>

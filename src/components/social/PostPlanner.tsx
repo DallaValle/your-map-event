@@ -122,7 +122,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 value={when}
                 onChange={(event) => setWhen(event.target.value)}
                 aria-label="Schedule time"
-                className="rounded-lg border border-black/15 px-3 py-1.5 text-xs outline-teal-700 dark:border-white/20 dark:bg-white/5"
+                className="rounded-lg border border-black/15 px-3 py-1.5 text-xs outline-brand dark:border-white/20 dark:bg-white/5"
               />
               <button
                 type="button"
@@ -150,7 +150,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 type="button"
                 disabled={pending}
                 onClick={() => run(() => setScheduledPostStatusAction(post.id, "done"))}
-                className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-brand-fg disabled:opacity-60"
               >
                 Mark done
               </button>

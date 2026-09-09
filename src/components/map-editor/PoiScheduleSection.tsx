@@ -9,7 +9,7 @@ import { formatRange, toLocalInputValue } from "@/lib/schedule-time";
 import type { ActionState } from "@/actions/types";
 
 const inputClass =
-  "rounded-xl border border-black/15 px-3 py-2 text-sm outline-teal-700 dark:border-white/20 dark:bg-white/5";
+  "rounded-xl border border-black/15 px-3 py-2 text-sm outline-brand dark:border-white/20 dark:bg-white/5";
 
 /**
  * Schedule slot on a map point. Activities created here land on the event
@@ -48,7 +48,7 @@ export function PoiScheduleSection({
         <h3 className="text-xs font-semibold uppercase tracking-wide opacity-70">On the schedule</h3>
         <Link
           href="/dashboard/schedule"
-          className="text-xs font-semibold text-teal-700 dark:text-teal-400"
+          className="text-xs font-semibold text-brand"
         >
           Open timeline
         </Link>
@@ -137,7 +137,7 @@ export function PoiScheduleSection({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-xl bg-teal-700/10 px-3 py-2 text-sm font-semibold text-teal-800 disabled:opacity-60 dark:text-teal-300"
+          className="rounded-xl bg-brand-soft px-3 py-2 text-sm font-semibold text-brand disabled:opacity-60 text-brand"
         >
           {pending ? "Adding…" : "+ Add to schedule"}
         </button>

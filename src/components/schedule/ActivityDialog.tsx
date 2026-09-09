@@ -12,7 +12,7 @@ import { toLocalInputValue } from "@/lib/schedule-time";
 import type { ActionState } from "@/actions/types";
 
 const inputClass =
-  "rounded-xl border border-black/15 px-3 py-2.5 text-sm outline-teal-700 dark:border-white/20 dark:bg-white/5";
+  "rounded-xl border border-black/15 px-3 py-2.5 text-sm outline-brand dark:border-white/20 dark:bg-white/5";
 
 export type ActivityDialogState =
   | { mode: "create"; poiId?: string | null; startTime?: Date | null; endTime?: Date | null }
@@ -184,7 +184,7 @@ export function ActivityDialog({
             <button
               type="submit"
               disabled={pending}
-              className="ml-auto rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+              className="ml-auto rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60"
             >
               {pending ? "Saving…" : isEdit ? "Save" : "Add activity"}
             </button>

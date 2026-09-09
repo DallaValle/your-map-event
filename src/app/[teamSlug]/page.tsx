@@ -51,7 +51,7 @@ export default async function TeamPage({ params }: PageProps) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={team.logoUrl} alt="" className="size-16 rounded-full object-cover" />
         ) : (
-          <span className="flex size-16 items-center justify-center rounded-full bg-teal-700/10 text-3xl">📍</span>
+          <span className="flex size-16 items-center justify-center rounded-full bg-brand-soft text-3xl">📍</span>
         )}
         <h1 className="text-2xl font-bold">{team.name}</h1>
       </header>

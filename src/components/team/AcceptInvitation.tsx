@@ -99,7 +99,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
             type="button"
             onClick={accept}
             disabled={accepting || !invitation}
-            className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+            className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
           >
             {accepting ? "Joining…" : "Join the team"}
           </button>
@@ -111,13 +111,13 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
           </p>
           <Link
             href={`/sign-in?redirect=${redirect}`}
-            className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white active:scale-[.98]"
+            className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg active:scale-[.98]"
           >
             Sign in
           </Link>
           <Link
             href={`/sign-up?redirect=${redirect}`}
-            className="rounded-xl border border-teal-700/40 px-6 py-3.5 font-semibold text-teal-700 active:scale-[.98] dark:text-teal-400"
+            className="rounded-xl border border-brand/40 px-6 py-3.5 font-semibold text-brand active:scale-[.98] text-brand"
           >
             Create an account
           </Link>
