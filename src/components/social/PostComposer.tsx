@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createScheduledPostAction } from "@/actions/social";
 import type { ActionState } from "@/actions/types";
 import { POST_CHANNELS } from "@/lib/social";
@@ -11,6 +11,7 @@ const inputClass =
 
 export function PostComposer({ eventId }: { eventId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [intent, setIntent] = useState<"draft" | "scheduled" | null>(null);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     createScheduledPostAction.bind(null, eventId),
     null,
@@ -19,6 +20,10 @@ export function PostComposer({ eventId }: { eventId: string }) {
   useEffect(() => {
     if (state?.ok) formRef.current?.reset();
   }, [state]);
+
+  useEffect(() => {
+    if (!pending) setIntent(null);
+  }, [pending]);
 
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-3">
@@ -68,18 +73,30 @@ export function PostComposer({ eventId }: { eventId: string }) {
           name="status"
           value="draft"
           disabled={pending}
+          aria-busy={pending && intent === "draft"}
+          onClick={() => setIntent("draft")}
           className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          <PendingLabel pending={pending} label="Save draft" pendingLabel="Saving…" />
+          <PendingLabel
+            pending={pending && intent === "draft"}
+            label="Save draft"
+            pendingLabel="Saving…"
+          />
         </button>
         <button
           type="submit"
           name="status"
           value="scheduled"
           disabled={pending}
+          aria-busy={pending && intent === "scheduled"}
+          onClick={() => setIntent("scheduled")}
           className="rounded-xl border border-black/15 px-5 py-2.5 text-sm font-semibold disabled:opacity-60 active:scale-[.98] dark:border-white/20"
         >
-          <PendingLabel pending={pending} label="Schedule post" pendingLabel="Saving…" />
+          <PendingLabel
+            pending={pending && intent === "scheduled"}
+            label="Schedule post"
+            pendingLabel="Saving…"
+          />
         </button>
       </div>
     </form>

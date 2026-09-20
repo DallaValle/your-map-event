@@ -138,7 +138,8 @@ export function PoiScheduleSection({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-xl bg-brand-soft px-3 py-2 text-sm font-semibold text-brand disabled:opacity-60 text-brand"
+          aria-busy={pending}
+          className="rounded-xl bg-brand-soft px-3 py-2 text-sm font-semibold text-brand disabled:opacity-60"
         >
           <PendingLabel pending={pending} label="+ Add to schedule" pendingLabel="Adding…" />
         </button>

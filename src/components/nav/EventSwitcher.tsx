@@ -88,6 +88,7 @@ export function EventSwitcher({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={pending}
+        aria-busy={pending}
         aria-label="Switch event"
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -153,7 +154,7 @@ export function EventSwitcher({
             <Link
               href="/dashboard/events/new"
               onClick={() => setOpen(false)}
-              className="block border-t border-black/10 px-3 py-2.5 text-sm font-semibold text-brand hover:bg-black/5 dark:border-white/15 text-brand dark:hover:bg-white/10"
+              className="block border-t border-line px-3 py-2.5 text-sm font-semibold text-brand hover:bg-brand-soft"
             >
               + New event
             </Link>

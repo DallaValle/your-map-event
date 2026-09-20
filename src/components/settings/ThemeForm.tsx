@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateThemeAction } from "@/actions/settings";
 import { asTheme, type ThemePreference } from "@/components/settings/prefs";
@@ -18,6 +18,12 @@ const OPTIONS: { value: ThemePreference; label: string; hint: string }[] = [
 export function ThemeForm({ theme }: { theme: ThemePreference }) {
   const router = useRouter();
   const [savedAs, setSavedAs] = useState<ThemePreference | null>(null);
+  const committed = useRef(theme);
+  committed.current = savedAs ?? theme;
+
+  useEffect(() => {
+    return () => applyThemeClass(committed.current);
+  }, []);
   const [state, formAction, pending] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const next = asTheme(String(formData.get("theme")));
@@ -74,6 +80,7 @@ export function ThemeForm({ theme }: { theme: ThemePreference }) {
       <button
         type="submit"
         disabled={pending}
+        aria-busy={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
         <PendingLabel pending={pending} label="Save appearance" pendingLabel="Saving…" />

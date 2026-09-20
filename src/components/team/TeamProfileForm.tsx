@@ -70,6 +70,7 @@ export function TeamProfileForm({
       <button
         type="submit"
         disabled={pending}
+        aria-busy={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
         <PendingLabel pending={pending} label="Save changes" pendingLabel="Saving…" />

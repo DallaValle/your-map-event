@@ -45,6 +45,7 @@ test.describe("settings", () => {
     await page.getByRole("button", { name: "Save appearance" }).click();
     await expect(page.getByText("Appearance saved (Dark).")).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(page.locator("html")).toHaveClass(/dark/);
 
     await page.locator('input[name="theme"][value="mono"]').check();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "mono");

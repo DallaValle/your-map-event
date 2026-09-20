@@ -101,6 +101,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
             type="button"
             onClick={accept}
             disabled={accepting || !invitation}
+            aria-busy={accepting}
             className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
           >
             <PendingLabel pending={accepting} label="Join the team" pendingLabel="Joining…" />
@@ -119,7 +120,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
           </Link>
           <Link
             href={`/sign-up?redirect=${redirect}`}
-            className="rounded-xl border border-brand/40 px-6 py-3.5 font-semibold text-brand active:scale-[.98] text-brand"
+            className="rounded-xl border border-brand/40 px-6 py-3.5 font-semibold text-brand active:scale-[.98]"
           >
             Create an account
           </Link>

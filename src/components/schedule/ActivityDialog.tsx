@@ -185,6 +185,7 @@ export function ActivityDialog({
             <button
               type="submit"
               disabled={pending}
+              aria-busy={pending}
               className="ml-auto rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60"
             >
               <PendingLabel

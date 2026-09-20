@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { BrandMark, Wordmark } from "./BrandMark";
 
-/**
- * Always-on console footer: mark, wordmark, tagline, and a few workspace links.
- * Kept to one row so the map editor still gets the remaining viewport.
- */
-export function SiteFooter() {
+export function SiteFooter({
+  homeHref = "/",
+  workspaceLinks = false,
+}: {
+  homeHref?: string;
+  workspaceLinks?: boolean;
+}) {
   const year = new Date().getFullYear();
 
   return (
     <footer className="shrink-0 border-t border-line bg-surface">
       <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-2">
-        <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
+        <Link href={homeHref} className="flex min-w-0 items-center gap-2.5">
           <BrandMark size={28} />
           <span className="min-w-0">
             <Wordmark className="block text-sm leading-none" />
@@ -22,12 +24,16 @@ export function SiteFooter() {
         </Link>
 
         <nav aria-label="Footer" className="flex items-center gap-3 text-[11px] font-medium text-muted">
-          <Link href="/dashboard/team" className="hidden hover:text-foreground sm:inline">
-            Team
-          </Link>
-          <Link href="/dashboard/settings" className="hover:text-foreground">
-            Settings
-          </Link>
+          {workspaceLinks && (
+            <>
+              <Link href="/dashboard/team" className="hidden hover:text-foreground sm:inline">
+                Team
+              </Link>
+              <Link href="/dashboard/settings" className="hover:text-foreground">
+                Settings
+              </Link>
+            </>
+          )}
           <span className="opacity-50">© {year}</span>
         </nav>
       </div>

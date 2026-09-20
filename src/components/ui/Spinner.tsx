@@ -19,19 +19,20 @@ export function Spinner({ className = "size-4" }: { className?: string }) {
   );
 }
 
-/** Label that shows a spinner while an action is in flight. */
 export function PendingLabel({
   pending,
   label,
   pendingLabel,
+  spinnerClassName,
 }: {
   pending: boolean;
   label: ReactNode;
   pendingLabel?: ReactNode;
+  spinnerClassName?: string;
 }) {
   return (
     <span className="inline-flex items-center justify-center gap-2">
-      {pending ? <Spinner /> : null}
+      {pending ? <Spinner className={spinnerClassName ?? "size-4"} /> : null}
       <span>{pending ? (pendingLabel ?? label) : label}</span>
     </span>
   );

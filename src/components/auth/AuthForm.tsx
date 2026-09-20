@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { BrandMark } from "@/components/nav/BrandMark";
 import { SiteFooter } from "@/components/nav/SiteFooter";
 import { PendingLabel } from "@/components/ui/Spinner";
+import { syncThemeCookieAction } from "@/actions/settings";
 
 /**
  * Shared sign-in / sign-up form. Kept as one component because the two flows
@@ -81,6 +82,7 @@ export function AuthForm({
       // Saving credentials is best-effort; never block the login on it.
     }
 
+    await syncThemeCookieAction();
     router.push(redirectTo);
     router.refresh();
   }
@@ -165,6 +167,7 @@ export function AuthForm({
         <button
           type="submit"
           disabled={pending}
+          aria-busy={pending}
           className="mt-1 rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
           <PendingLabel

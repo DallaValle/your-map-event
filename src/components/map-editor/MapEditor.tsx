@@ -313,6 +313,7 @@ export function MapEditor({
             type="button"
             onClick={togglePublished}
             disabled={publishPending}
+            aria-busy={publishPending}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60 ${
               map.published
                 ? "bg-brand text-brand-fg"
@@ -445,8 +446,8 @@ export function MapEditor({
                   onClick={() => setMapLayout(id)}
                   className={`rounded-xl border px-3 py-3 text-left transition-colors ${
                     selected
-                      ? "border-brand bg-brand-soft ring-1 ring-brand/40 border-brand"
-                      : "border-black/10 hover:border-black/25 dark:border-white/15 dark:hover:border-white/30"
+                      ? "border-brand bg-brand-soft ring-1 ring-brand/40"
+                      : "border-line hover:border-foreground/30"
                   }`}
                 >
                   <span className="block text-sm font-semibold">{option.label}</span>

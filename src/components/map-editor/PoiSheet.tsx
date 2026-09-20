@@ -250,6 +250,7 @@ export function PoiSheet({
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
+                aria-busy={deleting}
                 className="rounded-xl border border-red-300 px-4 py-3 font-semibold text-red-600 disabled:opacity-60 dark:border-red-900 dark:text-red-400"
               >
                 <PendingLabel pending={deleting} label="Delete" pendingLabel="Deleting…" />
@@ -258,6 +259,7 @@ export function PoiSheet({
             <button
               type="submit"
               disabled={pending}
+              aria-busy={pending}
               className="flex-1 rounded-xl bg-brand px-5 py-3 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
             >
               <PendingLabel

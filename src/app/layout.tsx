@@ -49,7 +49,12 @@ export default async function RootLayout({
   const theme = asTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   return (
-    <html lang="en" data-theme={theme} suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme={theme}
+      className={theme === "dark" ? "dark" : undefined}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>

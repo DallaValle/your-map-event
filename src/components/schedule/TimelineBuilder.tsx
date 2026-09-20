@@ -308,6 +308,7 @@ export function TimelineBuilder({
           <span
             className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-brand-fg"
             aria-live="polite"
+            aria-busy={pending}
           >
             <PendingLabel
               pending={pending}
@@ -814,6 +815,7 @@ function EventWindowBar({
       <button
         type="submit"
         disabled={pending}
+        aria-busy={pending}
         className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-fg disabled:opacity-60"
       >
         <PendingLabel pending={pending} label="Apply" pendingLabel="Saving…" />

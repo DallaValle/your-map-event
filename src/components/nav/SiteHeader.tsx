@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { clearThemeCookieAction } from "@/actions/settings";
 import { BrandMark, Wordmark } from "./BrandMark";
 
 export interface HeaderUser {
@@ -66,6 +67,7 @@ export function SiteHeader({
   }, [menuOpen]);
 
   async function handleSignOut() {
+    await clearThemeCookieAction();
     await authClient.signOut();
     router.push("/");
     router.refresh();

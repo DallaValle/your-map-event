@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
-import { THEME_COOKIE, THEMES, type ThemePreference } from "@/components/settings/prefs";
+import { getSession, requireSession } from "@/lib/session";
+import { asTheme, DEFAULT_PREFS, THEME_COOKIE, THEMES, type ThemePreference } from "@/components/settings/prefs";
 import type { ActionState } from "./types";
 
 const profileSchema = z.object({
@@ -48,6 +48,25 @@ async function setThemeCookie(theme: ThemePreference) {
     httpOnly: true,
     maxAge: 60 * 60 * 24 * 365,
   });
+}
+
+/** Align the theme cookie with the signed-in user's saved preference. */
+export async function syncThemeCookieAction(): Promise<{ theme: ThemePreference }> {
+  const session = await getSession();
+  if (!session) {
+    (await cookies()).delete(THEME_COOKIE);
+    return { theme: DEFAULT_PREFS.theme };
+  }
+  const stored = await prisma.userPreference.findUnique({
+    where: { userId: session.user.id },
+  });
+  const theme = asTheme(stored?.theme);
+  await setThemeCookie(theme);
+  return { theme };
+}
+
+export async function clearThemeCookieAction() {
+  (await cookies()).delete(THEME_COOKIE);
 }
 
 export async function updateProfileAction(

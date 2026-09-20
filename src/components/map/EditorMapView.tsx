@@ -134,7 +134,7 @@ function LockViewControl({
           onClick={() => (locked ? onUnlock() : onLock(captureBounds(map)))}
           className={`rounded-lg px-3 py-2 text-xs font-semibold shadow-lg ${
             locked
-              ? "bg-white text-brand dark:bg-neutral-900 text-brand"
+              ? "bg-surface text-brand"
               : "bg-brand text-brand-fg"
           }`}
         >
