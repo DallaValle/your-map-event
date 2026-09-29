@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { signIn } from "./helpers";
+import { prisma } from "../src/lib/prisma";
 
 /**
  * The dashboard operates on ONE selected event; the sidebar switcher changes
@@ -9,20 +10,37 @@ import { signIn } from "./helpers";
 test("switching events updates the whole overview, form included", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "switcher is desktop-only UI");
 
-  await signIn(page);
+  // The seed ships one event; add a second so the switcher has somewhere to go.
+  const team = await prisma.team.findUnique({ where: { slug: "demo-team" } });
+  test.skip(!team, "demo-team missing from database");
+  const extra = await prisma.event.create({
+    data: {
+      teamId: team!.id,
+      name: "Switcher Test Event",
+      slug: `switcher-test-${Date.now()}`,
+      centerName: "Test venue",
+      centerLat: 47.36,
+      centerLng: 8.54,
+    },
+  });
 
-  // Open the switcher; need at least two events to switch between.
-  await page.getByRole("button", { name: "Switch event" }).click();
-  const options = page.getByRole("option");
-  const count = await options.count();
-  test.skip(count < 2, "needs a second event in the dev database");
+  try {
+    await signIn(page);
 
-  // Pick whichever option is not currently selected.
-  const target = options.filter({ hasNot: page.getByText("✓") }).first();
-  const targetName = (await target.locator("span.font-medium").textContent())!.trim();
-  await target.click();
+    await page.getByRole("button", { name: "Switch event" }).click();
+    const options = page.getByRole("option");
+    await expect(options).toHaveCount(await prisma.event.count({ where: { teamId: team!.id } }));
 
-  // Header and the (remounted) basic-info form both follow the selection.
-  await expect(page.locator("h1")).toHaveText(targetName);
-  await expect(page.locator('input[name="name"]')).toHaveValue(targetName);
+    // Pick whichever option is not currently selected.
+    const target = options.filter({ hasNot: page.getByText("✓") }).first();
+    const targetName = (await target.locator("span.font-medium").textContent())!.trim();
+    await target.click();
+
+    // Header and the (remounted) basic-info form both follow the selection.
+    await expect(page.locator("h1")).toHaveText(targetName);
+    await expect(page.locator('input[name="name"]')).toHaveValue(targetName);
+  } finally {
+    await prisma.event.delete({ where: { id: extra.id } });
+    await prisma.$disconnect();
+  }
 });
