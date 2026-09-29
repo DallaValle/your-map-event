@@ -1,5 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { signIn } from "./helpers";
+import { prisma } from "../src/lib/prisma";
+
+// The newest event becomes the dashboard default, so a leftover draft would
+// hijack the seeded event in later specs (schedule, social).
+test.afterAll(async () => {
+  await prisma.event.deleteMany({ where: { name: { startsWith: "E2E Event " } } });
+  await prisma.$disconnect();
+});
 
 /**
  * New-event funnel: mock pay → name only → land on dashboard overview with
