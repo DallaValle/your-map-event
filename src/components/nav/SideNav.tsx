@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface NavItem {
   href: string;
@@ -124,9 +125,7 @@ export function SideNav({
               : "opacity-70 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/5"
           }`}
         >
-          <span className="text-lg" aria-hidden>
-            {item.icon}
-          </span>
+          <NavIcon icon={item.icon} />
           <span className={collapsed ? "hidden" : "max-lg:hidden"}>{item.label}</span>
         </Link>
       </li>
@@ -141,5 +140,18 @@ export function SideNav({
 
       <ul className="flex flex-col gap-0.5">{workspace.map(renderItem)}</ul>
     </nav>
+  );
+}
+
+/** Spins over the icon while the click waits on the server; overlaid so labels never shift. */
+function NavIcon({ icon }: { icon: string }) {
+  const { pending } = useLinkStatus();
+  return (
+    <span className="relative text-lg" aria-hidden>
+      <span className={pending ? "invisible" : undefined}>{icon}</span>
+      {pending ? (
+        <Spinner className="absolute inset-0 m-auto size-[1.125rem] text-teal-700 dark:text-teal-400" />
+      ) : null}
+    </span>
   );
 }
