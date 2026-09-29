@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
@@ -15,7 +16,7 @@ export const ACTIVE_EVENT_COOKIE = "activeEventId";
  * belongs to this team, otherwise the most recently updated one. Viewers only
  * ever see published events, so the fallback respects that too.
  */
-export async function getActiveEvent(teamId: string, isAdmin: boolean) {
+export const getActiveEvent = cache(async (teamId: string, isAdmin: boolean) => {
   const visible = isAdmin ? {} : { published: true };
 
   const store = await cookies();
@@ -31,7 +32,7 @@ export async function getActiveEvent(teamId: string, isAdmin: boolean) {
     where: { teamId, ...visible },
     orderBy: { updatedAt: "desc" },
   });
-}
+});
 
 /** All events the caller may switch between, for the switcher dropdown. */
 export async function getSwitchableEvents(teamId: string, isAdmin: boolean) {
