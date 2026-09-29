@@ -12,12 +12,14 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@modelcontextprotocol/server": "^2.2.0",
     "@prisma/client": "^6.19.3",
     "@serwist/next": "^9.5.11",
     "@uploadthing/react": "^7.3.3",
     "better-auth": "1.6.23",
     "leaflet": "^1.9.4",
     "leaflet-rotate": "^0.2.8",
+    "mcp-handler": "^2.2.0",
     "next": "15.5.20",
     "qrcode": "^1.5.4",
     "react": "19.1.0",

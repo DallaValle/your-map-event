@@ -96,6 +96,7 @@ Two people can work at the same time only when their milestones do not share a p
 | 7 History | `history/`, archive/snapshot models | Live event editing |
 | 8 Pricing | `events/new/`, checkout | Map editor |
 | 9 Production | Auth storage, deploy, env | Product features |
+| 10 MCP | `src/app/api/mcp/`, `src/lib/mcp/`, `src/components/mcp/`, `dashboard/(console)/ai/`, McpToken + MapImport models, `e2e/mcp.spec.ts` | Map editor UI, public map |
 
 New feature code lives under that section's app route and `src/components/<section>/`.
 Do not add a feature's models as extra columns on `Event` unless the field is 1:1 map data (center, zoom, bearing, bounds, layout).
