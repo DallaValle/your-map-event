@@ -163,7 +163,7 @@ The server never receives the photo: the client reads it with its own vision and
 - **Auth:** team API tokens (`yme_…`), created and revoked by admins on **AI assistant** in the dashboard.
   Only the sha256 hash is stored (`McpToken`), in Postgres rather than Better Auth, so tokens survive in-memory auth restarts.
   A token reaches every event of its own team and nothing else.
-- **Photo to map:** `set_image_anchors` fits a pixel to lat/lng transform from 2+ landmarks (similarity for 2, least squares affine for 3+), stores it as a `MapImport`, and reports the error per anchor plus the bearing that rotates the map like the photo.
+- **Photo to map:** `set_image_anchors` fits a pixel to lat/lng transform from 2+ landmarks (rotation and scale up to 3 anchors so the third one measures error, least squares affine from 4 when it stays plausible), stores it as a `MapImport`, and reports a leave one out check per anchor (a misread landmark lands far from where the others predict it) plus the bearing that rotates the map like the photo.
   `add_points` then takes pixel positions, and `place_points_along_street` spreads numbered rows along the real OpenStreetMap street geometry.
 - **Drafts only:** `create_event` makes an unpublished draft. Publishing stays a click in the dashboard.
 - **OSM etiquette:** `geocode` (Nominatim) and `find_street` (Overpass) share one throttled queue (1 request per second), a small cache, and an identifying User-Agent (`OSM_USER_AGENT` in `.env`).

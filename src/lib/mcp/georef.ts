@@ -81,7 +81,7 @@ function solve3(m: number[][], rhs: number[]): number[] | null {
 
 /**
  * Least squares similarity (scale, rotation, translation). Exact for two
- * anchors, and the fallback when 3+ anchors are collinear.
+ * anchors, least squares for more.
  */
 function fitSimilarity(
   pts: { u: number; v: number; east: number; north: number }[],
@@ -146,7 +146,29 @@ function fitAffine(
   return { kind: "affine", a: east[0], b: east[1], c: east[2], d: north[0], e: north[1], f: north[2] };
 }
 
-/** Fits the transform, or throws with a message the model can act on. */
+// An affine fit has 6 unknowns: with 3 anchors it always matches exactly and
+// hides a misread landmark, so it needs a 4th anchor to leave any residual.
+const MIN_AFFINE_ANCHORS = 4;
+// Flyers are drawn roughly to scale; beyond this stretch the fit is noise.
+const MAX_AFFINE_ANISOTROPY = 1.5;
+
+/** Rejects mirrored or strongly skewed fits, which come from bad anchors. */
+function isPlausibleAffine(t: Omit<ImageTransform, "origin">) {
+  const det = t.a * t.e - t.b * t.d;
+  if (det <= 0) return false;
+  // Singular values of [[a, b], [d, e]] from its Frobenius norm and determinant.
+  const frob = t.a * t.a + t.b * t.b + t.d * t.d + t.e * t.e;
+  const disc = Math.sqrt(Math.max(0, frob * frob - 4 * det * det));
+  const s1 = Math.sqrt((frob + disc) / 2);
+  const s2 = Math.sqrt(Math.max(0, (frob - disc) / 2));
+  return s2 > 0 && s1 / s2 <= MAX_AFFINE_ANISOTROPY;
+}
+
+/**
+ * Fits the transform, or throws with a message the model can act on.
+ * Similarity (scale, rotation, translation) up to 3 anchors, so the third
+ * one measures error; affine from 4 when it stays plausible.
+ */
 export function fitTransform(anchors: Anchor[]): ImageTransform {
   if (anchors.length < 2) throw new Error("At least 2 anchors are needed.");
   const origin = {
@@ -154,7 +176,9 @@ export function fitTransform(anchors: Anchor[]): ImageTransform {
     lng: anchors.reduce((s, a) => s + a.lng, 0) / anchors.length,
   };
   const pts = anchors.map((a) => ({ u: a.x, v: -a.y, ...toLocalMeters(origin, a.lat, a.lng) }));
-  const fit = (pts.length >= 3 ? fitAffine(pts) : null) ?? fitSimilarity(pts);
+  const similarity = fitSimilarity(pts);
+  const affine = pts.length >= MIN_AFFINE_ANCHORS ? fitAffine(pts) : null;
+  const fit = affine && isPlausibleAffine(affine) ? affine : similarity;
   if (!fit) {
     throw new Error(
       "Anchors are degenerate (same pixel or same place). Pick landmarks that are far apart on the photo.",
@@ -176,6 +200,23 @@ export function residuals(t: ImageTransform, anchors: Anchor[]): AnchorResidual[
   }));
 }
 
+/**
+ * Leave one out check: each anchor predicted from a fit of the others. Least
+ * squares spreads one misread landmark over every residual; this does not.
+ * Null with fewer than 3 anchors (nothing left to check against).
+ */
+export function crossCheck(anchors: Anchor[]): number[] | null {
+  if (anchors.length < 3) return null;
+  return anchors.map((a, i) => {
+    try {
+      const t = fitTransform(anchors.filter((_, j) => j !== i));
+      return distanceMeters(pixelToLatLng(t, a.x, a.y), a);
+    } catch {
+      return Infinity;
+    }
+  });
+}
+
 /** Meters covered by one image pixel (geometric mean of both axes). */
 export function metersPerPixel(t: ImageTransform) {
   return Math.sqrt(Math.abs(t.a * t.e - t.b * t.d));
@@ -189,9 +230,14 @@ export function metersPerPixel(t: ImageTransform) {
 export function photoOrientation(t: ImageTransform) {
   // Image up is (u, v) = (0, 1), which maps to (east, north) = (b, e).
   const up = (Math.atan2(t.b, t.e) / DEG + 360) % 360;
+  // Wrap, round, then fold 360 back to 0 (359.96 rounds up to 360).
+  const wrap = (deg: number) => {
+    const r = round(((deg % 360) + 360) % 360, 1);
+    return r === 360 ? 0 : r;
+  };
   return {
-    photoUpCompass: round(up, 1),
-    suggestedBearing: round((360 - up) % 360, 1),
+    photoUpCompass: wrap(up),
+    suggestedBearing: wrap(360 - up),
   };
 }
 

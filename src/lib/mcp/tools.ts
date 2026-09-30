@@ -103,7 +103,7 @@ const setImageAnchorsInput = z.object({
     )
     .min(2)
     .max(20)
-    .describe("2 to 20 landmarks located both on the photo and on the real map, spread far apart. 3+ lets the server measure error"),
+    .describe("2 to 20 landmarks located both on the photo and on the real map, spread far apart and not on one line. 3+ lets the server check each one against the others"),
 });
 export type SetImageAnchorsInput = z.infer<typeof setImageAnchorsInput>;
 
@@ -262,7 +262,7 @@ export const MCP_TOOLS: McpTool[] = [
     name: "set_image_anchors",
     title: "Anchor the map photo",
     description:
-      "Georeference the organizer's map photo. Give the image size and 2 or more landmarks with their pixel position on the photo and their real lat/lng (from geocode or find_street). Returns importId for pixel based placement, the error per anchor in meters, and suggestedBearing to rotate the map like the photo. Re-anchor when an error exceeds ~15 m.",
+      "Georeference the organizer's map photo. Give the image size and 2 or more landmarks with their pixel position on the photo and their real lat/lng (from geocode or find_street). Returns importId for pixel based placement, a leave one out check per anchor (checkMeters: how far it lands from where the other anchors predict it), a quality verdict, and suggestedBearing to rotate the map like the photo. Use 3 or 4 anchors; when quality is check_anchors, fix the named anchor and call again.",
     inputSchema: setImageAnchorsInput,
     annotations: write,
     handler: (ctx, input) => events.setImageAnchors(ctx, input),

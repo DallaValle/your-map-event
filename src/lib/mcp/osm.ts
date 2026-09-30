@@ -1,4 +1,5 @@
 import type { GeocodeResult } from "@/components/map/GeocodeSearch";
+import { ToolError } from "./errors";
 import { distanceMeters, fromLocalMeters, toLocalMeters } from "./georef";
 
 type LatLng = { lat: number; lng: number };
@@ -47,12 +48,17 @@ async function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
 }
 
 async function osmFetch(url: string, init?: RequestInit) {
-  const res = await fetch(url, {
-    ...init,
-    headers: { "User-Agent": userAgent(), Accept: "application/json", ...init?.headers },
-    signal: AbortSignal.timeout(20_000),
-  });
-  if (!res.ok) throw new Error(`OpenStreetMap service answered ${res.status}. Try again in a moment.`);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...init,
+      headers: { "User-Agent": userAgent(), Accept: "application/json", ...init?.headers },
+      signal: AbortSignal.timeout(20_000),
+    });
+  } catch {
+    throw new ToolError("OpenStreetMap did not answer in time. Try again in a moment.");
+  }
+  if (!res.ok) throw new ToolError(`OpenStreetMap service answered ${res.status}. Try again in a moment.`);
   return res.json();
 }
 

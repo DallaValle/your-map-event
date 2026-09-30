@@ -139,13 +139,25 @@ test.describe("AI assistant (MCP)", () => {
     expect(anchored.data.metersPerPixel).toBeCloseTo(0.5, 2);
     expect(anchored.data.maxResidualMeters).toBeLessThan(1);
     expect(anchored.data.suggestedBearing).toBe(0);
+    expect(anchored.data.quality).toBe("good");
+
+    // A fourth landmark misread by ~30 m is named instead of hiding in the fit.
+    const misread = await callTool(request, token, "set_image_anchors", {
+      eventId,
+      imageWidth: 1000,
+      imageHeight: 800,
+      anchors: [...ANCHORS, { x: 900, y: 700, lat: 44.645302, lng: 11.379057 + 0.0004, label: "SE misread" }],
+    });
+    expect(misread.data.quality).toBe("check_anchors");
+    expect(misread.data.maxCheckMeters).toBeGreaterThan(15);
+    expect(misread.data.note).toContain("SE misread");
 
     const added = await callTool(request, token, "add_points", {
       eventId,
       importId: anchored.data.importId,
       points: [
         { title: "D. Stand gastronomico", icon: "🍝", x: 500, y: 400 },
-        { title: "1. Info point", icon: "ℹ️", x: 100, y: 100 },
+        { title: "1. Info point", icon: "ℹ️", description: "Maps and wristbands", x: 100, y: 100 },
       ],
     });
     expect(added.isError).toBe(false);
@@ -155,13 +167,36 @@ test.describe("AI assistant (MCP)", () => {
     expect(Math.abs(stand.lat - EXPECTED.lat)).toBeLessThan(1e-5);
     expect(Math.abs(stand.lng - EXPECTED.lng)).toBeLessThan(1e-5);
 
-    // Retrying the batch moves points instead of duplicating them.
+    // Retrying the batch moves points instead of duplicating them, and a
+    // move without description or icon keeps the ones already saved.
     const retried = await callTool(request, token, "add_points", {
       eventId,
       importId: anchored.data.importId,
-      points: [{ title: "1. Info point", icon: "ℹ️", x: 120, y: 100 }],
+      points: [{ title: "1. Info point", x: 120, y: 100 }],
     });
     expect(retried.data).toMatchObject({ created: 0, updated: 1 });
+    expect(retried.data.points[0].icon).toBe("ℹ️");
+
+    // Parallel batches with the same titles must not both insert.
+    const batch = {
+      eventId,
+      points: [
+        { title: "Z. Parallel stand", lat: 44.6466, lng: 11.3752 },
+        { title: "Y. Parallel stand", lat: 44.6467, lng: 11.3753 },
+      ],
+    };
+    await Promise.all([
+      callTool(request, token, "add_points", batch),
+      callTool(request, token, "add_points", batch),
+    ]);
+    const listed = await callTool(request, token, "list_points", { eventId });
+    expect(listed.data.count).toBe(4);
+    const info = listed.data.points.find((p: { title: string }) => p.title === "1. Info point");
+    expect(info.description).toBe("Maps and wristbands");
+    const parallelIds = listed.data.points
+      .filter((p: { title: string }) => p.title.endsWith("Parallel stand"))
+      .map((p: { id: string }) => p.id);
+    await callTool(request, token, "delete_points", { eventId, poiIds: parallelIds });
 
     // The organizer reviews the result in the map editor.
     await page.goto(new URL(created.data.editorUrl).pathname);
@@ -187,6 +222,17 @@ test.describe("AI assistant (MCP)", () => {
     const denied = await callTool(request, foreign.raw, "list_points", { eventId });
     expect(denied.isError).toBe(true);
     expect(denied.data.error).toMatch(/not found for this team/);
+    const foreignUpdate = await callTool(request, foreign.raw, "update_point", {
+      eventId,
+      poiId: stand.id,
+      title: "Hijacked",
+    });
+    expect(foreignUpdate.isError).toBe(true);
+    const foreignDelete = await callTool(request, foreign.raw, "delete_points", { eventId, poiIds: [stand.id] });
+    expect(foreignDelete.isError).toBe(true);
+    expect(await prisma.pointOfInterest.findUnique({ where: { id: stand.id } })).toMatchObject({
+      title: "D. Stand gastronomico",
+    });
     const foreignTeam = await callTool(request, foreign.raw, "get_team", {});
     expect(foreignTeam.data.events).toEqual([]);
 

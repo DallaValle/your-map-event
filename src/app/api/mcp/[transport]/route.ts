@@ -1,6 +1,6 @@
 import { createMcpHandler, getPublicOrigin, withMcpAuth } from "mcp-handler";
 import { contextFromAuth, verifyMcpToken } from "@/lib/mcp/auth";
-import { ToolError } from "@/lib/mcp/events";
+import { ToolError } from "@/lib/mcp/errors";
 import { MCP_PROMPTS } from "@/lib/mcp/prompts";
 import { MCP_TOOLS } from "@/lib/mcp/tools";
 
@@ -29,7 +29,9 @@ const handler = createMcpHandler(
           } catch (error) {
             // Model facing errors go back as tool results so the model can retry.
             if (error instanceof ToolError) return { ...text({ error: error.message }), isError: true };
-            throw error;
+            // Anything else is ours: log it, never hand Prisma internals to the client.
+            console.error(`MCP tool ${tool.name} failed:`, error);
+            return { ...text({ error: "Internal error. Try the same call again in a moment." }), isError: true };
           }
         },
       );

@@ -5,7 +5,9 @@ import { slugify } from "@/lib/slug";
 import { MAX_ACTIVITY_DAYS, parseWallClock, toLocalInputValue } from "@/lib/schedule-time";
 import { mapViewSchema, NEW_EVENT_MAP_DEFAULTS, poiSchema, uniqueMapSlug } from "@/lib/event-schemas";
 import type { McpContext } from "./auth";
+import { ToolError } from "./errors";
 import {
+  crossCheck,
   distanceMeters,
   fitTransform,
   metersPerPixel,
@@ -30,14 +32,29 @@ import type {
   UpdatePointInput,
 } from "./tools";
 
-/** An error message meant for the model: it reads it and retries. */
-export class ToolError extends Error {}
+export { ToolError };
 
 // Points further than this from the event center are probably misplaced.
 const FAR_FROM_CENTER_M = 5_000;
+// Leave one out error above this means a landmark was misread.
+const ANCHOR_CHECK_LIMIT_M = 15;
 const MAX_SPAN_MS = MAX_ACTIVITY_DAYS * 24 * 60 * 60 * 1000;
 
 const coord = (v: number) => Math.round(v * 1e7) / 1e7;
+// A 200 point batch is 200 sequential writes; the 5 s default is too tight.
+const TX_TIMEOUT_MS = 30_000;
+
+/**
+ * Serializes writes per event until the transaction ends, so parallel tool
+ * calls or a client retry racing the first call cannot both insert a title.
+ */
+async function lockEvent(tx: Prisma.TransactionClient, eventId: string) {
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${eventId}))`;
+}
+
+function isUniqueViolation(error: unknown) {
+  return (error as { code?: string } | null)?.code === "P2002";
+}
 
 function links(ctx: McpContext, teamSlug: string, event: { id: string; slug: string }) {
   return {
@@ -139,18 +156,24 @@ export async function createEvent(ctx: McpContext, input: CreateEventInput) {
   if (!view.success) throw new ToolError(firstIssue(view.error));
   const window = parseWindow(input.startTime, input.endTime);
 
-  // Drafts only: publishing (and the paid checkout) stays a dashboard click.
-  const event = await prisma.event.create({
-    data: {
-      teamId: team.id,
-      slug: await uniqueMapSlug(team.id, slugify(input.name)),
-      name: input.name.trim(),
-      description: input.description?.trim() || null,
-      ...view.data,
-      bearing: view.data.bearing ?? 0,
-      ...window,
-      published: false,
-    },
+  // Drafts only: publishing (and the paid checkout, milestone 8) stays a dashboard click.
+  const create = async () =>
+    prisma.event.create({
+      data: {
+        teamId: team.id,
+        slug: await uniqueMapSlug(team.id, slugify(input.name)),
+        name: input.name.trim(),
+        description: input.description?.trim() || null,
+        ...view.data,
+        bearing: view.data.bearing ?? 0,
+        ...window,
+        published: false,
+      },
+    });
+  // Two parallel creates can pick the same free slug; the loser retries.
+  const event = await create().catch((error) => {
+    if (isUniqueViolation(error)) return create();
+    throw error;
   });
   revalidateEvent(team.slug, event);
   return {
@@ -261,7 +284,14 @@ export async function setImageAnchors(ctx: McpContext, input: SetImageAnchorsInp
     },
   });
 
-  const res = residuals(transform, anchors).map((r) => ({ ...r, meters: round(r.meters, 1) }));
+  const checks = crossCheck(anchors);
+  const res = residuals(transform, anchors).map((r, i) => ({
+    ...r,
+    meters: round(r.meters, 1),
+    ...(checks ? { checkMeters: Number.isFinite(checks[i]) ? round(checks[i], 1) : null } : {}),
+  }));
+  const worstCheck = checks ? Math.max(...checks) : null;
+  const suspect = checks && worstCheck! > ANCHOR_CHECK_LIMIT_M ? res[checks.indexOf(worstCheck!)] : null;
   const corners = [
     [0, 0],
     [input.imageWidth, 0],
@@ -275,6 +305,8 @@ export async function setImageAnchors(ctx: McpContext, input: SetImageAnchorsInp
     metersPerPixel: round(metersPerPixel(transform), 3),
     residuals: res,
     maxResidualMeters: Math.max(...res.map((r) => r.meters)),
+    maxCheckMeters: worstCheck === null ? null : Number.isFinite(worstCheck) ? round(worstCheck, 1) : null,
+    quality: checks === null ? "unchecked" : suspect ? "check_anchors" : "good",
     ...photoOrientation(transform),
     photoBounds: {
       swLat: coord(Math.min(...corners.map((c) => c.lat))),
@@ -283,9 +315,11 @@ export async function setImageAnchors(ctx: McpContext, input: SetImageAnchorsInp
       neLng: coord(Math.max(...corners.map((c) => c.lng))),
     },
     note:
-      anchors.length === 2
-        ? "Two anchors always fit exactly, so residuals are 0. Add a third anchor to measure the error."
-        : "Residuals above ~15 m mean an anchor is misread: fix or replace it and call again.",
+      checks === null
+        ? "Two anchors always fit exactly, so nothing is measured. Add a third anchor far from the others."
+        : suspect
+          ? `An anchor lands more than ${ANCHOR_CHECK_LIMIT_M} m from where the others predict it (checkMeters). The largest is "${suspect.label ?? "unlabeled"}": re-read or replace it. If every check is high, the anchors are too close together or on one line: spread them out.`
+          : `Every anchor lands within ${ANCHOR_CHECK_LIMIT_M} m of where the others predict it.`,
   };
 }
 
@@ -310,36 +344,50 @@ async function upsertPoints(
   rows: PoiRow[],
   ctx: McpContext,
 ) {
-  const existing = await prisma.pointOfInterest.findMany({
-    where: { mapId: event.id, title: { in: rows.map((r) => r.title) } },
-    orderBy: { createdAt: "asc" },
-  });
-  const byTitle = new Map<string, string>();
-  for (const poi of existing) if (!byTitle.has(poi.title)) byTitle.set(poi.title, poi.id);
-
   let created = 0;
   let updated = 0;
-  const saved = await prisma.$transaction(async (tx) => {
-    const out = [];
-    for (const row of rows) {
-      const data = {
-        title: row.title,
-        description: row.description || null,
-        icon: row.icon || null,
-        lat: coord(row.lat),
-        lng: coord(row.lng),
-      };
-      const id = byTitle.get(row.title);
-      const poi = id
-        ? await tx.pointOfInterest.update({ where: { id }, data })
-        : await tx.pointOfInterest.create({ data: { mapId: event.id, ...data } });
-      if (id) updated++;
-      else created++;
-      byTitle.set(row.title, poi.id);
-      out.push(poi);
-    }
-    return out;
-  });
+  const saved = await prisma.$transaction(
+    async (tx) => {
+      await lockEvent(tx, event.id);
+      const existing = await tx.pointOfInterest.findMany({
+        where: { mapId: event.id, title: { in: rows.map((r) => r.title) } },
+        orderBy: { createdAt: "asc" },
+      });
+      const byTitle = new Map<string, string>();
+      for (const poi of existing) if (!byTitle.has(poi.title)) byTitle.set(poi.title, poi.id);
+
+      const out = [];
+      for (const row of rows) {
+        const position = { lat: coord(row.lat), lng: coord(row.lng) };
+        const id = byTitle.get(row.title);
+        // Updates only touch what was sent: a move keeps edits made in the editor.
+        const poi = id
+          ? await tx.pointOfInterest.update({
+              where: { id },
+              data: {
+                ...position,
+                ...(row.description ? { description: row.description } : {}),
+                ...(row.icon ? { icon: row.icon } : {}),
+              },
+            })
+          : await tx.pointOfInterest.create({
+              data: {
+                mapId: event.id,
+                title: row.title,
+                description: row.description || null,
+                icon: row.icon || null,
+                ...position,
+              },
+            });
+        if (id) updated++;
+        else created++;
+        byTitle.set(row.title, poi.id);
+        out.push(poi);
+      }
+      return out;
+    },
+    { timeout: TX_TIMEOUT_MS },
+  );
 
   revalidateEvent(event.team.slug, event);
   const center = { lat: event.centerLat, lng: event.centerLng };
@@ -496,20 +544,27 @@ export async function addActivities(ctx: McpContext, input: AddActivitiesInput) 
 
   let created = 0;
   let skipped = 0;
-  const saved = [];
-  for (const row of rows) {
-    // Same name, time and place already there: a retry, not a new act.
-    const dup = await prisma.activity.findFirst({
-      where: { eventId: event.id, name: row.name, startTime: row.startTime, poiId: row.poiId },
-    });
-    if (dup) {
-      skipped++;
-      saved.push(dup);
-      continue;
-    }
-    saved.push(await prisma.activity.create({ data: { eventId: event.id, ...row } }));
-    created++;
-  }
+  const saved = await prisma.$transaction(
+    async (tx) => {
+      await lockEvent(tx, event.id);
+      const out = [];
+      for (const row of rows) {
+        // Same name, time and place already there: a retry, not a new act.
+        const dup = await tx.activity.findFirst({
+          where: { eventId: event.id, name: row.name, startTime: row.startTime, poiId: row.poiId },
+        });
+        if (dup) {
+          skipped++;
+          out.push(dup);
+          continue;
+        }
+        out.push(await tx.activity.create({ data: { eventId: event.id, ...row } }));
+        created++;
+      }
+      return out;
+    },
+    { timeout: TX_TIMEOUT_MS },
+  );
 
   revalidateEvent(event.team.slug, event);
   return {

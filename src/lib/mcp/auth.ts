@@ -31,7 +31,10 @@ export async function verifyMcpToken(origin: string, bearer?: string): Promise<A
   if (!token || token.revokedAt) return undefined;
 
   if (!token.lastUsedAt || Date.now() - token.lastUsedAt.getTime() > LAST_USED_RESOLUTION_MS) {
-    await prisma.mcpToken.update({ where: { id: token.id }, data: { lastUsedAt: new Date() } });
+    // Best effort: a failed bookkeeping write must not turn into a 401.
+    await prisma.mcpToken
+      .update({ where: { id: token.id }, data: { lastUsedAt: new Date() } })
+      .catch((error) => console.error("Could not record MCP token use:", error));
   }
 
   const context: McpContext = { teamId: token.teamId, tokenId: token.id, origin };
