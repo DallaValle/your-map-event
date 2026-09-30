@@ -112,9 +112,8 @@ test("live map: search finds points by name and flies to the match", async ({ pa
   test.skip(testInfo.project.name !== "desktop", "run once");
   await openLiveMap(page);
 
-  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
   const search = page.getByRole("searchbox", { name: "Search points" });
-  await expect(search).toBeFocused();
   const results = page.locator("ul li button");
 
   // Case insensitive, matches anywhere in the name.

@@ -83,8 +83,8 @@ function AttendeeMapBehavior({ onView }: { onView: (view: MapView) => void }) {
 
 /**
  * Attendee screen: a full-bleed rotatable map framed by a top navigation bar
- * (event logo + name) and a bottom navigation bar (points list, search,
- * locate, recenter). The points list expands into a sheet above the bottom
+ * (event logo + name) and a bottom navigation bar (points list, locate,
+ * recenter). The points list expands into a sheet above the bottom
  * bar and can be filtered by name; selecting a point flies the map there and
  * opens its popup. Event borders
  * are a hard limit, not a frozen camera: pan and zoom stay inside them.
@@ -138,7 +138,6 @@ export default function PublicMap({
   const [listOpen, setListOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const [focusSearch, setFocusSearch] = useState(false);
   const [geo, setGeo] = useState<GeoState>({ status: "idle" });
   const [offMapNotice, setOffMapNotice] = useState(false);
   const [view, setView] = useState<MapView>({
@@ -158,21 +157,10 @@ export default function PublicMap({
   const matches = needle ? pois.filter((poi) => normalize(poi.title).includes(needle)) : pois;
 
   useEffect(() => {
-    if (!listOpen || !focusSearch) return;
-    searchRef.current?.focus();
-    setFocusSearch(false);
-  }, [listOpen, focusSearch]);
-
-  useEffect(() => {
     if (!offMapNotice) return;
     const t = window.setTimeout(() => setOffMapNotice(false), 5000);
     return () => window.clearTimeout(t);
   }, [offMapNotice]);
-
-  function openList(withSearch: boolean) {
-    setListOpen(true);
-    setFocusSearch(withSearch);
-  }
 
   function closeList() {
     setListOpen(false);
@@ -381,21 +369,12 @@ export default function PublicMap({
         <div className="flex items-stretch">
           <button
             type="button"
-            onClick={() => (listOpen ? closeList() : openList(false))}
+            onClick={() => (listOpen ? closeList() : setListOpen(true))}
             aria-expanded={listOpen}
             className={`${navButton} ${listOpen ? "text-brand" : ""}`}
           >
             <span className="text-xl" aria-hidden>📍</span>
             Points ({pois.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => openList(true)}
-            disabled={pois.length === 0}
-            className={navButton}
-          >
-            <span className="text-xl" aria-hidden>🔍</span>
-            Search
           </button>
           <button
             type="button"
