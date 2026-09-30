@@ -18,6 +18,7 @@ import type { ActionState } from "./types";
 
 const eventInfoSchema = z.object({
   name: z.string().trim().min(2, "Event name must be at least 2 characters").max(80),
+  subtitle: z.string().trim().max(80).optional(),
   description: z.string().trim().max(500).optional(),
   logoUrl: z.union([z.url(), z.literal("")]).nullish(),
 });
@@ -91,7 +92,7 @@ export async function createMapAction(
 }
 
 /**
- * Basic event info (name, logo, public address, description) — edited on the
+ * Basic event info (name, subtitle, logo, public address, description) — edited on the
  * dashboard's Event page, not in the map editor.
  */
 export async function updateEventInfoAction(
@@ -105,6 +106,7 @@ export async function updateEventInfoAction(
 
   const parsed = eventInfoSchema.safeParse({
     name: formData.get("name"),
+    subtitle: formData.get("subtitle") || undefined,
     description: formData.get("description") || undefined,
     logoUrl: formData.get("logoUrl"),
   });
@@ -140,11 +142,12 @@ export async function updateEventInfoAction(
     return { ok: false, error: "Event end must be after start" };
   }
 
-  const { name, description, logoUrl } = parsed.data;
+  const { name, subtitle, description, logoUrl } = parsed.data;
   await prisma.event.update({
     where: { id: eventId },
     data: {
       name,
+      subtitle: subtitle || null,
       description: description ?? null,
       logoUrl: logoUrl || null,
       slug,

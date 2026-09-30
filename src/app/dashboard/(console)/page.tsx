@@ -140,6 +140,7 @@ export default async function EventPage() {
               event={{
                 id: event.id,
                 name: event.name,
+                subtitle: event.subtitle,
                 slug: event.slug,
                 description: event.description,
                 logoUrl: event.logoUrl,
@@ -147,6 +148,7 @@ export default async function EventPage() {
                 endTime: event.endTime?.toISOString() ?? null,
               }}
               teamSlug={team.slug}
+              teamName={team.name}
               uploadsEnabled={!!process.env.UPLOADTHING_TOKEN}
             />
           </section>

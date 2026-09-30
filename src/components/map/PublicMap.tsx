@@ -92,6 +92,7 @@ export default function PublicMap({
   maxBounds,
   team,
   eventName,
+  eventSubtitle,
   eventLogoUrl,
   chromeInsets,
   banner,
@@ -107,6 +108,8 @@ export default function PublicMap({
   team: { name: string };
   /** Shown in the top bar alongside the event logo. */
   eventName: string;
+  /** Line under the event name; falls back to the team name. */
+  eventSubtitle?: string | null;
   /** Event branding in the top bar (falls back to a pin if missing). */
   eventLogoUrl?: string | null;
   /**
@@ -195,7 +198,7 @@ export default function PublicMap({
           )}
           <div className="min-w-0">
             <p className="truncate font-semibold leading-tight">{eventName}</p>
-            <p className="truncate text-[11px] leading-tight opacity-60">{team.name}</p>
+            <p className="truncate text-[11px] leading-tight opacity-60">{eventSubtitle || team.name}</p>
           </div>
         </div>
       </div>
