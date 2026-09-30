@@ -26,13 +26,13 @@ function ParamsTable({ params }: { params: ToolParam[] }) {
             <th className="hidden py-1.5 font-medium sm:table-cell">Description</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-black/5 dark:divide-white/10">
+        <tbody className="divide-y divide-line">
           {params.map((p) => (
             <tr key={p.name} className="align-top">
               <td className="py-1.5 pr-3 font-mono sm:whitespace-nowrap">
                 {p.name}
                 {p.required && (
-                  <span className="ml-0.5 text-red-600 dark:text-red-400" title="Required" aria-label="required">
+                  <span className="ml-0.5 text-danger" title="Required" aria-label="required">
                     *
                   </span>
                 )}
@@ -57,8 +57,8 @@ export function ToolList({ tools, prompts }: { tools: ToolDoc[]; prompts: Prompt
   return (
     <div className="flex flex-col gap-4">
       {prompts.map((prompt) => (
-        <div key={prompt.name} className="rounded-2xl border-2 border-teal-700/30 bg-teal-700/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-400">Prompt</p>
+        <div key={prompt.name} className="rounded-2xl border-2 border-brand/30 bg-brand-soft p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand">Prompt</p>
           <h3 className="mt-1 font-semibold">
             {prompt.title} <code className="ml-1 text-xs font-normal opacity-60">{prompt.name}</code>
           </h3>
@@ -66,7 +66,7 @@ export function ToolList({ tools, prompts }: { tools: ToolDoc[]; prompts: Prompt
         </div>
       ))}
 
-      <ul aria-label="MCP tools" className="divide-y divide-black/10 rounded-2xl border border-black/10 dark:divide-white/15 dark:border-white/15">
+      <ul aria-label="MCP tools" className="divide-y divide-line rounded-2xl border border-line">
         {tools.map((tool) => (
           <li key={tool.name}>
             <details className="group px-4 py-3" data-tool={tool.name}>
@@ -79,7 +79,7 @@ export function ToolList({ tools, prompts }: { tools: ToolDoc[]; prompts: Prompt
                   <p className="mt-0.5 text-sm opacity-70">{tool.description}</p>
                 </div>
                 <span className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-medium dark:bg-white/10">
+                  <span className="rounded-full bg-surface px-2.5 py-0.5 text-xs font-medium">
                     {tool.readOnly ? "Read" : "Write"}
                   </span>
                   <span aria-hidden className="text-xs opacity-50 transition-transform group-open:rotate-90">
