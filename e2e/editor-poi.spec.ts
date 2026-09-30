@@ -155,18 +155,16 @@ test.describe("editor: points", () => {
     await page.waitForTimeout(1200);
 
     // Click a point near the edge - the classic auto-pan-to-the-right trigger.
-    await page.locator(".leaflet-marker-icon").filter({ hasText: "🍺" }).first().click();
-    const popup = page.locator(".leaflet-popup");
-    await expect(popup).toBeVisible();
-    await expect(popup).toContainText("Local craft beer");
+    await page.locator('.leaflet-marker-icon[title="Beer Garden"]').click();
+    const sheet = page.getByRole("region", { name: "Point details" });
+    await expect(sheet).toContainText("Local craft beer");
 
-    // Borders are a hard limit: the bubble slides instead of the map panning.
+    // Details open in a sheet inside the map, never in a bubble past the edge.
     const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
-    const popupBox = (await popup.boundingBox())!;
-    expect(popupBox.x).toBeGreaterThanOrEqual(mapBox.x - 1);
-    expect(popupBox.y).toBeGreaterThanOrEqual(mapBox.y - 1);
-    expect(popupBox.x + popupBox.width).toBeLessThanOrEqual(mapBox.x + mapBox.width + 1);
-    expect(popupBox.y + popupBox.height).toBeLessThanOrEqual(mapBox.y + mapBox.height + 1);
+    const sheetBox = (await sheet.boundingBox())!;
+    expect(sheetBox.x).toBeGreaterThanOrEqual(mapBox.x - 1);
+    expect(sheetBox.x + sheetBox.width).toBeLessThanOrEqual(mapBox.x + mapBox.width + 1);
+    expect(sheetBox.y + sheetBox.height).toBeLessThanOrEqual(mapBox.y + mapBox.height + 1);
 
     // Restore the demo to unlocked.
     await page.goto("/dashboard");

@@ -5,8 +5,6 @@ import "leaflet/dist/leaflet.css";
 import "./leaflet-attribution.css";
 // Patches L.Map with rotation support (bearing, two-finger rotate).
 import "leaflet-rotate";
-import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
-import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import "./leaflet-icon-fix";
 import type { LatLng } from "./types";
 import {
@@ -22,6 +20,9 @@ import {
  * Tile usage: each layout declares its own host + attribution. OSM still uses
  * the single canonical host (the {s} subdomains are deprecated there).
  */
+/** Past the tile server's last level Leaflet upscales tiles, so stands a few metres apart can separate. */
+export const MAP_MAX_ZOOM = 21;
+
 export interface MapBounds {
   swLat: number;
   swLng: number;
@@ -58,6 +59,7 @@ export function LeafletMap({
     <MapContainer
       center={[center.lat, center.lng]}
       zoom={zoom}
+      maxZoom={MAP_MAX_ZOOM}
       bearing={rotatable ? bearing : 0}
       className={className}
       // Mobile-first: pinch/drag are primary; the +/- control just wastes
@@ -85,7 +87,8 @@ export function LeafletMap({
         key={basemap.id}
         url={basemap.url}
         attribution={basemap.attribution}
-        maxZoom={basemap.maxZoom}
+        maxNativeZoom={basemap.maxZoom}
+        maxZoom={MAP_MAX_ZOOM}
       />
       {children}
     </MapContainer>

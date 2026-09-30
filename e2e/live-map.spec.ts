@@ -52,8 +52,7 @@ const WIDE_BORDERS = {
 
 /**
  * Attendee (live) map chrome. The map must sit BETWEEN the top and bottom nav
- * bars — never under them — so points near an edge stay clickable and their
- * popups stay readable. The header shows the event's icon and name.
+ * bars, never under them, so points near an edge stay clickable. The header shows the event's icon and name.
  */
 test("live map: header shows the event, map sits between the nav bars", async ({ page }) => {
   await openLiveMap(page);
@@ -76,39 +75,34 @@ test("live map: header shows the event, map sits between the nav bars", async ({
   expect(mapBox.y + mapBox.height).toBeLessThanOrEqual(pointsBox.y + 4);
 });
 
-test("live map: clicking a point opens a readable popup clear of the header", async ({ page }, testInfo) => {
-  // Popup geometry is viewport-independent; run once. (On mobile the list→fly→
-  // popup path is timing-flaky due to marker clustering.)
+test("live map: picking a point from the list opens its details above the bottom bar", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "run once");
   await openLiveMap(page);
-  await page.waitForTimeout(1000);
 
-  // Open a point from the list (deterministic, unlike hunting markers).
   await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
   await page.getByRole("button", { name: /Beer Garden/ }).click();
 
-  const popup = page.locator(".leaflet-popup");
-  await expect(popup).toBeVisible();
-  await expect(popup).toContainText("Local craft beer");
+  const sheet = page.getByRole("region", { name: "Point details" });
+  await expect(sheet).toContainText("Local craft beer");
+  await expect(sheet.getByRole("heading", { name: "Beer Garden" })).toBeVisible();
 
+  // The sheet sits inside the map, and the chosen point is nudged above it.
   const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
-  const popupBox = (await popup.boundingBox())!;
-  expect(popupBox.y).toBeGreaterThanOrEqual(mapBox.y);
-  expect(popupBox.y + popupBox.height).toBeLessThanOrEqual(mapBox.y + mapBox.height + 1);
-  expect(popupBox.x).toBeGreaterThanOrEqual(mapBox.x);
-  expect(popupBox.x + popupBox.width).toBeLessThanOrEqual(mapBox.x + mapBox.width + 1);
+  const sheetBox = (await sheet.boundingBox())!;
+  expect(sheetBox.y + sheetBox.height).toBeLessThanOrEqual(mapBox.y + mapBox.height + 1);
+  const marker = page.locator('.leaflet-marker-icon[title="Beer Garden"]');
+  await expect(marker.locator('[data-selected="true"]')).toBeVisible();
+  await expect.poll(async () => {
+    const box = (await marker.boundingBox())!;
+    return box.y + box.height;
+  }).toBeLessThanOrEqual(sheetBox.y);
 
-  // The popup tip points at the marker: its centre lines up with the marker's.
-  const marker = page.locator(".leaflet-marker-icon").filter({ hasText: "🍺" }).first();
-  const markerBox = (await marker.boundingBox())!;
-  const tipBox = (await popup.locator(".leaflet-popup-tip-container").boundingBox())!;
-  const markerCx = markerBox.x + markerBox.width / 2;
-  const tipCx = tipBox.x + tipBox.width / 2;
-  expect(Math.abs(tipCx - markerCx)).toBeLessThanOrEqual(8);
+  await page.getByRole("button", { name: "Close" }).click();
+  await expect(sheet).toBeHidden();
+  await expect(marker.locator('[data-selected="true"]')).toHaveCount(0);
 });
 
 test("live map: search finds points by name and flies to the match", async ({ page }, testInfo) => {
-  // Same list to fly to popup path as above, which is timing-flaky on mobile.
   test.skip(testInfo.project.name !== "desktop", "run once");
   await openLiveMap(page);
 
@@ -137,7 +131,7 @@ test("live map: search finds points by name and flies to the match", async ({ pa
   await expect(results).toHaveCount(1);
   await search.press("Enter");
   await expect(search).toBeHidden();
-  await expect(page.locator(".leaflet-popup")).toContainText("Local craft beer");
+  await expect(page.getByRole("region", { name: "Point details" })).toContainText("Local craft beer");
 
   // Reopening starts from the full list.
   await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
@@ -145,92 +139,103 @@ test("live map: search finds points by name and flies to the match", async ({ pa
   await expect(results).toHaveCount(10);
 });
 
-test("live map: an open popup does not blink while the map pans or the location updates", async ({ page, context }, testInfo) => {
+test("live map: open details survive panning and location updates", async ({ page, context }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "run once");
-  // Every pan and GPS fix re-renders the map; the open bubble must not be re-added or moved.
+  // Every pan and GPS fix re-renders the map; the selection must not reset.
   await context.grantPermissions(["geolocation"]);
   await context.setGeolocation({ latitude: HOME.lat, longitude: HOME.lng });
   await openLiveMap(page);
   await expect(page.getByRole("button", { name: "Locate" })).toBeEnabled();
 
-  const marker = page.locator(".leaflet-marker-icon").filter({ hasText: "🍺" }).first();
+  const marker = page.locator('.leaflet-marker-icon[title="Beer Garden"]');
   await marker.click();
-  const popup = page.locator(".leaflet-popup");
-  await expect(popup).toContainText("Local craft beer");
-  await page.waitForTimeout(600);
-
-  const offset = async () => {
-    const [p, m] = [(await popup.boundingBox())!, (await marker.boundingBox())!];
-    return { x: p.x - m.x, y: p.y - m.y };
-  };
-  const before = await offset();
-  await page.evaluate(() => {
-    const w = window as unknown as { popupReadds: number; popupMinOpacity: number };
-    w.popupReadds = 0;
-    w.popupMinOpacity = 1;
-    new MutationObserver((records) => {
-      w.popupReadds += records.filter((r) => r.removedNodes.length > 0).length;
-    }).observe(document.querySelector(".leaflet-popup-pane")!, { childList: true });
-    const tick = () => {
-      const el = document.querySelector(".leaflet-popup");
-      const opacity = el ? Number(getComputedStyle(el).opacity) : 0;
-      w.popupMinOpacity = Math.min(w.popupMinOpacity, opacity);
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
+  const sheet = page.getByRole("region", { name: "Point details" });
+  await expect(sheet).toContainText("Local craft beer");
 
   const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
-  await page.mouse.move(mapBox.x + mapBox.width - 120, mapBox.y + mapBox.height - 120);
+  await page.mouse.move(mapBox.x + 120, mapBox.y + 120);
   await page.mouse.down();
-  await page.mouse.move(mapBox.x + mapBox.width - 170, mapBox.y + mapBox.height - 160, { steps: 8 });
+  await page.mouse.move(mapBox.x + 170, mapBox.y + 160, { steps: 8 });
   await page.mouse.up();
   for (let i = 1; i <= 3; i += 1) {
     await context.setGeolocation({ latitude: HOME.lat + i * 0.00005, longitude: HOME.lng });
     await page.waitForTimeout(250);
   }
-  await page.waitForTimeout(500);
 
-  const seen = await page.evaluate(() => {
-    const w = window as unknown as { popupReadds: number; popupMinOpacity: number };
-    return { readds: w.popupReadds, minOpacity: w.popupMinOpacity };
-  });
-  expect(seen).toEqual({ readds: 0, minOpacity: 1 });
-  const after = await offset();
-  expect(Math.abs(after.x - before.x) + Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+  await expect(sheet).toContainText("Local craft beer");
+  await expect(marker.locator('[data-selected="true"]')).toBeVisible();
 });
 
-test("live map: popup of a point near the edge stays inside the map", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "run once");
-  // Borders disable auto-pan, so the bubble must be shifted, not the camera.
-  const { id, prev } = await patchLakeside({ ...WIDE_BORDERS });
+test("live map: a tap on a crowded row lists every stand under the finger", async ({ page }) => {
+  // Three stands 4.5 m apart, like a street of wine stalls: pins could never separate.
+  const { id: eventId, prev } = await patchLakeside({
+    boundsSWLat: null,
+    boundsSWLng: null,
+    boundsNELat: null,
+    boundsNELng: null,
+    zoom: 17,
+  });
+  const base = { lat: HOME.lat + 0.0005, lng: HOME.lng - 0.0005 };
+  const stands = await prisma.$transaction(
+    ["3. Charlie Wines", "1. Alpha Wines", "2. Bravo Wines"].map((title) =>
+      prisma.pointOfInterest.create({
+        data: {
+          mapId: eventId,
+          title,
+          icon: "🍷",
+          description: "Banco vini.",
+          lat: base.lat - Number(title[0]) * 0.00004,
+          lng: base.lng,
+        },
+      }),
+    ),
+  );
   try {
-    await openLiveMap(page, `${LIVE}?e2e=edge-popup`);
-    await page.waitForTimeout(800);
+    await openLiveMap(page, `${LIVE}?e2e=crowded`);
+    const bravo = page.locator('.leaflet-marker-icon[title="2 Bravo Wines"]');
+    await expect(bravo).toBeVisible();
 
-    const map = page.locator(".leaflet-container");
-    const marker = page.locator(".leaflet-marker-icon").filter({ hasText: "🍺" }).first();
-    await expect(marker).toBeVisible();
+    // At the default zoom they are plain dots with no code.
+    expect((await bravo.boundingBox())!.width).toBeLessThanOrEqual(12);
+    await expect(bravo).toHaveText("");
 
-    await map.click({ position: { x: 200, y: 200 } });
-    for (let i = 0; i < 10; i += 1) {
-      await page.keyboard.press("ArrowDown");
+    await bravo.click();
+    const chooser = page.getByRole("region", { name: "Points here" });
+    await expect(chooser.getByRole("heading")).toHaveText("3 points here");
+    await expect(chooser.getByRole("button", { name: /Wines/ })).toHaveText([
+      /Alpha Wines/,
+      /Bravo Wines/,
+      /Charlie Wines/,
+    ]);
+
+    await chooser.getByRole("button", { name: /Bravo Wines/ }).click();
+    const sheet = page.getByRole("region", { name: "Point details" });
+    await expect(sheet.getByRole("heading")).toHaveText("Bravo Wines");
+    await expect(sheet.getByRole("button", { name: "Previous: 1. Alpha Wines" })).toBeVisible();
+    await sheet.getByRole("button", { name: "Next: 3. Charlie Wines" }).click();
+    await expect(sheet.getByRole("heading")).toHaveText("Charlie Wines");
+    await expect(page.locator('.leaflet-marker-icon[title="3 Charlie Wines"] [data-selected="true"]')).toBeVisible();
+
+    // Zooming past the tile server's last level separates the row and shows codes.
+    await page.getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+    await page.locator("ul li button", { hasText: "Alpha Wines" }).click();
+    await expect.poll(async () => (await readView(page)).zoom).toBe(19);
+    // Keyboard zoom keeps the row centred, unlike a double-click in a corner.
+    await page.locator(".leaflet-container").focus();
+    for (let zoom = 20; zoom <= 21; zoom += 1) {
+      await page.keyboard.press("Equal");
+      await expect.poll(async () => (await readView(page)).zoom).toBe(zoom);
     }
+    await page.keyboard.press("Equal");
     await page.waitForTimeout(400);
-
-    await marker.dispatchEvent("click");
-    const popup = page.locator(".leaflet-popup");
-    await expect(popup).toBeVisible();
-    await expect(popup).toContainText("Local craft beer");
-
-    const popupBox = (await popup.boundingBox())!;
-    const mapAfter = (await map.boundingBox())!;
-    expect(popupBox.x).toBeGreaterThanOrEqual(mapAfter.x - 1);
-    expect(popupBox.y).toBeGreaterThanOrEqual(mapAfter.y - 1);
-    expect(popupBox.x + popupBox.width).toBeLessThanOrEqual(mapAfter.x + mapAfter.width + 1);
-    expect(popupBox.y + popupBox.height).toBeLessThanOrEqual(mapAfter.y + mapAfter.height + 1);
+    expect((await readView(page)).zoom).toBe(21);
+    await expect(bravo).toHaveText("2");
+    await bravo.click();
+    await expect(sheet.getByRole("heading")).toHaveText("Bravo Wines");
   } finally {
-    await prisma.event.update({ where: { id }, data: prev });
+    await prisma.pointOfInterest.deleteMany({ where: { id: { in: stands.map((s) => s.id) } } });
+    await prisma.event.update({ where: { id: eventId }, data: prev });
   }
 });
 

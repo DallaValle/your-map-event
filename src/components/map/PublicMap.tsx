@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type L from "leaflet";
 import { useMap } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { PoiMarkers } from "./PoiMarkers";
+import { PoiBadge, PoiChooser, PoiDetails } from "./PoiSheet";
+import { walkOrder } from "./poi-badge";
 import { GeolocateLayer, isInsideBounds, type GeoState } from "./GeolocateLayer";
 import { CompassControl } from "./CompassControl";
 import type { LatLng, PoiData } from "./types";
@@ -58,7 +60,8 @@ function AttendeeMapBehavior({ onView }: { onView: (view: MapView) => void }) {
       if (!bounds) return;
       const size = map.getSize();
       if (!size.x || !size.y) return;
-      const min = map.getBoundsZoom(bounds, true);
+      // Upscaled zoom levels are for inspecting a crowded row, never the opening frame.
+      const min = Math.min(map.getBoundsZoom(bounds, true), map.getMaxZoom() - 2);
       if (!Number.isFinite(min)) return;
       map.setMinZoom(min);
       if (map.getZoom() < min) map.setZoom(min);
@@ -86,7 +89,7 @@ function AttendeeMapBehavior({ onView }: { onView: (view: MapView) => void }) {
  * (event logo + name) and a bottom navigation bar (points list, locate,
  * recenter). The points list expands into a sheet above the bottom
  * bar and can be filtered by name; selecting a point flies the map there and
- * opens its popup. Event borders
+ * opens its details sheet. Event borders
  * are a hard limit, not a frozen camera: pan and zoom stay inside them.
  */
 export default function PublicMap({
@@ -130,11 +133,11 @@ export default function PublicMap({
 }) {
   const topInset = chromeInsets?.top ?? 0;
   const bottomInset = chromeInsets?.bottom ?? 0;
-  // Borders are the event limit. Popups must not auto-pan past them.
-  const locked = !!maxBounds;
-
   const [map, setMap] = useState<L.Map | null>(null);
-  const markerRefs = useRef(new Map<string, L.Marker>());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [choices, setChoices] = useState<PoiData[] | null>(null);
+  const sheetRef = useRef<HTMLElement>(null);
+  const flyingRef = useRef(false);
   const [listOpen, setListOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -148,13 +151,42 @@ export default function PublicMap({
   });
   const onGeoChange = useCallback((state: GeoState) => setGeo(state), []);
   const onView = useCallback((next: MapView) => setView(next), []);
-  const registerMarker = useCallback((id: string, marker: L.Marker | null) => {
-    if (marker) markerRefs.current.set(id, marker);
-    else markerRefs.current.delete(id);
+  const ordered = useMemo(() => walkOrder(pois), [pois]);
+  const selected = selectedId ? pois.find((poi) => poi.id === selectedId) ?? null : null;
+  const selectedIndex = selected ? ordered.indexOf(selected) : -1;
+
+  const onPick = useCallback((hits: PoiData[]) => {
+    setChoices(hits.length > 1 ? walkOrder(hits) : null);
+    setSelectedId(hits.length === 1 ? hits[0].id : null);
   }, []);
+  const closeSheet = useCallback(() => onPick([]), [onPick]);
 
   const needle = normalize(query);
   const matches = needle ? pois.filter((poi) => normalize(poi.title).includes(needle)) : pois;
+
+  // The sheet covers the bottom of the map: nudge the chosen point above it.
+  const revealAboveSheet = useCallback(
+    (poi: PoiData) => {
+      if (!map) return;
+      const sheet = sheetRef.current?.offsetHeight ?? 0;
+      map.panInside([poi.lat, poi.lng], {
+        paddingTopLeft: [32, 32],
+        paddingBottomRight: [32, sheet + 32],
+      });
+    },
+    [map],
+  );
+
+  useEffect(() => {
+    if (selected && !flyingRef.current) revealAboveSheet(selected);
+  }, [selected, revealAboveSheet]);
+
+  useEffect(() => {
+    if (!selected && !choices) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeSheet();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, choices, closeSheet]);
 
   useEffect(() => {
     if (!offMapNotice) return;
@@ -169,11 +201,15 @@ export default function PublicMap({
 
   function goToPoi(poi: PoiData) {
     closeList();
+    onPick([poi]);
     if (!map) return;
-    map.flyTo([poi.lat, poi.lng], Math.max(map.getZoom(), 18));
-    // The marker may still be inside a cluster mid-flight; opening after the
-    // fly-in (~0.8s) is reliable at popup zoom levels.
-    window.setTimeout(() => markerRefs.current.get(poi.id)?.openPopup(), 900);
+    // Zoom 19 is where a street of stands 4 m apart shows readable codes.
+    flyingRef.current = true;
+    map.once("moveend", () => {
+      flyingRef.current = false;
+      revealAboveSheet(poi);
+    });
+    map.flyTo([poi.lat, poi.lng], Math.max(map.getZoom(), 19));
   }
 
   function locateMe() {
@@ -248,11 +284,7 @@ export default function PublicMap({
         >
           <MapRefCapture onMap={setMap} />
           <AttendeeMapBehavior onView={onView} />
-          <PoiMarkers
-            pois={pois}
-            locked={locked}
-            registerMarker={registerMarker}
-          />
+          <PoiMarkers pois={pois} selectedId={selectedId} onPick={onPick} />
           <GeolocateLayer onChange={onGeoChange} maxBounds={maxBounds} />
           <CompassControl className="m-3" />
         </LeafletMap>
@@ -265,6 +297,19 @@ export default function PublicMap({
               You are not on the map
             </p>
           </div>
+        )}
+        {selected && (
+          <PoiDetails
+            ref={sheetRef}
+            poi={selected}
+            prev={ordered[selectedIndex - 1]}
+            next={ordered[selectedIndex + 1]}
+            onPick={(poi) => onPick([poi])}
+            onClose={closeSheet}
+          />
+        )}
+        {choices && (
+          <PoiChooser ref={sheetRef} pois={choices} onPick={(poi) => onPick([poi])} onClose={closeSheet} />
         )}
       </div>
 
@@ -338,7 +383,7 @@ export default function PublicMap({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                     ) : (
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft">{poi.icon ?? "📌"}</span>
+                      <PoiBadge poi={poi} />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{poi.title}</p>

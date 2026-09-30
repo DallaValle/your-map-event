@@ -75,8 +75,8 @@ exactly as attendees do - but can't change anything. Only Admins edit.
 
 1. Open `https://your-domain/your-team-slug` on their phone - during the
    event typically via a QR code on posters/badges.
-2. See the full-screen event map with all points of interest (clustered when
-   dense), the team's branding, and, after accepting the browser prompt,
+2. See the full-screen event map with all points of interest (numbered badges
+   like the printed flyer), the team's branding, and, after accepting the browser prompt,
    their **own live position** with an accuracy circle.
 3. Tap the always-visible **points list** to browse everything; picking a
    point flies the map there and opens its details (photo + description).
@@ -128,7 +128,7 @@ attendee volume or add-ons like notifications and social campaigns.
 | Styling | Tailwind CSS v4 |
 | Auth + teams | [Better Auth](https://better-auth.com) with the organization plugin (roles: Admin = `owner`/`admin`, Viewer = `member`) |
 | Database | PostgreSQL (Docker locally) + Prisma 6 |
-| Maps | Leaflet 1.9 + react-leaflet 5 + react-leaflet-cluster, OpenStreetMap tiles |
+| Maps | Leaflet 1.9 + react-leaflet 5, OpenStreetMap tiles |
 | Uploads | UploadThing v7 (optional — falls back to URL inputs without a token) |
 | PWA | Serwist 9 (service worker, offline fallback, opportunistic tile caching) |
 
@@ -222,10 +222,9 @@ which verifies session → team → membership → role on the server.
    re-points them at bundler-resolved PNGs.
 3. **Tiles:** the canonical `tile.openstreetmap.org` host (the `{s}.`
    subdomains are deprecated) with mandatory attribution.
-4. **Popups use plain `<img>`** — `next/image` fights Leaflet's popup
-   size measurement.
-5. **Clustering** via `react-leaflet-cluster` with `chunkedLoading` to keep
-   the main thread responsive with hundreds of markers.
+4. **No clustering.** Points stay on their exact coordinate as flyer style
+   badges that grow with zoom, and a tap on a crowded spot lists every point
+   under the finger. Tiles upscale past their last level up to zoom 21.
 
 ## PWA & offline
 
