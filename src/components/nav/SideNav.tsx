@@ -150,7 +150,7 @@ function NavIcon({ icon }: { icon: string }) {
     <span className="relative text-lg" aria-hidden>
       <span className={pending ? "invisible" : undefined}>{icon}</span>
       {pending ? (
-        <Spinner className="absolute inset-0 m-auto size-[1.125rem] text-teal-700 dark:text-teal-400" />
+        <Spinner className="absolute inset-0 m-auto size-[1.125rem] text-brand" />
       ) : null}
     </span>
   );
