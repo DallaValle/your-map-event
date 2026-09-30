@@ -66,6 +66,7 @@ export default async function PublicMapPage({ params }: PageProps) {
         layout={map.mapLayout}
         pois={map.pois}
         eventName={map.name}
+        eventSubtitle={map.subtitle}
         eventLogoUrl={map.logoUrl}
         team={{ name: team.name }}
         maxBounds={

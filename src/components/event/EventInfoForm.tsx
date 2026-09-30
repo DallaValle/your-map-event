@@ -11,17 +11,19 @@ const inputClass =
   "rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5";
 
 /**
- * Basic event info (everything NOT related to the map): name, logo, public
+ * Basic event info (everything NOT related to the map): name, subtitle, logo, public
  * address and description. Map framing, borders and points live in the editor.
  */
 export function EventInfoForm({
   event,
   teamSlug,
+  teamName,
   uploadsEnabled,
 }: {
   event: {
     id: string;
     name: string;
+    subtitle: string | null;
     slug: string;
     description: string | null;
     logoUrl: string | null;
@@ -29,6 +31,7 @@ export function EventInfoForm({
     endTime: string | null;
   };
   teamSlug: string;
+  teamName: string;
   uploadsEnabled: boolean;
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
@@ -48,6 +51,20 @@ export function EventInfoForm({
           maxLength={80}
           className={inputClass}
         />
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm font-medium">
+        Subtitle
+        <input
+          name="subtitle"
+          defaultValue={event.subtitle ?? ""}
+          placeholder={teamName}
+          maxLength={80}
+          className={inputClass}
+        />
+        <span className="text-xs opacity-60">
+          Shown under the event name in the attendee map top bar. Empty uses the team name.
+        </span>
       </label>
 
       <ImageField

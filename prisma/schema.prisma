@@ -46,6 +46,8 @@ model Event {
   description String?
   // Shown in the attendee map top bar (event branding, not the team logo).
   logoUrl     String?
+  // Top bar line under the event name; the team name when empty.
+  subtitle    String?
   // Operating window for the schedule timeline. Stored as venue wall clocks
   // anchored to UTC (same convention as Activity times).
   startTime   DateTime?
