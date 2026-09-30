@@ -14,62 +14,15 @@ It overrides the global "do not branch / commit / push unless asked" rule for th
 
 If you find uncommitted work on `main`, move it onto that milestone's branch before touching anything else.
 
-## Herd (Herdr)
+## Herdr
 
-Sergio watches work in [Herdr](https://herdr.dev/docs/agent-automation/).
-Do not use Grok `spawn_subagent` for parallel implementation.
-Those children hide under this chat and share one checkout.
+Parallel work follows the global Herdr rules.
+Repo specifics:
 
-Use Herdr layout, then start a Grok process in each pane.
-
-Docs: https://herdr.dev/docs/agent-automation/
-
-### Layout
-
-This repo is Herdr workspace `your-map-event` (`w4` today).
-This coordinator pane stays on the main checkout.
-
-One milestone = one Herdr **tab** = one git **worktree** = one named agent = one branch = one PR.
-
-1. Create a worktree off `origin/main` so agents never share a dirty tree.
-2. Create a tab in this workspace, cwd set to that worktree, `--no-focus` so you do not steal Sergio's view.
-3. Start Grok in that tab's root pane. Name the agent after the milestone.
-4. Prompt it. Do not `--wait` from the coordinator unless you are collecting a result.
-
-```bash
-git fetch origin main
-git worktree add -b m2-settings "$WT/m2-settings" origin/main
-
-created=$(herdr tab create --workspace w4 --cwd "$WT/m2-settings" --label m2-settings --no-focus)
-pane=$(printf '%s\n' "$created" | jq -r '.result.root_pane.pane_id')
-
-herdr agent start m2-settings --kind grok --pane "$pane"
-herdr agent prompt m2-settings "$(cat /tmp/m2-settings.prompt.md)"
-```
-
-Worktrees live under `/Users/sergiodallavalle/Documents/code/.worktrees/your-map-event/`.
-Agent names: `[a-z][a-z0-9_-]{0,31}` (`m0-map-core`, `m2-settings`, `m3-schedule-board`, `m4-notifications`, `m5-social`).
-
-`agent start` needs an empty shell pane. It never creates tabs.
-`tab create` returns `.result.tab.tab_id` and `.result.root_pane.pane_id`. Capture IDs. Do not guess them.
-
-### Isolation
-
-- Feature agents never edit the main checkout.
-- Map-core (`m0`) stays on the current workspace if that tree already has the uncommitted layout work. Do not start a second Grok on those same files.
-- Do not start a second agent on a milestone that is already in flight.
+- Workspace `your-map-event` (`w4`). The coordinator pane `w4:p1` stays on the main checkout.
+- Worktrees live under `/Users/sergiodallavalle/Documents/code/.worktrees/your-map-event/`, one per milestone.
+- Tab, agent, worktree and branch share the milestone name (`m2-settings`).
 - Do not run the UI agent in parallel with feature agents that still need the token system.
-- Shared files stay additive (`schema.prisma`, `SideNav`, public map).
-- Sergio reviews PRs. Agents do not merge.
-
-### Watch and talk
-
-- Click the tab, or `herdr tab focus <tab_id>` / `herdr agent focus m2-settings`.
-- Sidebar rolls up `working` / `blocked` / `done` / `idle`.
-- `herdr agent read m2-settings --source recent-unwrapped --lines 120`
-- `herdr agent wait m2-settings --until blocked --until done --timeout 120000`
-- `herdr agent prompt m2-settings "…"` to send more work.
-- Stop: `herdr agent send-keys m2-settings ctrl+c` then close the tab if needed. Do not kill Sergio's coordinator pane (`w4:p1`).
 
 ## Branches
 
