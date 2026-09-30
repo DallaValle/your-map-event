@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { setMapPublishedAction, updateMapViewAction } from "@/actions/maps";
 import { EditorMapCanvas } from "@/components/map/MapCanvas";
 import { GeocodeSearch } from "@/components/map/GeocodeSearch";
+import { PoiBadge, PoiChooser } from "@/components/map/PoiPanels";
+import { walkOrder } from "@/components/map/poi-badge";
 import type { MapFocus } from "@/components/map/EditorMapView";
 import type { MapBounds } from "@/components/map/LeafletMap";
 import type { LatLng, PoiData } from "@/components/map/types";
@@ -102,6 +104,8 @@ export function MapEditor({
   // --- POI editing state ----------------------------------------------------
   const [sheet, setSheet] = useState<PoiSheetMode | null>(null);
   const [sheetDraft, setSheetDraft] = useState<LatLng | null>(null);
+  // Several points under one tap: the admin picks which one to edit.
+  const [choices, setChoices] = useState<PoiData[] | null>(null);
   // "Placing" arms map taps to drop new points, and STAYS armed after each
   // one so several points can be added in a row — until "Done" disarms it.
   // Without it, taps only pan / select, so framing never creates stray points.
@@ -220,8 +224,13 @@ export function MapEditor({
   // no scrollIntoView here. (An earlier version scrolled on every placed
   // point, which read as "the map moved" even when the view was locked.)
   function openSheet(mode: PoiSheetMode, position: LatLng) {
+    setChoices(null);
     setSheet(mode);
     setSheetDraft(position);
+  }
+
+  function editPoi(poi: PoiData) {
+    openSheet({ type: "edit", poi }, { lat: poi.lat, lng: poi.lng });
   }
 
   function closeSheet() {
@@ -242,6 +251,7 @@ export function MapEditor({
   // new point when placement is armed. A bare tap (framing, borders) does
   // nothing, so nothing is created by accident.
   function handleMapClick(position: LatLng) {
+    setChoices(null);
     if (sheet) setSheetDraft(position);
     else if (placing) openSheet({ type: "create" }, position);
   }
@@ -352,13 +362,22 @@ export function MapEditor({
           bearing={map.bearing}
           layout={mapLayout}
           pois={pois}
-          draftPosition={sheetDraft}
+          // An untouched edit is already marked by its highlighted badge.
+          draftPosition={
+            sheet?.type === "edit" &&
+            sheetDraft?.lat === sheet.poi.lat &&
+            sheetDraft?.lng === sheet.poi.lng
+              ? null
+              : sheetDraft
+          }
           bounds={bounds}
           focus={focus}
           onMapClick={handleMapClick}
-          onPoiClick={(poi) =>
-            openSheet({ type: "edit", poi }, { lat: poi.lat, lng: poi.lng })
-          }
+          selectedPoiId={sheet?.type === "edit" ? sheet.poi.id : null}
+          onPoiPick={(hits) => {
+            if (hits.length === 1) editPoi(hits[0]);
+            else if (hits.length > 1) setChoices(walkOrder(hits));
+          }}
           onViewChange={setCenter}
           onZoomChange={(z) => setZoom(clampZoom(z))}
           onBearingChange={(b) => setBearing(((b % 360) + 360) % 360)}
@@ -375,7 +394,10 @@ export function MapEditor({
             </span>
           </>
         )}
-        {placing && !sheet && (
+        {choices && (
+          <PoiChooser pois={choices} onPick={editPoi} onClose={() => setChoices(null)} />
+        )}
+        {placing && !sheet && !choices && (
           <div className="pointer-events-none absolute inset-x-0 bottom-14 z-[500] mx-auto flex w-fit items-center gap-2 rounded-full bg-black/75 px-3 py-1.5 text-[11px] font-medium text-white">
             Tap the map to add points — one per tap
             <button
@@ -524,18 +546,14 @@ export function MapEditor({
                 <li key={poi.id}>
                   <button
                     type="button"
-                    onClick={() =>
-                      openSheet({ type: "edit", poi }, { lat: poi.lat, lng: poi.lng })
-                    }
+                    onClick={() => editPoi(poi)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-black/5 dark:active:bg-white/10"
                   >
                     {poi.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                     ) : (
-                      <span className="flex size-10 items-center justify-center rounded-lg bg-brand-soft">
-                        {poi.icon ?? "📌"}
-                      </span>
+                      <PoiBadge poi={poi} />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{poi.title}</p>

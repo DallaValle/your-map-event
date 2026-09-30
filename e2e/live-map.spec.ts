@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { prisma } from "../src/lib/prisma";
+import { addCrowdedStands } from "./helpers";
 
 const LIVE = "/demo-team/lakeside-festival-2026";
 const HOME = { lat: 47.3548, lng: 8.5361, zoom: 17 };
@@ -167,7 +168,6 @@ test("live map: open details survive panning and location updates", async ({ pag
 });
 
 test("live map: a tap on a crowded row lists every stand under the finger", async ({ page }) => {
-  // Three stands 4.5 m apart, like a street of wine stalls: pins could never separate.
   const { id: eventId, prev } = await patchLakeside({
     boundsSWLat: null,
     boundsSWLng: null,
@@ -175,21 +175,7 @@ test("live map: a tap on a crowded row lists every stand under the finger", asyn
     boundsNELng: null,
     zoom: 17,
   });
-  const base = { lat: HOME.lat + 0.0005, lng: HOME.lng - 0.0005 };
-  const stands = await prisma.$transaction(
-    ["3. Charlie Wines", "1. Alpha Wines", "2. Bravo Wines"].map((title) =>
-      prisma.pointOfInterest.create({
-        data: {
-          mapId: eventId,
-          title,
-          icon: "🍷",
-          description: "Banco vini.",
-          lat: base.lat - Number(title[0]) * 0.00004,
-          lng: base.lng,
-        },
-      }),
-    ),
-  );
+  const removeStands = await addCrowdedStands();
   try {
     await openLiveMap(page, `${LIVE}?e2e=crowded`);
     const bravo = page.locator('.leaflet-marker-icon[title="2 Bravo Wines"]');
@@ -234,7 +220,7 @@ test("live map: a tap on a crowded row lists every stand under the finger", asyn
     await bravo.click();
     await expect(sheet.getByRole("heading")).toHaveText("Bravo Wines");
   } finally {
-    await prisma.pointOfInterest.deleteMany({ where: { id: { in: stands.map((s) => s.id) } } });
+    await removeStands();
     await prisma.event.update({ where: { id: eventId }, data: prev });
   }
 });

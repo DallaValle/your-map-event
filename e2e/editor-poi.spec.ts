@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { openFirstMapEditor, signIn } from "./helpers";
+import { addCrowdedStands, openFirstMapEditor, signIn } from "./helpers";
 
 /** Open the Lakeside event's map editor (known points, deterministic). */
 async function openLakesideEditor(page: Page) {
@@ -137,6 +137,35 @@ test.describe("editor: points", () => {
     await expect(page.getByRole("dialog", { name: "Attendee preview" })).toHaveCount(0);
     await expect(page.locator(".leaflet-container")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Event location" })).toBeVisible();
+  });
+
+  test("a click on a crowded row asks which stand to edit", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "run once");
+    const removeStands = await addCrowdedStands();
+    try {
+      await signIn(page);
+      await openLakesideEditor(page);
+
+      await page.locator('.leaflet-marker-icon[title="2 Bravo Wines"]').click();
+      const chooser = page.getByRole("region", { name: "Points here" });
+      await expect(chooser.getByRole("heading")).toHaveText("3 points here");
+      await expect(chooser.getByRole("button", { name: /Wines/ })).toHaveText([
+        /Alpha Wines/,
+        /Bravo Wines/,
+        /Charlie Wines/,
+      ]);
+
+      await chooser.getByRole("button", { name: /Charlie Wines/ }).click();
+      await expect(chooser).toBeHidden();
+      await expect(page.getByRole("heading", { name: "Edit point" })).toBeVisible();
+      await expect(page.locator('input[name="title"]')).toHaveValue("3. Charlie Wines");
+      await expect(
+        page.locator('.leaflet-marker-icon[title="3 Charlie Wines"] [data-selected="true"]'),
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Close", exact: true }).click();
+    } finally {
+      await removeStands();
+    }
   });
 
   test("locked attendee map: selecting a point keeps details on screen", async ({

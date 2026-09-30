@@ -69,18 +69,24 @@ export function PoiMarkers({
   pois,
   selectedId,
   onPick,
+  pickOnMapClick = true,
 }: {
   pois: PoiData[];
   selectedId?: string | null;
   /** One point or every point under the finger, nearest first. Empty on a miss. */
   onPick: (hits: PoiData[]) => void;
+  /**
+   * Also resolve taps on bare map near a dot. The editor turns this off: there
+   * a map tap places a point, even a stand right next to another one.
+   */
+  pickOnMapClick?: boolean;
 }) {
   const spacing = useMemo(() => nearestSpacing(pois), [pois]);
   const [zoom, setZoom] = useState<number | null>(null);
 
   const map = useMapEvents({
     zoomend: () => setZoom(map.getZoom()),
-    click: (event) => onPick(hitTestRef.current(event.containerPoint)),
+    click: (event) => pickOnMapClick && onPick(hitTestRef.current(event.containerPoint)),
   });
   const z = zoom ?? map.getZoom();
   const sizeOf = (poi: PoiData) => badgeSize(spacing.get(poi.id) ?? Infinity, z, poi.lat);

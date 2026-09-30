@@ -5,7 +5,7 @@ import type L from "leaflet";
 import { useMap } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { PoiMarkers } from "./PoiMarkers";
-import { PoiBadge, PoiChooser, PoiDetails } from "./PoiSheet";
+import { PoiBadge, PoiChooser, PoiDetails } from "./PoiPanels";
 import { walkOrder } from "./poi-badge";
 import { GeolocateLayer, isInsideBounds, type GeoState } from "./GeolocateLayer";
 import { CompassControl } from "./CompassControl";
