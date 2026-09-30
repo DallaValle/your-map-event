@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient, useSession } from "@/lib/auth-client";
@@ -21,7 +21,14 @@ interface InvitationDetails {
  */
 export function AcceptInvitation({ invitationId }: { invitationId: string }) {
   const router = useRouter();
-  const { data: session, isPending: sessionPending } = useSession();
+  const { data: session, isPending: sessionPending, refetch } = useSession();
+
+  // Arriving from sign-up, the shared session store can still hold the
+  // signed-out state if its refresh raced the redirect; ask once on landing.
+  const refetchOnce = useRef(refetch);
+  useEffect(() => {
+    void refetchOnce.current();
+  }, []);
 
   const [invitation, setInvitation] = useState<InvitationDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
