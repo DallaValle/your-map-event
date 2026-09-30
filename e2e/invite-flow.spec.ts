@@ -24,8 +24,10 @@ test.describe("team invite flow", () => {
     expect(inviteLink).toContain("/accept-invitation/");
 
     // The pending invitation is listed with its management controls.
-    await expect(page.getByText(email)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Revoke" })).toBeVisible();
+    // Scoped to this run's row: earlier runs on the same server leave invites behind.
+    const inviteRow = page.getByRole("listitem").filter({ hasText: email });
+    await expect(inviteRow).toBeVisible();
+    await expect(inviteRow.getByRole("button", { name: "Revoke" })).toBeVisible();
 
     // 2. The invitee opens the link in a clean browser: no session yet.
     const invitee = await freshPage(browser);
@@ -48,8 +50,9 @@ test.describe("team invite flow", () => {
     // 4. They're a member now (no "create your team" onboarding) — but a
     // Viewer: the Team section is admin-only and must not be offered.
     await expect(invitee.getByText("Create your team")).toBeHidden();
-    await expect(invitee.getByRole("link", { name: "Settings" })).toBeVisible();
-    await expect(invitee.getByRole("link", { name: "Team", exact: true })).toBeHidden();
+    const nav = invitee.getByRole("navigation", { name: "Dashboard" });
+    await expect(nav.getByRole("link", { name: "Settings" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Team", exact: true })).toBeHidden();
 
     await invitee.context().close();
   });
