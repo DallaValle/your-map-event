@@ -26,6 +26,34 @@ test.describe("console nav + empty event state", () => {
     }
   });
 
+  test("clicked sidebar item spins until the page arrives", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "sidebar labels are desktop-only");
+
+    await signIn(page);
+
+    // Hold the server response so the pending state is observable, like a cold function.
+    let release!: () => void;
+    const held = new Promise<void>((r) => (release = r));
+    await page.route(/\/dashboard\/board\?_rsc=/, async (route) => {
+      await held;
+      await route.continue();
+    });
+
+    const board = page
+      .getByRole("navigation", { name: "Dashboard" })
+      .getByRole("link", { name: "Board", exact: true });
+    await board.click();
+
+    const spinner = board.locator("svg.animate-spin");
+    await expect(spinner).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
+
+    release();
+    await page.waitForURL("**/dashboard/board");
+    await expect(board).toHaveAttribute("aria-current", "page");
+    await expect(spinner).toHaveCount(0);
+  });
+
   test("empty dashboard is centered when no events exist", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "layout check is desktop-focused");
 

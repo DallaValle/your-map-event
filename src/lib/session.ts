@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -10,9 +11,10 @@ type MemberRow = { id: string; userId: string; organizationId: string; role: str
 
 const ADMIN_ROLES = ["owner", "admin"];
 
-export async function getSession() {
-  return auth.api.getSession({ headers: await headers() });
-}
+// Layouts and pages each ask for the session; cache() keeps it one lookup per request.
+export const getSession = cache(async () =>
+  auth.api.getSession({ headers: await headers() }),
+);
 
 export async function requireSession() {
   const session = await getSession();
@@ -41,7 +43,7 @@ export function isAdminRole(role: string | null | undefined) {
  * (auto-set at sign-in), falling back to the user's first membership.
  * Returns null when the user belongs to no team yet.
  */
-export async function getMyTeam(): Promise<{ team: Team; role: string } | null> {
+export const getMyTeam = cache(async (): Promise<{ team: Team; role: string } | null> => {
   const session = await requireSession();
   const ctx = await auth.$context;
 
@@ -66,7 +68,7 @@ export async function getMyTeam(): Promise<{ team: Team; role: string } | null> 
   if (!team) return null;
 
   return { team, role: member.role };
-}
+});
 
 /**
  * Authorization gate for every mutating server action: verifies a valid

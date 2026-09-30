@@ -1,6 +1,6 @@
 /**
- * Product mark. Light and dark files swap with `.dark` so Black & white
- * still gets a high-contrast pin.
+ * Product mark. The SVG is used as a mask and filled with `--brand`, so one
+ * file follows every theme (light, dark, black and white).
  */
 export function BrandMark({
   size = 28,
@@ -10,24 +10,11 @@ export function BrandMark({
   className?: string;
 }) {
   return (
-    <span className={`relative inline-flex shrink-0 overflow-hidden rounded-lg ${className}`} style={{ width: size, height: size }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/brand/logo-light.png"
-        alt=""
-        width={size}
-        height={size}
-        className="size-full object-cover dark:hidden"
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/brand/logo-dark.png"
-        alt=""
-        width={size}
-        height={size}
-        className="hidden size-full object-cover dark:block"
-      />
-    </span>
+    <span
+      aria-hidden
+      className={`inline-block shrink-0 bg-brand [mask:url(/brand/mark.svg)_center/contain_no-repeat] ${className}`}
+      style={{ width: size, height: size }}
+    />
   );
 }
 
