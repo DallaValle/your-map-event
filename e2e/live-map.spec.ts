@@ -107,6 +107,61 @@ test("live map: clicking a point opens a readable popup clear of the header", as
   expect(Math.abs(tipCx - markerCx)).toBeLessThanOrEqual(8);
 });
 
+test("live map: an open popup does not blink while the map pans or the location updates", async ({ page, context }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "run once");
+  // Every pan and GPS fix re-renders the map; the open bubble must not be re-added or moved.
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: HOME.lat, longitude: HOME.lng });
+  await openLiveMap(page);
+  await expect(page.getByRole("button", { name: "Locate" })).toBeEnabled();
+
+  const marker = page.locator(".leaflet-marker-icon").filter({ hasText: "🍺" }).first();
+  await marker.click();
+  const popup = page.locator(".leaflet-popup");
+  await expect(popup).toContainText("Local craft beer");
+  await page.waitForTimeout(600);
+
+  const offset = async () => {
+    const [p, m] = [(await popup.boundingBox())!, (await marker.boundingBox())!];
+    return { x: p.x - m.x, y: p.y - m.y };
+  };
+  const before = await offset();
+  await page.evaluate(() => {
+    const w = window as unknown as { popupReadds: number; popupMinOpacity: number };
+    w.popupReadds = 0;
+    w.popupMinOpacity = 1;
+    new MutationObserver((records) => {
+      w.popupReadds += records.filter((r) => r.removedNodes.length > 0).length;
+    }).observe(document.querySelector(".leaflet-popup-pane")!, { childList: true });
+    const tick = () => {
+      const el = document.querySelector(".leaflet-popup");
+      const opacity = el ? Number(getComputedStyle(el).opacity) : 0;
+      w.popupMinOpacity = Math.min(w.popupMinOpacity, opacity);
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+
+  const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
+  await page.mouse.move(mapBox.x + mapBox.width - 120, mapBox.y + mapBox.height - 120);
+  await page.mouse.down();
+  await page.mouse.move(mapBox.x + mapBox.width - 170, mapBox.y + mapBox.height - 160, { steps: 8 });
+  await page.mouse.up();
+  for (let i = 1; i <= 3; i += 1) {
+    await context.setGeolocation({ latitude: HOME.lat + i * 0.00005, longitude: HOME.lng });
+    await page.waitForTimeout(250);
+  }
+  await page.waitForTimeout(500);
+
+  const seen = await page.evaluate(() => {
+    const w = window as unknown as { popupReadds: number; popupMinOpacity: number };
+    return { readds: w.popupReadds, minOpacity: w.popupMinOpacity };
+  });
+  expect(seen).toEqual({ readds: 0, minOpacity: 1 });
+  const after = await offset();
+  expect(Math.abs(after.x - before.x) + Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+});
+
 test("live map: popup of a point near the edge stays inside the map", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "run once");
   // Borders disable auto-pan, so the bubble must be shifted, not the camera.

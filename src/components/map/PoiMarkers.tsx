@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 import type L from "leaflet";
 import { Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
@@ -53,6 +53,68 @@ function KeepPopupsOnScreen() {
   return null;
 }
 
+type RegisterMarker = (id: string, marker: L.Marker | null) => void;
+
+function samePoi(a: PoiData, b: PoiData) {
+  return (
+    a.id === b.id &&
+    a.lat === b.lat &&
+    a.lng === b.lng &&
+    a.icon === b.icon &&
+    a.title === b.title &&
+    a.description === b.description &&
+    a.imageUrl === b.imageUrl
+  );
+}
+
+/**
+ * Memoized so map re-renders (pan, zoom, GPS fix) never reach Leaflet: a new
+ * position makes the cluster group remove and re-add the marker, which closes
+ * and re-fades its open popup, and any popup re-render resets its clamp.
+ */
+const PoiMarker = memo(
+  function PoiMarker({ poi, registerMarker }: { poi: PoiData; registerMarker?: RegisterMarker }) {
+    const position = useMemo<[number, number]>(() => [poi.lat, poi.lng], [poi.lat, poi.lng]);
+    const ref = useCallback(
+      (marker: L.Marker | null) => registerMarker?.(poi.id, marker),
+      [poi.id, registerMarker],
+    );
+
+    return (
+      <Marker position={position} icon={poiDivIcon(poi.icon)} ref={ref}>
+        {/* Never auto-pan: borders are a hard limit, and KeepPopupsOnScreen
+            slides the bubble so a point near an edge stays readable. */}
+        <Popup
+          maxWidth={260}
+          minWidth={200}
+          autoPan={false}
+          autoPanPaddingTopLeft={[16, 24]}
+          autoPanPaddingBottomRight={[16, 24]}
+        >
+          <div className="space-y-1.5">
+            {poi.imageUrl && (
+              // Plain <img>: next/image's fill/size handling fights
+              // Leaflet's popup measurement.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={poi.imageUrl}
+                alt={poi.title}
+                className="h-32 w-full rounded-lg object-cover"
+                loading="lazy"
+              />
+            )}
+            <h3 className="text-base font-semibold leading-tight">{poi.title}</h3>
+            {poi.description && (
+              <p className="text-sm leading-snug opacity-80">{poi.description}</p>
+            )}
+          </div>
+        </Popup>
+      </Marker>
+    );
+  },
+  (prev, next) => prev.registerMarker === next.registerMarker && samePoi(prev.poi, next.poi),
+);
+
 /**
  * Clustered POI markers with rich popups. chunkedLoading keeps the main
  * thread responsive when a map has hundreds of points.
@@ -63,8 +125,8 @@ export function PoiMarkers({
   locked = false,
 }: {
   pois: PoiData[];
-  /** Lets the parent open a marker's popup programmatically (points list). */
-  registerMarker?: (id: string, marker: L.Marker | null) => void;
+  /** Lets the parent open a marker's popup programmatically (points list). Keep it stable. */
+  registerMarker?: RegisterMarker;
   /**
    * When the event has hard borders, opening a popup must not pan past them.
    * The popup is then shifted to stay on-screen instead.
@@ -90,40 +152,7 @@ export function PoiMarkers({
         spiderfyOnMaxZoom={!locked}
       >
         {pois.map((poi) => (
-          <Marker
-            key={poi.id}
-            position={[poi.lat, poi.lng]}
-            icon={poiDivIcon(poi.icon)}
-            ref={(marker) => registerMarker?.(poi.id, marker)}
-          >
-            {/* Never auto-pan: borders are a hard limit, and KeepPopupsOnScreen
-                slides the bubble so a point near an edge stays readable. */}
-            <Popup
-              maxWidth={260}
-              minWidth={200}
-              autoPan={false}
-              autoPanPaddingTopLeft={[16, 24]}
-              autoPanPaddingBottomRight={[16, 24]}
-            >
-              <div className="space-y-1.5">
-                {poi.imageUrl && (
-                  // Plain <img>: next/image's fill/size handling fights
-                  // Leaflet's popup measurement.
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={poi.imageUrl}
-                    alt={poi.title}
-                    className="h-32 w-full rounded-lg object-cover"
-                    loading="lazy"
-                  />
-                )}
-                <h3 className="text-base font-semibold leading-tight">{poi.title}</h3>
-                {poi.description && (
-                  <p className="text-sm leading-snug opacity-80">{poi.description}</p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
+          <PoiMarker key={poi.id} poi={poi} registerMarker={registerMarker} />
         ))}
       </MarkerClusterGroup>
     </>
