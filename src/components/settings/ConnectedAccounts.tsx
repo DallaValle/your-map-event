@@ -21,7 +21,7 @@ export function ConnectedAccounts({
       {accounts.map((account) => (
         <li key={account.id} className="flex items-center justify-between gap-3 px-4 py-3">
           <p className="font-medium">{PROVIDER_LABELS[account.providerId] ?? account.providerId}</p>
-          <span className="shrink-0 rounded-full bg-teal-700/10 px-2.5 py-0.5 text-xs font-medium text-teal-700 dark:text-teal-400">
+          <span className="shrink-0 rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-medium text-brand">
             Connected
           </span>
         </li>

@@ -21,6 +21,7 @@ import {
   type ScheduleEvent,
   type SchedulePoi,
 } from "@/lib/activity";
+import { PendingLabel } from "@/components/ui/Spinner";
 import {
   DEFAULT_DURATION_MS,
   HOUR_MS,
@@ -265,17 +266,17 @@ export function TimelineBuilder({
       : null;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[#f7f6fb] text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
-      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-black/10 bg-white px-4 py-3 dark:border-white/10 dark:bg-zinc-900">
+    <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground">
+      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line bg-surface px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Schedule</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Schedule</p>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-lg font-bold">Timeline Builder</h1>
             <span
               className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                 event.published
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
-                  : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"
+                  ? "typed bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
+                  : "bg-brand-soft text-muted"
               }`}
             >
               {event.published ? "● Live" : "Draft"}
@@ -288,7 +289,7 @@ export function TimelineBuilder({
             type="button"
             onClick={handleUndo}
             disabled={!canEdit || undo.length === 0 || pending}
-            className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40 dark:border-white/15 dark:bg-zinc-900"
+            className="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold disabled:opacity-40"
           >
             Undo
           </button>
@@ -298,17 +299,22 @@ export function TimelineBuilder({
             aria-pressed={preview}
             className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
               preview
-                ? "border-teal-700 bg-teal-700/10 text-teal-800 dark:text-teal-300"
-                : "border-black/10 bg-white dark:border-white/15 dark:bg-zinc-900"
+                ? "border-brand bg-brand-soft text-brand"
+                : "border-line bg-surface"
             }`}
           >
             Preview
           </button>
           <span
-            className="rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white"
+            className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-brand-fg"
             aria-live="polite"
+            aria-busy={pending}
           >
-            {pending ? "Saving…" : saveError ? "Save failed" : "Saved"}
+            <PendingLabel
+              pending={pending}
+              label={saveError ? "Save failed" : "Saved"}
+              pendingLabel="Saving…"
+            />
           </span>
         </div>
       </header>
@@ -326,10 +332,10 @@ export function TimelineBuilder({
       <div className="flex min-h-0 flex-1">
         <aside
           aria-label="Activity library"
-          className="flex w-72 shrink-0 flex-col border-r border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900"
+          className="flex w-72 shrink-0 flex-col border-r border-line bg-surface"
         >
-          <div className="border-b border-black/5 px-4 py-3 dark:border-white/10">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+          <div className="border-b border-line px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
               Activity library
             </p>
             <input
@@ -337,7 +343,7 @@ export function TimelineBuilder({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search activities…"
-              className="mt-2 w-full rounded-xl border border-black/10 bg-zinc-50 px-3 py-2 text-sm outline-teal-700 dark:border-white/15 dark:bg-zinc-800"
+              className="mt-2 w-full rounded-xl border border-line bg-background px-3 py-2 text-sm outline-brand"
             />
           </div>
 
@@ -372,11 +378,11 @@ export function TimelineBuilder({
           </div>
 
           {canEdit && (
-            <div className="border-t border-black/5 p-3 dark:border-white/10">
+            <div className="border-t border-line p-3">
               <button
                 type="button"
                 onClick={() => setDialog({ mode: "create" })}
-                className="w-full rounded-xl border border-dashed border-black/20 px-3 py-2.5 text-sm font-semibold text-zinc-600 hover:border-teal-700 hover:text-teal-800 dark:border-white/20 dark:text-zinc-300"
+                className="w-full rounded-xl border border-dashed border-line px-3 py-2.5 text-sm font-semibold text-muted hover:border-brand hover:text-brand"
               >
                 + Add activity
               </button>
@@ -385,7 +391,7 @@ export function TimelineBuilder({
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col" aria-label="Schedule timeline">
-          <div className="flex flex-wrap items-center gap-2 border-b border-black/5 bg-white px-4 py-2.5 dark:border-white/10 dark:bg-zinc-900">
+          <div className="flex flex-wrap items-center gap-2 border-b border-line bg-surface px-4 py-2.5">
             <div role="tablist" aria-label="Event days" className="flex flex-wrap gap-1">
               {days.map((day, index) => {
                 const selected = day === selectedDay || dayKey(day) === (selectedDay ? dayKey(selectedDay) : "");
@@ -398,8 +404,8 @@ export function TimelineBuilder({
                     onClick={() => setDayIndex(index)}
                     className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
                       selected
-                        ? "bg-teal-700 text-white"
-                        : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
+                        ? "bg-brand text-brand-fg"
+                        : "bg-brand-soft text-muted hover:text-foreground"
                     }`}
                   >
                     {formatDayTab(day, index)}
@@ -407,12 +413,12 @@ export function TimelineBuilder({
                 );
               })}
               {days.length === 0 && (
-                <span className="text-sm text-zinc-500">Set event hours to open the days.</span>
+                <span className="text-sm text-muted">Set event hours to open the days.</span>
               )}
             </div>
 
             <div className="ml-auto flex flex-wrap items-center gap-3">
-              <ul className="hidden items-center gap-3 text-[11px] font-medium text-zinc-500 sm:flex">
+              <ul className="hue hidden items-center gap-3 text-[11px] font-medium text-muted sm:flex">
                 <li className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full bg-rose-400" /> Conflict
                 </li>
@@ -423,7 +429,7 @@ export function TimelineBuilder({
                   <span className="size-2 rounded-full bg-zinc-300" /> Empty slot
                 </li>
               </ul>
-              <div className="flex items-center rounded-lg border border-black/10 dark:border-white/15">
+              <div className="flex items-center rounded-lg border border-line">
                 {ZOOM.map((option) => (
                   <button
                     key={option.id}
@@ -432,8 +438,8 @@ export function TimelineBuilder({
                     onClick={() => setZoomId(option.id)}
                     className={`px-2.5 py-1 text-xs font-semibold ${
                       zoomId === option.id
-                        ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                        : "text-zinc-600 dark:text-zinc-300"
+                        ? "bg-foreground text-background"
+                        : "text-muted"
                     }`}
                   >
                     {option.label}
@@ -443,7 +449,7 @@ export function TimelineBuilder({
               {editorHref && canEdit && (
                 <Link
                   href={editorHref}
-                  className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-semibold dark:border-white/15 dark:bg-zinc-900"
+                  className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold"
                 >
                   + Add location
                 </Link>
@@ -452,7 +458,7 @@ export function TimelineBuilder({
                 <button
                   type="button"
                   onClick={() => setWindowOpen((v) => !v)}
-                  className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-semibold dark:border-white/15 dark:bg-zinc-900"
+                  className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold"
                 >
                   Event hours
                 </button>
@@ -461,25 +467,25 @@ export function TimelineBuilder({
           </div>
 
           {days.length === 0 ? (
-            <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-zinc-500">
+            <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted">
               Set the event start and end to open the timeline, or add an activity with times.
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto">
               <div className="min-w-max">
                 <div
-                  className="sticky top-0 z-20 flex border-b border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900"
+                  className="sticky top-0 z-20 flex border-b border-line bg-surface"
                   style={{ minWidth: STAGE_COL + canvasWidth }}
                 >
                   <div
-                    className="sticky left-0 z-30 shrink-0 border-r border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900"
+                    className="sticky left-0 z-30 shrink-0 border-r border-line bg-surface"
                     style={{ width: STAGE_COL }}
                   />
                   <div className="relative flex" style={{ width: canvasWidth }}>
                     {hours.map((hour) => (
                       <div
                         key={hour.toISOString()}
-                        className="shrink-0 border-l border-black/5 py-2 text-center text-[11px] font-semibold text-zinc-400 dark:border-white/10"
+                        className="shrink-0 border-l border-line py-2 text-center text-[11px] font-semibold text-muted"
                         style={{ width: zoom.hourWidth }}
                       >
                         {formatHourTick(hour)}
@@ -506,7 +512,7 @@ export function TimelineBuilder({
                       style={{ minWidth: STAGE_COL + canvasWidth, height: ROW_H }}
                     >
                       <div
-                        className="sticky left-0 z-10 flex shrink-0 flex-col justify-center gap-1 border-r border-black/10 bg-white px-3 dark:border-white/10 dark:bg-zinc-900"
+                        className="sticky left-0 z-10 flex shrink-0 flex-col justify-center gap-1 border-r border-line bg-surface px-3"
                         style={{ width: STAGE_COL }}
                       >
                         <div className="flex items-center gap-2">
@@ -515,7 +521,7 @@ export function TimelineBuilder({
                           />
                           <p className="truncate text-sm font-semibold">{row.title}</p>
                         </div>
-                        <p className="pl-4 text-[11px] text-zinc-400">
+                        <p className="pl-4 text-[11px] text-muted">
                           {row.hint ?? `${rowActs.length} act${rowActs.length === 1 ? "" : "s"}`}
                         </p>
                         {canEdit && row.id !== UNASSIGNED_ID && (
@@ -530,7 +536,7 @@ export function TimelineBuilder({
                                 endTime: gap?.end ?? new Date(dayStart + DEFAULT_DURATION_MS),
                               });
                             }}
-                            className="pl-4 text-left text-[11px] font-semibold text-teal-700 dark:text-teal-400"
+                            className="pl-4 text-left text-[11px] font-semibold text-brand"
                           >
                             + Add act
                           </button>
@@ -551,7 +557,7 @@ export function TimelineBuilder({
                           const id = e.dataTransfer.getData("text/activity-id");
                           if (id) handleDrop(row.id, e.clientX, e.currentTarget, id);
                         }}
-                        className={`relative flex-none ${isOver ? "bg-teal-700/5" : ""}`}
+                        className={`relative flex-none ${isOver ? "bg-brand-soft" : ""}`}
                         style={{ width: canvasWidth, height: ROW_H }}
                       >
                         {hours.map((hour, i) => (
@@ -563,7 +569,7 @@ export function TimelineBuilder({
                         ))}
 
                         {rowActs.length === 0 && (
-                          <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-zinc-300">
+                          <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted">
                             {canEdit ? "Drop activity here" : "Empty"}
                           </p>
                         )}
@@ -624,10 +630,10 @@ export function TimelineBuilder({
                 })}
 
                 {pois.length === 0 && (
-                  <div className="flex items-center gap-2 px-6 py-10 text-sm text-zinc-500">
+                  <div className="flex items-center gap-2 px-6 py-10 text-sm text-muted">
                     <span>Locations come from the map.</span>
                     {editorHref && (
-                      <Link href={editorHref} className="font-semibold text-teal-700 dark:text-teal-400">
+                      <Link href={editorHref} className="font-semibold text-brand">
                         Open map editor
                       </Link>
                     )}
@@ -640,7 +646,7 @@ export function TimelineBuilder({
       </div>
 
       {(conflicts.length > 0 || (unscheduled.length > 0 && suggestion)) && (
-        <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+        <div className="hue flex shrink-0 flex-wrap items-center gap-3 border-t border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
           <span aria-hidden>⚠️</span>
           <p className="min-w-0 flex-1">
             {conflicts.length > 0 ? (
@@ -697,11 +703,11 @@ function LibraryGroup({
   const count = items.length;
   return (
     <section className="mb-4">
-      <h2 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+      <h2 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
         {label}
       </h2>
       {count === 0 ? (
-        <p className="px-1 text-xs text-zinc-400">{empty}</p>
+        <p className="px-1 text-xs text-muted">{empty}</p>
       ) : (
         <ul className="flex flex-col gap-2">{children}</ul>
       )}
@@ -730,8 +736,8 @@ function LibraryCard({
           e.dataTransfer.effectAllowed = "move";
         }}
         onClick={onOpen}
-        className={`flex w-full items-center gap-3 rounded-2xl border bg-white px-3 py-2.5 text-left shadow-sm dark:bg-zinc-950 ${
-          scheduled ? `border-l-4 ${meta.card}` : "border-black/10 dark:border-white/10"
+        className={`flex w-full items-center gap-3 rounded-2xl border bg-surface px-3 py-2.5 text-left shadow-sm ${
+          scheduled ? `border-l-4 ${meta.card}` : "border-line"
         }`}
       >
         <span className={`flex size-9 shrink-0 items-center justify-center rounded-full text-base ${meta.chip}`}>
@@ -739,14 +745,14 @@ function LibraryCard({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{activity.name}</span>
-          <span className="block truncate text-[11px] text-zinc-500">
+          <span className="block truncate text-[11px] text-muted">
             {scheduled
               ? `${activity.poiTitle ?? "Unassigned"} · ${formatRange(activity.startTime!, activity.endTime!)}`
               : ACTIVITY_TYPES.find((t) => t.id === activity.type)?.label ?? activity.type}
           </span>
         </span>
         {scheduled && (
-          <span className="text-teal-600" aria-hidden>
+          <span className="text-brand" aria-hidden>
             ✓
           </span>
         )}
@@ -768,7 +774,7 @@ function EventWindowBar({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-3 border-b border-black/10 bg-white px-4 py-3 dark:border-white/10 dark:bg-zinc-900"
+      className="flex flex-wrap items-end gap-3 border-b border-line bg-surface px-4 py-3"
       onSubmit={(e) => {
         e.preventDefault();
         const form = new FormData(e.currentTarget);
@@ -783,7 +789,7 @@ function EventWindowBar({
         });
       }}
     >
-      <p className="w-full text-xs font-semibold uppercase tracking-wide text-zinc-400">
+      <p className="w-full text-xs font-semibold uppercase tracking-wide text-muted">
         Event hours
       </p>
       <label className="flex flex-col gap-1 text-xs font-medium">
@@ -809,12 +815,13 @@ function EventWindowBar({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        aria-busy={pending}
+        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-fg disabled:opacity-60"
       >
-        {pending ? "Saving…" : "Apply"}
+        <PendingLabel pending={pending} label="Apply" pendingLabel="Saving…" />
       </button>
       {event.startTime && event.endTime && (
-        <button type="button" onClick={onClose} className="text-sm font-semibold text-zinc-500">
+        <button type="button" onClick={onClose} className="text-sm font-semibold text-muted">
           Close
         </button>
       )}

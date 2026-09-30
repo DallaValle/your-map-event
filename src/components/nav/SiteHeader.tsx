@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { clearThemeCookieAction } from "@/actions/settings";
+import { BrandMark, Wordmark } from "./BrandMark";
 
 export interface HeaderUser {
   name: string;
@@ -25,7 +27,7 @@ function Avatar({ user, className }: { user: HeaderUser; className: string }) {
     return <img src={user.image} alt="" className={`${className} object-cover`} />;
   }
   return (
-    <span className={`${className} flex items-center justify-center bg-teal-700 font-semibold text-white`}>
+    <span className={`${className} flex items-center justify-center bg-brand font-semibold text-brand-fg`}>
       {initials(user)}
     </span>
   );
@@ -65,18 +67,17 @@ export function SiteHeader({
   }, [menuOpen]);
 
   async function handleSignOut() {
+    await clearThemeCookieAction();
     await authClient.signOut();
     router.push("/");
     router.refresh();
   }
 
   return (
-    <header className="sticky top-0 z-[1200] flex h-14 shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-white/95 px-4 backdrop-blur dark:border-white/15 dark:bg-neutral-950/95">
-      <Link href="/dashboard" className="flex items-baseline gap-1.5 text-sm font-semibold tracking-tight">
-        <span aria-hidden>📍</span>
-        <span>
-          your map <span className="text-teal-700 dark:text-teal-400">event</span>
-        </span>
+    <header className="sticky top-0 z-[1200] flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4">
+      <Link href="/dashboard" className="flex items-center gap-2 text-sm">
+        <BrandMark size={28} />
+        <Wordmark />
       </Link>
 
       <div className="flex items-center gap-1">
@@ -90,7 +91,7 @@ export function SiteHeader({
           {unreadCount > 0 && (
             <span
               data-testid="notif-badge"
-              className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-700 px-1 text-[10px] font-bold leading-none text-white"
+              className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold leading-none text-brand-fg"
             >
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
@@ -105,7 +106,7 @@ export function SiteHeader({
               aria-label="Account menu"
               aria-expanded={menuOpen}
               aria-haspopup="menu"
-              className="flex size-9 overflow-hidden rounded-full ring-1 ring-black/10 dark:ring-white/20"
+              className="flex size-9 overflow-hidden rounded-full ring-1 ring-line"
             >
               <Avatar user={user} className="size-full text-xs" />
             </button>
@@ -113,7 +114,7 @@ export function SiteHeader({
             {menuOpen && (
               <div
                 role="menu"
-                className="absolute right-0 top-11 w-64 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xl dark:border-white/15 dark:bg-neutral-900"
+                className="absolute right-0 top-11 w-64 overflow-hidden rounded-2xl border border-line bg-surface shadow-xl"
               >
                 <div className="flex flex-col items-center gap-2 px-4 py-5 text-center">
                   <Avatar user={user} className="size-16 rounded-full text-xl" />
@@ -125,7 +126,7 @@ export function SiteHeader({
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="w-full border-t border-black/10 px-4 py-3 text-sm font-medium hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+                  className="w-full border-t border-line px-4 py-3 text-sm font-medium hover:bg-brand-soft"
                 >
                   Log out
                 </button>

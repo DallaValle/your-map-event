@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 /** Copy-link + revoke controls for one pending invitation. */
 export function InvitationActions({ invitationId }: { invitationId: string }) {
@@ -38,9 +39,15 @@ export function InvitationActions({ invitationId }: { invitationId: string }) {
         type="button"
         onClick={cancel}
         disabled={pending}
+        aria-busy={pending}
         className="rounded-lg px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-950"
       >
-        {pending ? "…" : "Revoke"}
+        <PendingLabel
+          pending={pending}
+          label="Revoke"
+          pendingLabel="Revoking…"
+          spinnerClassName="size-3"
+        />
       </button>
     </div>
   );

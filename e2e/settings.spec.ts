@@ -41,13 +41,21 @@ test.describe("settings", () => {
     await page.getByRole("button", { name: "Save preferences" }).click();
     await expect(page.getByText("Preferences saved.")).toBeVisible();
 
-    await page.getByRole("radio", { name: "Dark" }).check();
+    await page.locator('input[name="theme"][value="dark"]').check();
     await page.getByRole("button", { name: "Save appearance" }).click();
-    await expect(page.getByText("Appearance saved.")).toBeVisible();
+    await expect(page.getByText("Appearance saved (Dark).")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(page.locator("html")).toHaveClass(/dark/);
+
+    await page.locator('input[name="theme"][value="mono"]').check();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "mono");
+    await page.getByRole("button", { name: "Save appearance" }).click();
+    await expect(page.getByText("Appearance saved (Black & white).")).toBeVisible();
 
     await page.reload();
     await expect(page.getByLabel("Email notifications")).not.toBeChecked();
-    await expect(page.getByRole("radio", { name: "Dark" })).toBeChecked();
+    await expect(page.locator('input[name="theme"][value="mono"]')).toBeChecked();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "mono");
 
     await page.getByLabel("Current password").fill("wrong-password");
     await page.getByLabel("New password", { exact: true }).fill("password456");
@@ -59,6 +67,10 @@ test.describe("settings", () => {
     await page.getByLabel("Name").fill("Demo Admin");
     await page.getByRole("button", { name: "Save profile" }).click();
     await expect(page.getByText("Profile saved.")).toBeVisible();
+
+    await page.locator('input[name="theme"][value="system"]').check();
+    await page.getByRole("button", { name: "Save appearance" }).click();
+    await expect(page.getByText("Appearance saved (System).")).toBeVisible();
   });
 
   test("user can change password and sign back in", async ({ page }, testInfo) => {

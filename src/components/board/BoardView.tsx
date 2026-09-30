@@ -43,7 +43,7 @@ export function BoardView({
         </div>
         <Link
           href="/dashboard/schedule"
-          className="rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white"
+          className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-fg"
         >
           Open timeline
         </Link>

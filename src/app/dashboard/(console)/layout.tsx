@@ -44,7 +44,7 @@ export default async function ConsoleLayout({
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</main>
       </div>
 
-      <SiteFooter />
+      <SiteFooter homeHref="/dashboard" workspaceLinks />
     </div>
   );
 }

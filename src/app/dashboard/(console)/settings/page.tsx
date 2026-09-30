@@ -9,7 +9,6 @@ import { PasswordForm } from "@/components/settings/PasswordForm";
 import { ConnectedAccounts } from "@/components/settings/ConnectedAccounts";
 import { NotificationPrefsForm } from "@/components/settings/NotificationPrefsForm";
 import { ThemeForm } from "@/components/settings/ThemeForm";
-import { ThemeOverride } from "@/components/settings/ThemeOverride";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -30,8 +29,6 @@ export default async function SettingsPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
-      <ThemeOverride theme={prefs.theme} />
-
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm opacity-70">
@@ -95,7 +92,7 @@ export default async function SettingsPage() {
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">Appearance</h2>
           <p className="mt-0.5 text-sm opacity-60">
-            Override the system theme for your account. Color tokens live in the shared theme.
+            Light, dark, or black and white. Tokens live in the shared theme.
           </p>
         </div>
         <ThemeForm theme={prefs.theme} />

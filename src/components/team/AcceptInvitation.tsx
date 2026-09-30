@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient, useSession } from "@/lib/auth-client";
+import { PendingLabel, Spinner } from "@/components/ui/Spinner";
+import { BrandMark } from "@/components/nav/BrandMark";
 
 interface InvitationDetails {
   organizationName: string;
@@ -68,9 +70,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-6 px-6 py-12 text-center">
       <div className="space-y-2">
-        <span className="text-4xl" aria-hidden>
-          💌
-        </span>
+        <BrandMark size={56} className="mx-auto" />
         <h1 className="text-2xl font-bold">Team invitation</h1>
         {invitation ? (
           <p className="text-sm opacity-70">
@@ -92,16 +92,19 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
       )}
 
       {sessionPending ? (
-        <p className="text-sm opacity-60">Checking your session…</p>
+        <p className="inline-flex items-center justify-center gap-2 text-sm opacity-60">
+          <Spinner /> Checking your session…
+        </p>
       ) : session ? (
         !error && (
           <button
             type="button"
             onClick={accept}
             disabled={accepting || !invitation}
-            className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+            aria-busy={accepting}
+            className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
           >
-            {accepting ? "Joining…" : "Join the team"}
+            <PendingLabel pending={accepting} label="Join the team" pendingLabel="Joining…" />
           </button>
         )
       ) : (
@@ -111,13 +114,13 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
           </p>
           <Link
             href={`/sign-in?redirect=${redirect}`}
-            className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white active:scale-[.98]"
+            className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg active:scale-[.98]"
           >
             Sign in
           </Link>
           <Link
             href={`/sign-up?redirect=${redirect}`}
-            className="rounded-xl border border-teal-700/40 px-6 py-3.5 font-semibold text-teal-700 active:scale-[.98] dark:text-teal-400"
+            className="rounded-xl border border-brand/40 px-6 py-3.5 font-semibold text-brand active:scale-[.98]"
           >
             Create an account
           </Link>

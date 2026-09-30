@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createTeamAction } from "@/actions/team";
 import { slugify } from "@/lib/slug";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 export function CreateTeamForm() {
   const [state, formAction, pending] = useActionState(createTeamAction, null);
@@ -18,7 +19,7 @@ export function CreateTeamForm() {
           minLength={2}
           onChange={(e) => setSlugPreview(slugify(e.target.value))}
           placeholder="Lakeside Festival Crew"
-          className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+          className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
         />
       </label>
 
@@ -48,9 +49,10 @@ export function CreateTeamForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+        aria-busy={pending}
+        className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        {pending ? "Creating…" : "Create team"}
+        <PendingLabel pending={pending} label="Create team" pendingLabel="Creating…" />
       </button>
     </form>
   );

@@ -64,7 +64,7 @@ export function ShareCard({
   ];
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border-2 border-teal-700/30 bg-teal-700/5 p-4">
+    <section className="flex flex-col gap-3 rounded-2xl border-2 border-brand/40 bg-brand-soft p-4">
       <div>
         <h2 className="text-sm font-bold">
           📢 Attendees open your map here{published ? "" : " (once published)"}
@@ -83,7 +83,7 @@ export function ShareCard({
         <button
           type="button"
           onClick={copy}
-          className="shrink-0 rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white active:scale-95"
+          className="shrink-0 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-fg active:scale-95"
         >
           {copied ? "✓ Copied" : "Copy"}
         </button>
@@ -93,7 +93,7 @@ export function ShareCard({
         <button
           type="button"
           onClick={toggleQr}
-          className="rounded-xl border border-teal-700/40 px-4 py-2.5 text-sm font-semibold text-teal-700 dark:text-teal-400"
+          className="rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
         >
           {qr ? "Hide QR code" : "⊞ QR code"}
         </button>
@@ -101,7 +101,7 @@ export function ShareCard({
           <button
             type="button"
             onClick={() => navigator.share({ title: text, url }).catch(() => {})}
-            className="rounded-xl border border-teal-700/40 px-4 py-2.5 text-sm font-semibold text-teal-700 dark:text-teal-400"
+            className="rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
           >
             ↗ Share…
           </button>
@@ -115,7 +115,7 @@ export function ShareCard({
           <a
             href={qr}
             download={`${path.replace(/\//g, "-")}-qr.png`}
-            className="text-sm font-semibold text-teal-700 dark:text-teal-400"
+            className="text-sm font-semibold text-brand"
           >
             ⬇ Download PNG (for posters & badges)
           </a>

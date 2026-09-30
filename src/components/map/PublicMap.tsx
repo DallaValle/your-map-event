@@ -189,7 +189,7 @@ export default function PublicMap({
               className="size-8 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-teal-700/10 text-sm">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm">
               📍
             </span>
           )}
@@ -284,7 +284,7 @@ export default function PublicMap({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                     ) : (
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-700/10">{poi.icon ?? "📌"}</span>
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft">{poi.icon ?? "📌"}</span>
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{poi.title}</p>
@@ -314,7 +314,7 @@ export default function PublicMap({
             type="button"
             onClick={() => setListOpen((open) => !open)}
             aria-expanded={listOpen}
-            className={`${navButton} ${listOpen ? "text-teal-700 dark:text-teal-400" : ""}`}
+            className={`${navButton} ${listOpen ? "text-brand" : ""}`}
           >
             <span className="text-xl" aria-hidden>📍</span>
             Points ({pois.length})

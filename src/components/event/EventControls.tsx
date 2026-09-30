@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setMapPublishedAction, deleteMapAction } from "@/actions/maps";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 /** Publish toggle for the Event page. */
 export function PublishToggle({
@@ -27,13 +28,18 @@ export function PublishToggle({
       type="button"
       onClick={toggle}
       disabled={pending}
+      aria-busy={pending}
       className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-60 active:scale-[.98] ${
         published
-          ? "bg-teal-700 text-white"
+          ? "bg-brand text-brand-fg"
           : "border border-black/15 dark:border-white/20"
       }`}
     >
-      {pending ? "…" : published ? "Live ✓ - Unpublish" : "Publish"}
+      <PendingLabel
+        pending={pending}
+        label={published ? "Live ✓ - Unpublish" : "Publish"}
+        pendingLabel="Saving…"
+      />
     </button>
   );
 }
@@ -66,9 +72,10 @@ export function DeleteEventButton({
       type="button"
       onClick={handleDelete}
       disabled={pending}
+      aria-busy={pending}
       className="self-start rounded-xl border border-red-300 px-6 py-2.5 text-sm font-semibold text-red-600 disabled:opacity-60 dark:border-red-900 dark:text-red-400"
     >
-      {pending ? "Deleting…" : "Delete this event"}
+      <PendingLabel pending={pending} label="Delete this event" pendingLabel="Deleting…" />
     </button>
   );
 }

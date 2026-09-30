@@ -16,36 +16,36 @@ export const ACTIVITY_TYPES: {
     id: "performance",
     label: "Performance",
     emoji: "🎤",
-    card: "border-violet-400 bg-violet-50 text-violet-950 dark:border-violet-400/70 dark:bg-violet-950/60 dark:text-violet-50",
-    chip: "bg-violet-100 text-violet-800 dark:bg-violet-900/70 dark:text-violet-100",
+    card: "typed border-violet-400 bg-violet-50 text-violet-950 dark:border-violet-400/70 dark:bg-violet-950/60 dark:text-violet-50",
+    chip: "typed bg-violet-100 text-violet-800 dark:bg-violet-900/70 dark:text-violet-100",
   },
   {
     id: "food",
     label: "Food",
     emoji: "🍔",
-    card: "border-orange-400 bg-orange-50 text-orange-950 dark:border-orange-400/70 dark:bg-orange-950/60 dark:text-orange-50",
-    chip: "bg-orange-100 text-orange-800 dark:bg-orange-900/70 dark:text-orange-100",
+    card: "typed border-orange-400 bg-orange-50 text-orange-950 dark:border-orange-400/70 dark:bg-orange-950/60 dark:text-orange-50",
+    chip: "typed bg-orange-100 text-orange-800 dark:bg-orange-900/70 dark:text-orange-100",
   },
   {
     id: "talk",
     label: "Talk",
     emoji: "🎙️",
-    card: "border-sky-400 bg-sky-50 text-sky-950 dark:border-sky-400/70 dark:bg-sky-950/50 dark:text-sky-50",
-    chip: "bg-sky-100 text-sky-800 dark:bg-sky-900/70 dark:text-sky-100",
+    card: "typed border-sky-400 bg-sky-50 text-sky-950 dark:border-sky-400/70 dark:bg-sky-950/50 dark:text-sky-50",
+    chip: "typed bg-sky-100 text-sky-800 dark:bg-sky-900/70 dark:text-sky-100",
   },
   {
     id: "workshop",
     label: "Workshop",
     emoji: "🛠️",
-    card: "border-emerald-400 bg-emerald-50 text-emerald-950 dark:border-emerald-400/70 dark:bg-emerald-950/50 dark:text-emerald-50",
-    chip: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-100",
+    card: "typed border-emerald-400 bg-emerald-50 text-emerald-950 dark:border-emerald-400/70 dark:bg-emerald-950/50 dark:text-emerald-50",
+    chip: "typed bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-100",
   },
   {
     id: "other",
     label: "Other",
     emoji: "📌",
-    card: "border-slate-300 bg-slate-50 text-slate-900 dark:border-slate-500 dark:bg-slate-900/70 dark:text-slate-50",
-    chip: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100",
+    card: "typed border-slate-300 bg-slate-50 text-slate-900 dark:border-slate-500 dark:bg-slate-900/70 dark:text-slate-50",
+    chip: "typed bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100",
   },
 ];
 
@@ -175,10 +175,10 @@ export function suggestSlot(
 }
 
 export const ROW_DOTS = [
-  "bg-violet-500",
-  "bg-sky-500",
-  "bg-emerald-500",
-  "bg-amber-500",
-  "bg-rose-500",
-  "bg-teal-500",
+  "hue bg-violet-500",
+  "hue bg-sky-500",
+  "hue bg-emerald-500",
+  "hue bg-amber-500",
+  "hue bg-rose-500",
+  "hue bg-brand",
 ];

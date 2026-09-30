@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
+import { asTheme, THEME_COOKIE } from "@/components/settings/prefs";
+import { THEME_BOOTSTRAP } from "@/components/theme/apply-theme";
+import { ThemeSync } from "@/components/theme/ThemeSync";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,23 +32,34 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f4f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0c0c" },
+  ],
   width: "device-width",
   initialScale: 1,
-  // Full-bleed maps under the iOS notch; components pad with safe-area insets.
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const theme = asTheme((await cookies()).get(THEME_COOKIE)?.value);
+
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html
+      lang="en"
+      data-theme={theme}
+      className={theme === "dark" ? "dark" : undefined}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeSync theme={theme} />
         {children}
       </body>
     </html>

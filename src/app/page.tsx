@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { BrandMark } from "@/components/nav/BrandMark";
+import { SiteFooter } from "@/components/nav/SiteFooter";
 
 export default async function LandingPage() {
   const session = await getSession();
@@ -15,11 +17,10 @@ export default async function LandingPage() {
   });
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6 py-12 text-center">
-      <div className="space-y-3">
-        <span className="text-5xl" aria-hidden>
-          🗺️
-        </span>
+    <div className="flex min-h-dvh flex-col">
+    <main className="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-12 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <BrandMark size={72} />
         <h1 className="text-3xl font-bold tracking-tight">Your Map Event</h1>
         <p className="mx-auto max-w-sm text-balance text-sm opacity-70">
           Build an interactive map of your event, add points of interest, and
@@ -31,13 +32,13 @@ export default async function LandingPage() {
       <div className="flex w-full max-w-xs flex-col gap-3">
         <Link
           href="/sign-in"
-          className="rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white active:scale-[.98]"
+          className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg active:scale-[.98]"
         >
           Sign in
         </Link>
         <Link
           href="/sign-up"
-          className="rounded-xl border border-teal-700/40 px-6 py-3.5 font-semibold text-teal-700 active:scale-[.98] dark:text-teal-400"
+          className="rounded-xl border border-brand/40 px-6 py-3.5 font-semibold text-brand active:scale-[.98]"
         >
           Create a team
         </Link>
@@ -63,7 +64,7 @@ export default async function LandingPage() {
                       className="size-8 rounded-full object-cover"
                     />
                   ) : (
-                    <span className="flex size-8 items-center justify-center rounded-full bg-teal-700/10 text-sm">
+                    <span className="flex size-8 items-center justify-center rounded-full bg-brand-soft text-sm">
                       📍
                     </span>
                   )}
@@ -75,5 +76,7 @@ export default async function LandingPage() {
         </div>
       )}
     </main>
+    <SiteFooter />
+    </div>
   );
 }
