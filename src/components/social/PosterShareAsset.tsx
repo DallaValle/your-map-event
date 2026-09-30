@@ -70,7 +70,7 @@ export function PosterShareAsset({
           <a
             href={qr}
             download={`${path.replace(/\//g, "-")}-poster-qr.png`}
-            className="text-sm font-semibold text-teal-700 dark:text-teal-400"
+            className="text-sm font-semibold text-brand"
           >
             Download poster PNG
           </a>

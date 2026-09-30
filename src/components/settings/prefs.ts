@@ -1,5 +1,5 @@
 export const THEME_COOKIE = "user-theme";
-export const THEMES = ["system", "light", "dark"] as const;
+export const THEMES = ["system", "light", "dark", "mono"] as const;
 export type ThemePreference = (typeof THEMES)[number];
 
 export const DEFAULT_PREFS = {

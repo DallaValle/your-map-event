@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   deleteScheduledPostAction,
@@ -8,6 +8,7 @@ import {
 } from "@/actions/social";
 import { PostComposer } from "@/components/social/PostComposer";
 import { channelLabel, formatWallClock, type PostStatus } from "@/lib/social";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 type PlannerPost = {
   id: string;
@@ -86,11 +87,20 @@ export function PostPlanner({
 function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [when, setWhen] = useState("");
 
-  function run(action: () => Promise<{ ok: true } | { ok: false; error: string } | null>) {
+  useEffect(() => {
+    if (!pending) setBusy(null);
+  }, [pending]);
+
+  function run(
+    key: string,
+    action: () => Promise<{ ok: true } | { ok: false; error: string } | null>,
+  ) {
     setError(null);
+    setBusy(key);
     startTransition(async () => {
       const result = await action();
       if (result && !result.ok) {
@@ -100,6 +110,9 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
       router.refresh();
     });
   }
+
+  const spinner = "size-3";
+  const isBusy = (key: string) => pending && busy === key;
 
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-black/10 px-4 py-3 dark:border-white/15">
@@ -122,25 +135,39 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 value={when}
                 onChange={(event) => setWhen(event.target.value)}
                 aria-label="Schedule time"
-                className="rounded-lg border border-black/15 px-3 py-1.5 text-xs outline-teal-700 dark:border-white/20 dark:bg-white/5"
+                className="rounded-lg border border-black/15 px-3 py-1.5 text-xs outline-brand dark:border-white/20 dark:bg-white/5"
               />
               <button
                 type="button"
                 disabled={pending}
+                aria-busy={isBusy("schedule")}
                 onClick={() =>
-                  run(() => setScheduledPostStatusAction(post.id, "scheduled", when || undefined))
+                  run("schedule", () =>
+                    setScheduledPostStatusAction(post.id, "scheduled", when || undefined),
+                  )
                 }
                 className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
               >
-                Schedule
+                <PendingLabel
+                  pending={isBusy("schedule")}
+                  label="Schedule"
+                  pendingLabel="Saving…"
+                  spinnerClassName={spinner}
+                />
               </button>
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => run(() => setScheduledPostStatusAction(post.id, "done"))}
+                aria-busy={isBusy("done")}
+                onClick={() => run("done", () => setScheduledPostStatusAction(post.id, "done"))}
                 className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
               >
-                Mark done
+                <PendingLabel
+                  pending={isBusy("done")}
+                  label="Mark done"
+                  pendingLabel="Saving…"
+                  spinnerClassName={spinner}
+                />
               </button>
             </>
           )}
@@ -149,18 +176,30 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => run(() => setScheduledPostStatusAction(post.id, "done"))}
-                className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                aria-busy={isBusy("done")}
+                onClick={() => run("done", () => setScheduledPostStatusAction(post.id, "done"))}
+                className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-brand-fg disabled:opacity-60"
               >
-                Mark done
+                <PendingLabel
+                  pending={isBusy("done")}
+                  label="Mark done"
+                  pendingLabel="Saving…"
+                  spinnerClassName={spinner}
+                />
               </button>
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => run(() => setScheduledPostStatusAction(post.id, "draft"))}
+                aria-busy={isBusy("draft")}
+                onClick={() => run("draft", () => setScheduledPostStatusAction(post.id, "draft"))}
                 className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
               >
-                Back to draft
+                <PendingLabel
+                  pending={isBusy("draft")}
+                  label="Back to draft"
+                  pendingLabel="Saving…"
+                  spinnerClassName={spinner}
+                />
               </button>
             </>
           )}
@@ -168,19 +207,31 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
             <button
               type="button"
               disabled={pending}
-              onClick={() => run(() => setScheduledPostStatusAction(post.id, "draft"))}
+              aria-busy={isBusy("draft")}
+              onClick={() => run("draft", () => setScheduledPostStatusAction(post.id, "draft"))}
               className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-60 dark:border-white/20"
             >
-              Back to draft
+              <PendingLabel
+                pending={isBusy("draft")}
+                label="Back to draft"
+                pendingLabel="Saving…"
+                spinnerClassName={spinner}
+              />
             </button>
           )}
           <button
             type="button"
             disabled={pending}
-            onClick={() => run(() => deleteScheduledPostAction(post.id))}
+            aria-busy={isBusy("delete")}
+            onClick={() => run("delete", () => deleteScheduledPostAction(post.id))}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 disabled:opacity-60 dark:text-red-400"
           >
-            Delete
+            <PendingLabel
+              pending={isBusy("delete")}
+              label="Delete"
+              pendingLabel="Deleting…"
+              spinnerClassName={spinner}
+            />
           </button>
         </div>
       )}

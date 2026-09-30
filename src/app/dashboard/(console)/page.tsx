@@ -39,7 +39,7 @@ export default async function EventPage() {
       <div className="flex min-h-full items-center justify-center px-6 py-12">
         <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-black/10 bg-white px-8 py-10 text-center shadow-sm dark:border-white/10 dark:bg-white/5">
           <span
-            className="flex size-16 items-center justify-center rounded-2xl bg-teal-700/10 text-3xl"
+            className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-3xl"
             aria-hidden
           >
             🗺️
@@ -55,7 +55,7 @@ export default async function EventPage() {
           {isAdmin && (
             <Link
               href="/dashboard/events/new"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-teal-700 px-6 py-3 font-semibold text-white active:scale-[.98]"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
             >
               + New event
             </Link>
@@ -77,7 +77,7 @@ export default async function EventPage() {
             <span
               className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 event.published
-                  ? "bg-teal-700/10 text-teal-700 dark:text-teal-400"
+                  ? "bg-brand-soft text-brand"
                   : "bg-black/5 opacity-60 dark:bg-white/10"
               }`}
             >
@@ -95,9 +95,9 @@ export default async function EventPage() {
       {isAdmin ? (
         <Link
           href={`/dashboard/events/${event.id}`}
-          className="group flex items-center gap-4 rounded-2xl border border-black/10 p-5 transition-colors hover:border-teal-700/50 hover:bg-teal-700/5 dark:border-white/15"
+          className="group flex items-center gap-4 rounded-2xl border border-black/10 p-5 transition-colors hover:border-brand/50 hover:bg-brand-soft dark:border-white/15"
         >
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-teal-700/10 text-3xl" aria-hidden>
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-3xl" aria-hidden>
             🗺️
           </span>
           <span className="min-w-0 flex-1">
@@ -114,7 +114,7 @@ export default async function EventPage() {
         event.published && (
           <Link
             href={`/${team.slug}/${event.slug}`}
-            className="block rounded-xl border border-teal-700/40 px-6 py-3 text-center font-semibold text-teal-700 dark:text-teal-400"
+            className="block rounded-xl border border-brand/40 px-6 py-3 text-center font-semibold text-brand"
           >
             View live map →
           </Link>

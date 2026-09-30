@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 const inputClass =
-  "rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5";
+  "rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5";
 
 /**
  * Invite a teammate by email. No email provider is wired up, so the created
@@ -71,9 +72,10 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-xl bg-teal-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+          aria-busy={pending}
+          className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          {pending ? "Inviting…" : "Invite"}
+          <PendingLabel pending={pending} label="Invite" pendingLabel="Inviting…" />
         </button>
       </div>
 
@@ -84,8 +86,8 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
       )}
 
       {inviteLink && (
-        <div className="flex flex-col gap-2 rounded-xl bg-teal-700/10 p-3">
-          <p className="text-sm font-medium text-teal-700 dark:text-teal-400">
+        <div className="flex flex-col gap-2 rounded-xl bg-brand-soft p-3">
+          <p className="text-sm font-medium text-brand">
             ✓ Invitation created. Send this link to your teammate:
           </p>
           <div className="flex items-stretch gap-2">
@@ -95,7 +97,7 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
             <button
               type="button"
               onClick={copy}
-              className="shrink-0 rounded-lg bg-teal-700 px-3 text-xs font-semibold text-white active:scale-95"
+              className="shrink-0 rounded-lg bg-brand px-3 text-xs font-semibold text-brand-fg active:scale-95"
             >
               {copied ? "✓ Copied" : "Copy"}
             </button>

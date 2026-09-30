@@ -14,7 +14,7 @@ export function SectionPlaceholder({
 }) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-6 py-20 text-center">
-      <span className="flex size-16 items-center justify-center rounded-2xl bg-teal-700/10 text-3xl" aria-hidden>
+      <span className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-3xl" aria-hidden>
         {icon}
       </span>
       <div className="space-y-2">

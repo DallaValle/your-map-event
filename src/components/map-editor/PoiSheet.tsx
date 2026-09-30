@@ -8,6 +8,7 @@ import { POI_ICONS, type LatLng, type PoiData } from "@/components/map/types";
 import type { ActivityDTO } from "@/lib/activity";
 import { PoiScheduleSection } from "./PoiScheduleSection";
 import type { ActionState } from "@/actions/types";
+import { PendingLabel } from "@/components/ui/Spinner";
 
 export type PoiSheetMode =
   | { type: "create" }
@@ -105,7 +106,7 @@ export function PoiSheet({
   }
 
   const inputClass =
-    "rounded-xl border border-black/15 px-3 py-2.5 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5";
+    "rounded-xl border border-black/15 px-3 py-2.5 text-base outline-brand dark:border-white/20 dark:bg-white/5";
 
   return (
     <div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-[1100] mx-auto max-w-md">
@@ -153,7 +154,7 @@ export function PoiSheet({
                   onClick={() => setIcon(emoji)}
                   className={`flex size-9 items-center justify-center rounded-full border text-lg ${
                     icon === emoji
-                      ? "border-teal-700 bg-teal-700/15"
+                      ? "border-brand bg-brand-soft"
                       : "border-black/10 dark:border-white/15"
                   }`}
                 >
@@ -230,7 +231,7 @@ export function PoiSheet({
               <button
                 type="button"
                 onClick={() => setShowPhoto(true)}
-                className="self-start text-sm font-semibold text-teal-700 dark:text-teal-400"
+                className="self-start text-sm font-semibold text-brand"
               >
                 + Add photo
               </button>
@@ -249,17 +250,23 @@ export function PoiSheet({
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
+                aria-busy={deleting}
                 className="rounded-xl border border-red-300 px-4 py-3 font-semibold text-red-600 disabled:opacity-60 dark:border-red-900 dark:text-red-400"
               >
-                {deleting ? "…" : "Delete"}
+                <PendingLabel pending={deleting} label="Delete" pendingLabel="Deleting…" />
               </button>
             )}
             <button
               type="submit"
               disabled={pending}
-              className="flex-1 rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+              aria-busy={pending}
+              className="flex-1 rounded-xl bg-brand px-5 py-3 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
             >
-              {pending ? "Saving…" : isEdit ? "Save" : "Add point"}
+              <PendingLabel
+                pending={pending}
+                label={isEdit ? "Save" : "Add point"}
+                pendingLabel="Saving…"
+              />
             </button>
           </div>
         </form>

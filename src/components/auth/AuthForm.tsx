@@ -4,6 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { BrandMark } from "@/components/nav/BrandMark";
+import { SiteFooter } from "@/components/nav/SiteFooter";
+import { PendingLabel } from "@/components/ui/Spinner";
+import { syncThemeCookieAction } from "@/actions/settings";
 
 /**
  * Shared sign-in / sign-up form. Kept as one component because the two flows
@@ -78,6 +82,7 @@ export function AuthForm({
       // Saving credentials is best-effort; never block the login on it.
     }
 
+    await syncThemeCookieAction();
     router.push(redirectTo);
     router.refresh();
   }
@@ -93,12 +98,11 @@ export function AuthForm({
   const title = mode === "sign-up" ? "Create your account" : "Welcome back";
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-6 px-6 py-12">
-      <div className="space-y-1 text-center">
-        <span className="text-4xl" aria-hidden>
-          🗺️
-        </span>
-        <h1 className="text-2xl font-bold">{title}</h1>
+    <div className="flex min-h-dvh flex-col">
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-12">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <BrandMark size={56} />
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
       </div>
 
       {/* method="post" keeps browser password heuristics happy even though
@@ -111,7 +115,7 @@ export function AuthForm({
               name="name"
               required
               autoComplete="name"
-              className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+              className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
             />
           </label>
         )}
@@ -126,7 +130,7 @@ export function AuthForm({
             // save/autofill prompt — "email" alone is often ignored.
             autoComplete="username"
             inputMode="email"
-            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -138,7 +142,7 @@ export function AuthForm({
             minLength={8}
             defaultValue={devDefaults?.password}
             autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
-            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+            className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
           />
         </label>
 
@@ -148,7 +152,7 @@ export function AuthForm({
               type="checkbox"
               name="rememberMe"
               defaultChecked
-              className="size-5 accent-teal-700"
+              className="size-5 accent-brand"
             />
             Remember me
           </label>
@@ -163,13 +167,14 @@ export function AuthForm({
         <button
           type="submit"
           disabled={pending}
-          className="mt-1 rounded-xl bg-teal-700 px-6 py-3.5 font-semibold text-white disabled:opacity-60 active:scale-[.98]"
+          aria-busy={pending}
+          className="mt-1 rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          {pending
-            ? "Please wait…"
-            : mode === "sign-up"
-              ? "Create account"
-              : "Sign in"}
+          <PendingLabel
+            pending={pending}
+            label={mode === "sign-up" ? "Create account" : "Sign in"}
+            pendingLabel="Please wait…"
+          />
         </button>
       </form>
 
@@ -194,19 +199,21 @@ export function AuthForm({
         {mode === "sign-up" ? (
           <>
             Already have an account?{" "}
-            <Link href="/sign-in" className="font-semibold text-teal-700 dark:text-teal-400">
+            <Link href="/sign-in" className="font-semibold text-brand">
               Sign in
             </Link>
           </>
         ) : (
           <>
             New here?{" "}
-            <Link href="/sign-up" className="font-semibold text-teal-700 dark:text-teal-400">
+            <Link href="/sign-up" className="font-semibold text-brand">
               Create an account
             </Link>
           </>
         )}
       </p>
     </main>
+    <SiteFooter />
+    </div>
   );
 }

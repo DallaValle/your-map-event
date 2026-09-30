@@ -20,6 +20,7 @@ import { PoiSheet, type PoiSheetMode } from "./PoiSheet";
 import { ShareCard } from "@/components/share/ShareCard";
 import { isScheduled, type ActivityDTO } from "@/lib/activity";
 import { formatRange } from "@/lib/schedule-time";
+import { PendingLabel, Spinner } from "@/components/ui/Spinner";
 
 export interface EditorMapData {
   id: string;
@@ -47,7 +48,7 @@ const clampZoom = (z: number) =>
   Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z)));
 
 const inputClass =
-  "rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5";
+  "rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5";
 
 /**
  * Single-page map editor. Everything lives in one scroll: the map stays at
@@ -280,7 +281,10 @@ export function MapEditor({
                 saveStatus === "error" ? "text-red-600 dark:text-red-400" : "opacity-60"
               }`}
             >
-              {statusLabel[saveStatus] || `/${teamSlug}/${map.slug}`}
+              <span className="inline-flex items-center gap-1.5">
+                {saveStatus === "saving" ? <Spinner className="size-3" /> : null}
+                {statusLabel[saveStatus] || `/${teamSlug}/${map.slug}`}
+              </span>
             </p>
           </div>
           {map.published ? (
@@ -309,13 +313,18 @@ export function MapEditor({
             type="button"
             onClick={togglePublished}
             disabled={publishPending}
+            aria-busy={publishPending}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60 ${
               map.published
-                ? "bg-teal-700 text-white"
+                ? "bg-brand text-brand-fg"
                 : "border border-black/15 dark:border-white/20"
             }`}
           >
-            {publishPending ? "…" : map.published ? "Live ✓ - Unpublish" : "Publish"}
+            <PendingLabel
+              pending={publishPending}
+              label={map.published ? "Live ✓ - Unpublish" : "Publish"}
+              pendingLabel="Saving…"
+            />
           </button>
         </div>
       </header>
@@ -333,7 +342,7 @@ export function MapEditor({
           <div
             className={`relative mx-auto aspect-[390/844] h-[58dvh] max-w-full overflow-hidden rounded-2xl border shadow-sm lg:h-full ${
               bounds
-                ? "border-teal-600/70 ring-2 ring-teal-600/40"
+                ? "border-brand/70 ring-2 ring-brand/40"
                 : "border-black/10 dark:border-white/15"
             }`}
           >
@@ -360,8 +369,8 @@ export function MapEditor({
             so a dashed frame just inside the card edges marks the border. */}
         {bounds && (
           <>
-            <div className="pointer-events-none absolute inset-1.5 z-[500] rounded-xl border-2 border-dashed border-teal-500/90" />
-            <span className="pointer-events-none absolute right-3 top-3 z-[500] rounded-full bg-teal-700 px-2.5 py-1 text-[10px] font-semibold text-white shadow">
+            <div className="pointer-events-none absolute inset-1.5 z-[500] rounded-xl border-2 border-dashed border-brand/90" />
+            <span className="pointer-events-none absolute right-3 top-3 z-[500] rounded-full bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-fg shadow">
               🔒 View locked
             </span>
           </>
@@ -437,8 +446,8 @@ export function MapEditor({
                   onClick={() => setMapLayout(id)}
                   className={`rounded-xl border px-3 py-3 text-left transition-colors ${
                     selected
-                      ? "border-teal-700 bg-teal-700/10 ring-1 ring-teal-700/40 dark:border-teal-400"
-                      : "border-black/10 hover:border-black/25 dark:border-white/15 dark:hover:border-white/30"
+                      ? "border-brand bg-brand-soft ring-1 ring-brand/40"
+                      : "border-line hover:border-foreground/30"
                   }`}
                 >
                   <span className="block text-sm font-semibold">{option.label}</span>
@@ -456,8 +465,8 @@ export function MapEditor({
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold">Attendee view lock</h2>
           {bounds ? (
-            <div className="flex items-center justify-between gap-2 rounded-xl bg-teal-700/10 px-4 py-3 text-sm">
-              <span className="text-teal-700 dark:text-teal-400">
+            <div className="flex items-center justify-between gap-2 rounded-xl bg-brand-soft px-4 py-3 text-sm">
+              <span className="text-brand">
                 🔒 Locked for attendees - borders, orientation and zoom stay
                 as framed. You can still zoom here to place points.
               </span>
@@ -487,8 +496,8 @@ export function MapEditor({
               onClick={togglePlacing}
               className={`rounded-full px-4 py-2 text-sm font-semibold active:scale-[.98] ${
                 placing
-                  ? "bg-teal-700/15 text-teal-700 dark:text-teal-400"
-                  : "bg-teal-700 text-white"
+                  ? "bg-brand-soft text-brand"
+                  : "bg-brand text-brand-fg"
               }`}
             >
               {placing ? "✓ Done adding" : "+ Add points"}
@@ -524,7 +533,7 @@ export function MapEditor({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                     ) : (
-                      <span className="flex size-10 items-center justify-center rounded-lg bg-teal-700/10">
+                      <span className="flex size-10 items-center justify-center rounded-lg bg-brand-soft">
                         {poi.icon ?? "📌"}
                       </span>
                     )}
@@ -568,7 +577,7 @@ export function MapEditor({
           {map.published && (
             <Link
               href={`/${teamSlug}/${map.slug}`}
-              className="block rounded-xl border border-teal-700/40 px-6 py-3 text-center font-semibold text-teal-700 dark:text-teal-400"
+              className="block rounded-xl border border-brand/40 px-6 py-3 text-center font-semibold text-brand"
             >
               View live map →
             </Link>

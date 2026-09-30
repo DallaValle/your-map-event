@@ -93,13 +93,13 @@ export function GeocodeSearch({
           }}
           placeholder={placeholder}
           aria-label="Search for a place"
-          className="min-w-0 flex-1 rounded-xl border border-black/15 px-4 py-3 text-base outline-teal-700 dark:border-white/20 dark:bg-white/5"
+          className="min-w-0 flex-1 rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
         />
         <button
           type="button"
           onClick={search}
           disabled={loading}
-          className="shrink-0 rounded-xl bg-teal-700 px-4 py-3 font-semibold text-white disabled:opacity-60"
+          className="shrink-0 rounded-xl bg-brand px-4 py-3 font-semibold text-brand-fg disabled:opacity-60"
         >
           {loading ? "…" : "🔍"}
         </button>
