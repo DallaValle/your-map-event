@@ -140,6 +140,10 @@ export default function PublicMap({
   });
   const onGeoChange = useCallback((state: GeoState) => setGeo(state), []);
   const onView = useCallback((next: MapView) => setView(next), []);
+  const registerMarker = useCallback((id: string, marker: L.Marker | null) => {
+    if (marker) markerRefs.current.set(id, marker);
+    else markerRefs.current.delete(id);
+  }, []);
 
   useEffect(() => {
     if (!offMapNotice) return;
@@ -231,10 +235,7 @@ export default function PublicMap({
           <PoiMarkers
             pois={pois}
             locked={locked}
-            registerMarker={(id, marker) => {
-              if (marker) markerRefs.current.set(id, marker);
-              else markerRefs.current.delete(id);
-            }}
+            registerMarker={registerMarker}
           />
           <GeolocateLayer onChange={onGeoChange} maxBounds={maxBounds} />
           <CompassControl className="m-3" />
