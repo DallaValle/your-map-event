@@ -16,7 +16,7 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
       type="button"
       onClick={copy}
       aria-label={label}
-      className="shrink-0 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
+      className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-brand-fg active:scale-95"
     >
       {copied ? "✓ Copied" : "Copy"}
     </button>
@@ -53,8 +53,8 @@ function Snippet({ title, hint, value, multiline }: { title: string; hint?: stri
       </div>
       {hint && <p className="text-xs opacity-60">{hint}</p>}
       <pre
-        className={`overflow-x-auto rounded-xl bg-black/5 px-3 py-2.5 text-xs leading-relaxed dark:bg-white/5 ${
-          multiline ? "" : "whitespace-pre"
+        className={`overflow-x-auto rounded-xl bg-surface px-3 py-2.5 text-xs leading-relaxed ${
+          multiline ? "" : "whitespace-pre-wrap break-all"
         }`}
       >
         <code>{value}</code>
