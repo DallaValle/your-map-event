@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { UploadButton } from "@/lib/uploadthing";
-import "@uploadthing/react/styles.css";
 
 /**
  * Image input that adapts to the deployment: with an UploadThing token the

@@ -54,6 +54,18 @@ test.describe("console nav + empty event state", () => {
     await expect(spinner).toHaveCount(0);
   });
 
+  test("footer keeps its desktop links on pages with an image upload", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "tagline and Team link are desktop-only");
+
+    await signIn(page);
+    // Team renders ImageField; the UploadThing stylesheet used to hide every sm:block here.
+    await page.goto("/dashboard/team");
+
+    const footer = page.locator("footer");
+    await expect(footer.getByText("Maps for live events")).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Team" })).toBeVisible();
+  });
+
   test("empty dashboard is centered when no events exist", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "layout check is desktop-focused");
 
