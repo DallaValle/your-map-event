@@ -107,6 +107,44 @@ test("live map: clicking a point opens a readable popup clear of the header", as
   expect(Math.abs(tipCx - markerCx)).toBeLessThanOrEqual(8);
 });
 
+test("live map: search finds points by name and flies to the match", async ({ page }, testInfo) => {
+  // Same list to fly to popup path as above, which is timing-flaky on mobile.
+  test.skip(testInfo.project.name !== "desktop", "run once");
+  await openLiveMap(page);
+
+  await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+  const search = page.getByRole("searchbox", { name: "Search points" });
+  const results = page.locator("ul li button");
+
+  // Case insensitive, matches anywhere in the name.
+  await search.fill("TOILETS");
+  await expect(results).toHaveCount(2);
+  await expect(page.getByRole("heading", { name: "Points of interest (2 of 10)" })).toBeVisible();
+  await expect(results.nth(0)).toContainText("Toilets North");
+  await expect(results.nth(1)).toContainText("Toilets South");
+
+  await page.getByRole("button", { name: "Clear search" }).click();
+  await expect(search).toHaveValue("");
+  await expect(search).toBeFocused();
+  await expect(results).toHaveCount(10);
+
+  await search.fill("pizza");
+  await expect(results).toHaveCount(0);
+  await expect(page.getByText("No points match “pizza”.")).toBeVisible();
+
+  // Enter opens the first match.
+  await search.fill("beer");
+  await expect(results).toHaveCount(1);
+  await search.press("Enter");
+  await expect(search).toBeHidden();
+  await expect(page.locator(".leaflet-popup")).toContainText("Local craft beer");
+
+  // Reopening starts from the full list.
+  await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+  await expect(page.getByRole("searchbox", { name: "Search points" })).toHaveValue("");
+  await expect(results).toHaveCount(10);
+});
+
 test("live map: an open popup does not blink while the map pans or the location updates", async ({ page, context }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "run once");
   // Every pan and GPS fix re-renders the map; the open bubble must not be re-added or moved.

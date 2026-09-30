@@ -19,6 +19,11 @@ function MapRefCapture({ onMap }: { onMap: (map: L.Map | null) => void }) {
   return null;
 }
 
+/** Case and accent insensitive, so "cafe" finds "Café". */
+function normalize(text: string) {
+  return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+}
+
 interface MapView {
   lat: number;
   lng: number;
@@ -79,8 +84,9 @@ function AttendeeMapBehavior({ onView }: { onView: (view: MapView) => void }) {
 /**
  * Attendee screen: a full-bleed rotatable map framed by a top navigation bar
  * (event logo + name) and a bottom navigation bar (points list, locate,
- * recenter). The points list expands into a sheet above the bottom bar;
- * selecting a point flies the map there and opens its popup. Event borders
+ * recenter). The points list expands into a sheet above the bottom
+ * bar and can be filtered by name; selecting a point flies the map there and
+ * opens its popup. Event borders
  * are a hard limit, not a frozen camera: pan and zoom stay inside them.
  */
 export default function PublicMap({
@@ -130,6 +136,8 @@ export default function PublicMap({
   const [map, setMap] = useState<L.Map | null>(null);
   const markerRefs = useRef(new Map<string, L.Marker>());
   const [listOpen, setListOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const [geo, setGeo] = useState<GeoState>({ status: "idle" });
   const [offMapNotice, setOffMapNotice] = useState(false);
   const [view, setView] = useState<MapView>({
@@ -145,14 +153,22 @@ export default function PublicMap({
     else markerRefs.current.delete(id);
   }, []);
 
+  const needle = normalize(query);
+  const matches = needle ? pois.filter((poi) => normalize(poi.title).includes(needle)) : pois;
+
   useEffect(() => {
     if (!offMapNotice) return;
     const t = window.setTimeout(() => setOffMapNotice(false), 5000);
     return () => window.clearTimeout(t);
   }, [offMapNotice]);
 
-  function goToPoi(poi: PoiData) {
+  function closeList() {
     setListOpen(false);
+    setQuery("");
+  }
+
+  function goToPoi(poi: PoiData) {
+    closeList();
     if (!map) return;
     map.flyTo([poi.lat, poi.lng], Math.max(map.getZoom(), 18));
     // The marker may still be inside a cluster mid-flight; opening after the
@@ -258,26 +274,60 @@ export default function PublicMap({
           <button
             type="button"
             aria-label="Close list"
-            onClick={() => setListOpen(false)}
+            onClick={closeList}
             className="flex-1 bg-black/30"
           />
           <div className="max-h-[65dvh] overflow-y-auto rounded-t-3xl bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl dark:bg-neutral-950">
             <div className="sticky top-0 bg-white/95 px-5 pb-2 pt-3 backdrop-blur dark:bg-neutral-950/95">
               <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Points of interest ({pois.length})</h2>
+                <h2 className="text-lg font-bold">
+                  Points of interest ({needle ? `${matches.length} of ${pois.length}` : pois.length})
+                </h2>
                 <button
                   type="button"
-                  onClick={() => setListOpen(false)}
+                  onClick={closeList}
                   aria-label="Collapse list"
                   className="flex size-9 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
                 >
                   ▼
                 </button>
               </div>
+              {pois.length > 0 && (
+                <div className="relative mt-2">
+                  <input
+                    ref={searchRef}
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && matches[0]) goToPoi(matches[0]);
+                      if (e.key === "Escape") closeList();
+                    }}
+                    placeholder="Search points by name"
+                    aria-label="Search points"
+                    enterKeyHint="go"
+                    autoComplete="off"
+                    className="w-full rounded-xl bg-black/5 py-2.5 pl-4 pr-11 text-base outline-none placeholder:opacity-50 focus:ring-2 focus:ring-brand dark:bg-white/10 [&::-webkit-search-cancel-button]:appearance-none"
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery("");
+                        searchRef.current?.focus();
+                      }}
+                      aria-label="Clear search"
+                      className="absolute inset-y-0 right-1 flex w-10 items-center justify-center opacity-50 hover:opacity-80"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             <ul className="divide-y divide-black/10 px-5 dark:divide-white/15">
-              {pois.map((poi) => (
+              {matches.map((poi) => (
                 <li key={poi.id}>
                   <button
                     type="button"
@@ -303,6 +353,9 @@ export default function PublicMap({
               {pois.length === 0 && (
                 <li className="py-6 text-center text-sm opacity-60">No points of interest yet.</li>
               )}
+              {pois.length > 0 && matches.length === 0 && (
+                <li className="py-6 text-center text-sm opacity-60">No points match “{query.trim()}”.</li>
+              )}
             </ul>
           </div>
         </div>
@@ -316,7 +369,7 @@ export default function PublicMap({
         <div className="flex items-stretch">
           <button
             type="button"
-            onClick={() => setListOpen((open) => !open)}
+            onClick={() => (listOpen ? closeList() : setListOpen(true))}
             aria-expanded={listOpen}
             className={`${navButton} ${listOpen ? "text-brand" : ""}`}
           >
