@@ -30,6 +30,7 @@ the workspace pages:
 | **History** | Post-event archive and analytics - attendance, most-visited points of interest, past editions. *Planned.* |
 | **Team** | Team profile (name, logo, public address) and collaboration: invite teammates by email as Admin or Viewer via a shareable invite link. Admins only. Built today. |
 | **Settings** | Personal user settings. *Planned.* |
+| **AI assistant** | Connect Claude (or any MCP client) with a team token and build an event map from a photo of the printed flyer. Admins manage tokens. Built today. |
 
 **Notifications** live behind the header bell: compose a live announcement for
 the selected event, see what was sent, and an unread count on the bell. The
@@ -152,6 +153,31 @@ Open http://localhost:3000:
 
 The dev accounts are re-created on every server start by
 `src/instrumentation.ts` — see "Auth storage" below for why.
+
+## AI assistant (MCP)
+
+The app exposes a remote [MCP](https://modelcontextprotocol.io) server at `/api/mcp/mcp` (Streamable HTTP, stateless, fits Vercel).
+An organizer attaches a photo or PDF of their printed map in Claude, and the model reads it, asks only what is missing, geocodes the venue, and places every point in a few tool calls.
+The server never receives the photo: the client reads it with its own vision and sends pixel positions.
+
+- **Auth:** team API tokens (`yme_…`), created and revoked by admins on **AI assistant** in the dashboard.
+  Only the sha256 hash is stored (`McpToken`), in Postgres rather than Better Auth, so tokens survive in-memory auth restarts.
+  A token reaches every event of its own team and nothing else.
+- **Photo to map:** `set_image_anchors` fits a pixel to lat/lng transform from 2+ landmarks (rotation and scale up to 3 anchors so the third one measures error, least squares affine from 4 when it stays plausible), stores it as a `MapImport`, and reports a leave one out check per anchor (a misread landmark lands far from where the others predict it) plus the bearing that rotates the map like the photo.
+  `add_points` then takes pixel positions, and `place_points_along_street` spreads numbered rows along the real OpenStreetMap street geometry.
+- **Drafts only:** `create_event` makes an unpublished draft. Publishing stays a click in the dashboard.
+- **OSM etiquette:** `geocode` (Nominatim) and `find_street` (Overpass) share one throttled queue (1 request per second), a small cache, and an identifying User-Agent (`OSM_USER_AGENT` in `.env`).
+- The tool registry lives in `src/lib/mcp/tools.ts`; the dashboard page renders the same registry, so the docs never drift.
+
+Connect Claude Code:
+
+```bash
+claude mcp add --transport http your-map-event http://localhost:3000/api/mcp/mcp \
+  --header "Authorization: Bearer yme_…"
+```
+
+Then run the `create_event_from_map_photo` prompt with the flyer attached.
+To browse the tools by hand: `npx @modelcontextprotocol/inspector`.
 
 ## Auth storage: in-memory now, Postgres later
 
@@ -286,14 +312,17 @@ src/
 │   ├── (auth)/              # sign-in / sign-up
 │   ├── api/auth/[...all]/   # Better Auth handler
 │   ├── api/uploadthing/     # upload routes
+│   ├── api/mcp/[transport]/ # MCP endpoint (/api/mcp/mcp), team token auth
 │   ├── manifest.ts | sw.ts | ~offline/
 ├── actions/                 # server actions (all mutations; zod + requireAdmin)
 ├── components/
 │   ├── map/                 # ALL Leaflet code (client-only, behind MapCanvas)
 │   ├── map-editor/          # editor UI (no Leaflet imports)
 │   ├── social/              # campaign planner + poster QR
+│   ├── mcp/                 # AI assistant page: connect, tokens, tool docs
 │   └── ...
 ├── lib/                     # auth, prisma, session helpers, slug rules
+│   └── mcp/                 # MCP tools, token auth, georeferencing, OSM
 ├── instrumentation.ts       # dev seed for in-memory auth
 └── middleware.ts            # optimistic /dashboard gate
 ```

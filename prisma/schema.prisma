@@ -24,6 +24,7 @@ model Team {
   name      String
   logoUrl   String?
   events    Event[]
+  mcpTokens McpToken[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -69,6 +70,7 @@ model Event {
   notifications Notification[]
   activities    Activity[]
   campaign      SocialCampaign?
+  mapImports    MapImport[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -281,4 +283,38 @@ model ScheduledPost {
   updatedAt   DateTime       @updatedAt
 
   @@index([campaignId])
+}
+
+// Team API token for the MCP endpoint. Only the sha256 of the raw token is
+// stored; the raw value is shown once at creation. Lives in Postgres (not the
+// Better Auth adapter) so tokens survive in-memory auth restarts.
+model McpToken {
+  id             String    @id @default(cuid())
+  teamId         String
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name           String
+  tokenHash      String    @unique
+  // Leading characters of the raw token, enough to recognize it in the list.
+  prefix         String
+  createdByEmail String
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([teamId])
+}
+
+// Pixel to lat/lng fit for one event map photo. The MCP endpoint is
+// stateless, so anchors set in one call are reloaded by later calls.
+model MapImport {
+  id          String   @id @default(cuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  imageWidth  Int
+  imageHeight Int
+  anchors     Json
+  transform   Json
+  createdAt   DateTime @default(now())
+
+  @@index([eventId])
 }

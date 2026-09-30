@@ -102,6 +102,12 @@ export function SideNav({
         ]
       : []),
     {
+      href: "/dashboard/ai",
+      label: "AI assistant",
+      icon: "✨",
+      isActive: (p) => p.startsWith("/dashboard/ai"),
+    },
+    {
       href: "/dashboard/settings",
       label: "Settings",
       icon: "⚙️",

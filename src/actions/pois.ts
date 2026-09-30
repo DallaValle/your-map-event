@@ -1,20 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
+import { poiSchema } from "@/lib/event-schemas";
 import type { ActionState } from "./types";
-
-const poiSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(80),
-  description: z.string().trim().max(500).optional(),
-  imageUrl: z.union([z.url(), z.literal("")]).nullish(),
-  // Emoji for the marker; a couple of code points at most.
-  icon: z.string().trim().max(8).optional(),
-  lat: z.coerce.number().min(-90).max(90),
-  lng: z.coerce.number().min(-180).max(180),
-});
 
 function parsePoiForm(formData: FormData) {
   return poiSchema.safeParse({
