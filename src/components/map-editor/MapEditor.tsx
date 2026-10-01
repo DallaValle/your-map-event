@@ -289,11 +289,13 @@ export function MapEditor({
     });
   }
 
+  // Stand number order, the same the attendee list and previous / next use.
+  const ordered = walkOrder(pois);
   const filtered = filter.trim()
-    ? pois.filter((poi) =>
+    ? ordered.filter((poi) =>
         poi.title.toLowerCase().includes(filter.trim().toLowerCase()),
       )
-    : pois;
+    : ordered;
 
   const statusLabel: Record<SaveStatus, string> = {
     idle: "",

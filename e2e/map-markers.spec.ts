@@ -40,7 +40,7 @@ test.describe("map markers", () => {
     const names = markers.getByRole("textbox", { name: "Category name" });
     await expect
       .poll(() => names.evaluateAll((els) => els.map((el) => (el as HTMLInputElement).value)))
-      .toEqual(["Services", "Drinks", "Stages", "Food", "Shops"]);
+      .toEqual(["Services", "Drinks", "Food", "Shops", "Stages"]);
 
     // Renaming saves on its own, like the rest of the editor.
     const drinks = names.nth(1);

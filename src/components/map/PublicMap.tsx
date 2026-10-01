@@ -182,7 +182,8 @@ export default function PublicMap({
   const closeSheet = useCallback(() => onPick([]), [onPick]);
 
   const needle = normalize(query);
-  const matches = needle ? shown.filter((poi) => normalize(poi.title).includes(needle)) : shown;
+  // Listed by stand number like the flyer legend, not by when points were added.
+  const matches = needle ? ordered.filter((poi) => normalize(poi.title).includes(needle)) : ordered;
 
   // The sheet covers the bottom of the map: nudge the chosen point above it.
   const revealAboveSheet = useCallback(

@@ -84,7 +84,8 @@ export function suggestCategories(pois: Pick<PoiData, "icon" | "categoryId">[]):
         count: icons.reduce((sum, [, n]) => sum + n, 0),
       };
     })
-    .sort((a, b) => b.count - a.count);
+    // Ties by name: points created in one batch share a timestamp, so their order is not stable.
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 export const isParking = (icon: string | null) => icon === "🅿️";

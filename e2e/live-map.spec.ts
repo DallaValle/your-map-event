@@ -205,6 +205,10 @@ test("live map: a tap on a crowded row lists every stand under the finger", asyn
     // Zooming past the tile server's last level separates the row and shows codes.
     await page.getByRole("button", { name: "Close" }).click();
     await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+    // Listed by stand number, not by creation order (Charlie was added first).
+    await expect(page.locator("ul li button").nth(0)).toContainText("1. Alpha Wines");
+    await expect(page.locator("ul li button").nth(1)).toContainText("2. Bravo Wines");
+    await expect(page.locator("ul li button").nth(2)).toContainText("3. Charlie Wines");
     await page.locator("ul li button", { hasText: "Alpha Wines" }).click();
     await expect.poll(async () => (await readView(page)).zoom).toBe(19);
     // Keyboard zoom keeps the row centred, unlike a double-click in a corner.
