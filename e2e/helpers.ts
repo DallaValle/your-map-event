@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { prisma } from "../src/lib/prisma";
 
 /** Signs in through the real form, exactly like a user would. */
 export async function signIn(
@@ -29,4 +30,28 @@ export async function openFirstMapEditor(page: Page) {
   await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible({
     timeout: 20_000,
   });
+}
+
+/**
+ * Three wine stands 4.5 m apart on the Lakeside map, like a street of stalls:
+ * pins could never separate them. Returns a cleanup that removes them.
+ */
+export async function addCrowdedStands() {
+  const event = await prisma.event.findFirstOrThrow({ where: { slug: "lakeside-festival-2026" } });
+  const base = { lat: event.centerLat + 0.0005, lng: event.centerLng - 0.0005 };
+  const stands = await prisma.$transaction(
+    ["3. Charlie Wines", "1. Alpha Wines", "2. Bravo Wines"].map((title) =>
+      prisma.pointOfInterest.create({
+        data: {
+          mapId: event.id,
+          title,
+          icon: "🍷",
+          description: "Banco vini.",
+          lat: base.lat - Number(title[0]) * 0.00004,
+          lng: base.lng,
+        },
+      }),
+    ),
+  );
+  return () => prisma.pointOfInterest.deleteMany({ where: { id: { in: stands.map((s) => s.id) } } });
 }

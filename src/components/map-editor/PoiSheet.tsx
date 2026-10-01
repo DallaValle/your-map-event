@@ -110,7 +110,8 @@ export function PoiSheet({
 
   return (
     <div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-[1100] mx-auto max-w-md">
-      <div className="max-h-[82dvh] overflow-y-auto rounded-2xl bg-white/97 p-4 shadow-2xl backdrop-blur dark:bg-neutral-950/97">
+      {/* 15rem = app header + event header above, bottom offset below: the title and ✕ stay visible. */}
+      <div className="max-h-[calc(100dvh-15rem)] overflow-y-auto rounded-2xl bg-white/97 p-4 shadow-2xl backdrop-blur dark:bg-neutral-950/97">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-base font-bold">
             {isEdit ? "Edit point" : "New point"}

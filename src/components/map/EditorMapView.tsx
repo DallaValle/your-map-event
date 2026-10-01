@@ -7,7 +7,7 @@ import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { RotateControl } from "./RotateControl";
 import { ZoomControl } from "./ZoomControl";
 import { useMapControlRef } from "./control-utils";
-import { poiDivIcon } from "./poi-icon";
+import { PoiMarkers } from "./PoiMarkers";
 import type { LatLng, PoiData } from "./types";
 
 export interface MapFocus {
@@ -163,8 +163,9 @@ export default function EditorMapView({
   draftPosition,
   bounds,
   focus = null,
+  selectedPoiId = null,
   onMapClick,
-  onPoiClick,
+  onPoiPick,
   onViewChange,
   onZoomChange,
   onBearingChange,
@@ -183,8 +184,11 @@ export default function EditorMapView({
   bounds?: MapBounds | null;
   /** Imperatively fly the map (geocode search, zoom slider). */
   focus?: MapFocus | null;
+  /** The point open in the form, highlighted on the map. */
+  selectedPoiId?: string | null;
   onMapClick: (position: LatLng) => void;
-  onPoiClick: (poi: PoiData) => void;
+  /** The tapped point, or every point under the finger on a crowded spot. */
+  onPoiPick: (pois: PoiData[]) => void;
   onViewChange?: (center: LatLng) => void;
   onZoomChange?: (zoom: number) => void;
   onBearingChange?: (bearing: number) => void;
@@ -221,17 +225,12 @@ export default function EditorMapView({
           />
         </>
       )}
-      {pois.map((poi) => (
-        <Marker
-          key={poi.id}
-          position={[poi.lat, poi.lng]}
-          icon={poiDivIcon(poi.icon)}
-          // Leaflet 1.9 pans to a focused marker by default; a click must
-          // only open the sheet, never shift the framed view.
-          autoPanOnFocus={false}
-          eventHandlers={{ click: () => onPoiClick(poi) }}
-        />
-      ))}
+      <PoiMarkers
+        pois={pois}
+        selectedId={selectedPoiId}
+        onPick={onPoiPick}
+        pickOnMapClick={false}
+      />
       {draftPosition && (
         <Marker
           position={[draftPosition.lat, draftPosition.lng]}
