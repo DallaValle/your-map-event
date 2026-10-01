@@ -59,12 +59,17 @@ link.
    the venue layout.
 4. **Add points of interest** - click anywhere on the editor map to drop a
    point (or use the ＋ button to type exact coordinates). Each point has a
-   title, optional description and photo. Everything is editable and deletable
-   from the map or the points list.
-5. **Build the schedule** - add activities (name, type, start, end) on a
+   title, optional stand number, category, description and photo. Everything
+   is editable and deletable from the map or the points list.
+   Clicking a crowded spot lists every point under the cursor to pick from.
+5. **Style the markers** - choose whether markers show stand numbers, icons,
+   or both (number when there is one), and whether they use category colors or
+   one brand color. Categories (name, icon, color) start in one click from the
+   icons already on the map, and any point can override its color.
+6. **Build the schedule** - add activities (name, type, start, end) on a
    location in the map editor, or from the timeline library, then drag them
    onto a day/hour slot.
-6. **Publish** - one click flips the event's map live at `/your-team-slug`.
+7. **Publish** - one click flips the event's map live at `/your-team-slug`.
 
 ### 2. Team members (Viewers)
 
@@ -78,8 +83,10 @@ exactly as attendees do - but can't change anything. Only Admins edit.
 2. See the full-screen event map with all points of interest (numbered badges
    like the printed flyer), the team's branding, and, after accepting the browser prompt,
    their **own live position** with an accuracy circle.
-3. Tap the always-visible **points list** to browse everything; picking a
-   point flies the map there and opens its details (photo + description).
+3. Tap the always-visible **points list** to browse, search or filter by
+   category; picking a point flies the map there and opens its details (photo +
+   description) with previous and next stands. A tap on a crowded row lists the
+   points under the finger.
 4. Install it as an app (PWA) if they like; map areas they've viewed keep
    working even when the venue Wi-Fi drops.
 
@@ -89,7 +96,10 @@ The core relation is deliberately simple:
 
 ```
 Team ──< Event ──< PointOfInterest
+             │         ├── PoiCategory.id (optional)
              │         └── Activity.poiId (optional)
+             ├── PoiCategory[] (name, icon, color)
+             ├── markerLabel / markerColor (marker look)
              ├── startTime / endTime (operating window)
              ├── Activity[] (name, type, startTime, endTime)
              ├── Notification (live announcements)
@@ -105,7 +115,11 @@ Team ──< Event ──< PointOfInterest
   campaign). `startTime` / `endTime` are the event's operating window for the
   schedule canvas. Publishing an event puts its map online.
 - A **PointOfInterest** belongs to one event. Activities may pin to a point so
-  the timeline rows match the map.
+  the timeline rows match the map. Its optional `code` is the stand number
+  (falls back to a `12.` title prefix), and `color` overrides its category.
+- A **PoiCategory** is a legend group of one event (name, icon, color). It
+  colors its points and is the filter attendees use; deleting it keeps the
+  points.
 - An **Activity** belongs to one event: `name`, `type` (performance, food, talk,
   workshop, other), optional `startTime` / `endTime` (empty = unscheduled).
 

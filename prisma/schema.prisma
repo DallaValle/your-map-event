@@ -54,6 +54,10 @@ model Event {
   endTime     DateTime?
   // Basemap preset: streets | light | dark | satellite | outdoors
   mapLayout   String            @default("streets")
+  // What a marker shows: auto (number, else icon) | number | icon
+  markerLabel String            @default("auto")
+  // One color for every marker; null colors them by category.
+  markerColor String?
   centerLat   Float
   centerLng   Float
   centerName  String
@@ -73,6 +77,7 @@ model Event {
   activities    Activity[]
   campaign      SocialCampaign?
   mapImports    MapImport[]
+  categories    PoiCategory[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -92,6 +97,13 @@ model PointOfInterest {
   imageUrl    String?
   // Emoji shown on the map marker (defaults to a pin in the UI).
   icon        String?
+  // Stand number or letter printed on the flyer ("12", "C"). Null falls back
+  // to a "12." title prefix.
+  code        String?
+  categoryId  String?
+  category    PoiCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  // Overrides the category color for this one marker.
+  color       String?
   lat         Float
   lng         Float
   activities  Activity[]
@@ -99,6 +111,24 @@ model PointOfInterest {
   updatedAt   DateTime @updatedAt
 
   @@index([mapId])
+  @@index([categoryId])
+}
+
+// Legend group of an event's points ("Wine stands", "Food"), with the icon
+// and color its markers use.
+model PoiCategory {
+  id        String            @id @default(cuid())
+  eventId   String
+  event     Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  icon      String
+  color     String
+  position  Int               @default(0)
+  pois      PointOfInterest[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([eventId])
 }
 
 // Live announcement sent to attendees of one event. Unread state for the

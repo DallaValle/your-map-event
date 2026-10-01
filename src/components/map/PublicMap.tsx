@@ -9,7 +9,7 @@ import { PoiBadge, PoiChooser, PoiDetails } from "./PoiPanels";
 import { walkOrder } from "./poi-badge";
 import { GeolocateLayer, isInsideBounds, type GeoState } from "./GeolocateLayer";
 import { CompassControl } from "./CompassControl";
-import type { LatLng, PoiData } from "./types";
+import { DEFAULT_MARKER_STYLE, type LatLng, type MarkerStyle, type PoiData } from "./types";
 
 /** Hands the Leaflet map instance to overlays living outside the container. */
 function MapRefCapture({ onMap }: { onMap: (map: L.Map | null) => void }) {
@@ -98,6 +98,7 @@ export default function PublicMap({
   bearing = 0,
   layout,
   pois,
+  markerStyle = DEFAULT_MARKER_STYLE,
   maxBounds,
   team,
   eventName,
@@ -113,6 +114,8 @@ export default function PublicMap({
   /** Basemap layout saved on the event. */
   layout?: string | null;
   pois: PoiData[];
+  /** Numbers or icons, colors and categories chosen by the admin. */
+  markerStyle?: MarkerStyle;
   maxBounds?: MapBounds | null;
   team: { name: string };
   /** Shown in the top bar alongside the event logo. */
@@ -151,8 +154,25 @@ export default function PublicMap({
   });
   const onGeoChange = useCallback((state: GeoState) => setGeo(state), []);
   const onView = useCallback((next: MapView) => setView(next), []);
-  const ordered = useMemo(() => walkOrder(pois), [pois]);
-  const selected = selectedId ? pois.find((poi) => poi.id === selectedId) ?? null : null;
+  // A category chip narrows both the map and the list until it is cleared.
+  const [shownCategoryId, setShownCategoryId] = useState<string | null>(null);
+  const usedCategories = useMemo(
+    () =>
+      markerStyle.categories
+        .map((category) => ({
+          category,
+          count: pois.filter((poi) => poi.categoryId === category.id).length,
+        }))
+        .filter((c) => c.count > 0),
+    [markerStyle.categories, pois],
+  );
+  const shownCategory = usedCategories.find((c) => c.category.id === shownCategoryId)?.category;
+  const shown = useMemo(
+    () => (shownCategory ? pois.filter((poi) => poi.categoryId === shownCategory.id) : pois),
+    [pois, shownCategory],
+  );
+  const ordered = useMemo(() => walkOrder(shown), [shown]);
+  const selected = selectedId ? shown.find((poi) => poi.id === selectedId) ?? null : null;
   const selectedIndex = selected ? ordered.indexOf(selected) : -1;
 
   const onPick = useCallback((hits: PoiData[]) => {
@@ -162,7 +182,7 @@ export default function PublicMap({
   const closeSheet = useCallback(() => onPick([]), [onPick]);
 
   const needle = normalize(query);
-  const matches = needle ? pois.filter((poi) => normalize(poi.title).includes(needle)) : pois;
+  const matches = needle ? shown.filter((poi) => normalize(poi.title).includes(needle)) : shown;
 
   // The sheet covers the bottom of the map: nudge the chosen point above it.
   const revealAboveSheet = useCallback(
@@ -268,9 +288,23 @@ export default function PublicMap({
         data-zoom={view.zoom}
         data-bearing={view.bearing}
       >
-        {banner && (
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-[1050] p-3">
-            <div className="pointer-events-auto">{banner}</div>
+        {(banner || shownCategory) && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-[1050] flex flex-col items-center gap-2 p-3">
+            {banner && <div className="pointer-events-auto w-full">{banner}</div>}
+            {shownCategory && (
+              <button
+                type="button"
+                onClick={() => setShownCategoryId(null)}
+                className="pointer-events-auto flex items-center gap-2 rounded-full bg-neutral-900 py-1.5 pl-3 pr-2 text-sm font-medium text-white shadow-lg dark:bg-white dark:text-neutral-900"
+              >
+                <span aria-hidden className="size-2.5 rounded-full" style={{ background: shownCategory.color }} />
+                Only {shownCategory.icon} {shownCategory.name}
+                <span className="flex size-5 items-center justify-center rounded-full bg-white/20 text-xs dark:bg-black/10" aria-hidden>
+                  ✕
+                </span>
+                <span className="sr-only">Show all points</span>
+              </button>
+            )}
           </div>
         )}
         <LeafletMap
@@ -284,7 +318,7 @@ export default function PublicMap({
         >
           <MapRefCapture onMap={setMap} />
           <AttendeeMapBehavior onView={onView} />
-          <PoiMarkers pois={pois} selectedId={selectedId} onPick={onPick} />
+          <PoiMarkers pois={shown} style={markerStyle} selectedId={selectedId} onPick={onPick} />
           <GeolocateLayer onChange={onGeoChange} maxBounds={maxBounds} />
           <CompassControl className="m-3" />
         </LeafletMap>
@@ -300,6 +334,7 @@ export default function PublicMap({
         )}
         {selected && (
           <PoiDetails
+            style={markerStyle}
             ref={sheetRef}
             poi={selected}
             prev={ordered[selectedIndex - 1]}
@@ -309,7 +344,13 @@ export default function PublicMap({
           />
         )}
         {choices && (
-          <PoiChooser ref={sheetRef} pois={choices} onPick={(poi) => onPick([poi])} onClose={closeSheet} />
+          <PoiChooser
+            ref={sheetRef}
+            pois={choices}
+            style={markerStyle}
+            onPick={(poi) => onPick([poi])}
+            onClose={closeSheet}
+          />
         )}
       </div>
 
@@ -327,7 +368,7 @@ export default function PublicMap({
               <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold">
-                  Points of interest ({needle ? `${matches.length} of ${pois.length}` : pois.length})
+                  Points of interest ({matches.length < pois.length ? `${matches.length} of ${pois.length}` : pois.length})
                 </h2>
                 <button
                   type="button"
@@ -370,6 +411,32 @@ export default function PublicMap({
                   )}
                 </div>
               )}
+              {usedCategories.length > 0 && (
+                <div role="group" aria-label="Categories" className="-mx-5 mt-2 flex gap-2 overflow-x-auto px-5 pb-1">
+                  {[{ category: null, count: pois.length }, ...usedCategories].map(({ category, count }) => {
+                    const on = (category?.id ?? null) === (shownCategory?.id ?? null);
+                    return (
+                      <button
+                        key={category?.id ?? "all"}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setShownCategoryId(category?.id ?? null)}
+                        className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
+                          on
+                            ? "border-transparent bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                            : "border-black/10 dark:border-white/15"
+                        }`}
+                      >
+                        {category && (
+                          <span aria-hidden className="size-2.5 rounded-full" style={{ background: category.color }} />
+                        )}
+                        {category ? `${category.icon} ${category.name}` : "All"}
+                        <span className="tabular-nums opacity-50">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <ul className="divide-y divide-black/10 px-5 dark:divide-white/15">
               {matches.map((poi) => (
@@ -383,7 +450,7 @@ export default function PublicMap({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                     ) : (
-                      <PoiBadge poi={poi} />
+                      <PoiBadge poi={poi} style={markerStyle} />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{poi.title}</p>

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { MAX_ACTIVITY_DAYS, parseWallClock, toLocalInputValue } from "@/lib/schedule-time";
 import { mapViewSchema, NEW_EVENT_MAP_DEFAULTS, poiSchema, uniqueMapSlug } from "@/lib/event-schemas";
+import { findOrCreateCategory } from "@/lib/categories";
 import type { McpContext } from "./auth";
 import { ToolError } from "./errors";
 import {
@@ -232,6 +233,8 @@ export async function updateEvent(ctx: McpContext, input: UpdateEventInput) {
       ...(input.description !== undefined ? { description: input.description?.trim() || null } : {}),
       ...view.data,
       ...window,
+      ...(input.markerLabel ? { markerLabel: input.markerLabel } : {}),
+      ...(input.markerColor !== undefined ? { markerColor: input.markerColor } : {}),
     },
   });
   revalidateEvent(event.team.slug, updated);
@@ -243,6 +246,8 @@ export async function updateEvent(ctx: McpContext, input: UpdateEventInput) {
     zoom: updated.zoom,
     bearing: updated.bearing,
     mapLayout: updated.mapLayout,
+    markerLabel: updated.markerLabel,
+    markerColor: updated.markerColor,
     bounds:
       updated.boundsSWLat === null
         ? null
@@ -331,12 +336,20 @@ export async function addPoints(ctx: McpContext, input: AddPointsInput) {
     const pos = resolvePosition(p, transform, `points[${i}]`);
     const parsed = poiSchema.safeParse({ ...p, ...pos, icon: p.icon ?? input.icon });
     if (!parsed.success) throw new ToolError(`points[${i}] ${firstIssue(parsed.error)}`);
-    return parsed.data;
+    return { ...parsed.data, category: p.category ?? input.category };
   });
   return upsertPoints(event, rows, ctx);
 }
 
-type PoiRow = { title: string; description?: string; icon?: string; lat: number; lng: number };
+type PoiRow = {
+  title: string;
+  description?: string;
+  icon?: string;
+  code?: string | null;
+  category?: string;
+  lat: number;
+  lng: number;
+};
 
 /** Upsert by title within the event so a retried batch never duplicates. */
 async function upsertPoints(
@@ -356,11 +369,20 @@ async function upsertPoints(
       const byTitle = new Map<string, string>();
       for (const poi of existing) if (!byTitle.has(poi.title)) byTitle.set(poi.title, poi.id);
 
+      // One lookup per legend name; a new category takes its first point's icon.
+      const categoryIds = new Map<string, string>();
+      for (const row of rows) {
+        if (!row.category || categoryIds.has(row.category.toLowerCase())) continue;
+        const found = await findOrCreateCategory(event.id, row.category, row.icon ?? null, tx);
+        categoryIds.set(row.category.toLowerCase(), found.id);
+      }
+
       const out = [];
       for (const row of rows) {
         const position = { lat: coord(row.lat), lng: coord(row.lng) };
         const id = byTitle.get(row.title);
         // Updates only touch what was sent: a move keeps edits made in the editor.
+        const categoryId = row.category ? categoryIds.get(row.category.toLowerCase()) : undefined;
         const poi = id
           ? await tx.pointOfInterest.update({
               where: { id },
@@ -368,6 +390,8 @@ async function upsertPoints(
                 ...position,
                 ...(row.description ? { description: row.description } : {}),
                 ...(row.icon ? { icon: row.icon } : {}),
+                ...(row.code ? { code: row.code } : {}),
+                ...(categoryId ? { categoryId } : {}),
               },
             })
           : await tx.pointOfInterest.create({
@@ -376,6 +400,8 @@ async function upsertPoints(
                 title: row.title,
                 description: row.description || null,
                 icon: row.icon || null,
+                code: row.code || null,
+                categoryId: categoryId ?? null,
                 ...position,
               },
             });
@@ -434,7 +460,7 @@ export async function placePointsAlongStreet(ctx: McpContext, input: PlaceAlongS
   const rows = input.points.map((p, i) => {
     const parsed = poiSchema.safeParse({ ...p, icon: p.icon ?? input.icon, ...placed.points[i] });
     if (!parsed.success) throw new ToolError(`points[${i}] ${firstIssue(parsed.error)}`);
-    return parsed.data;
+    return { ...parsed.data, category: p.category ?? input.category };
   });
   const result = await upsertPoints(event, rows, ctx);
   const snap = Math.max(placed.startSnapMeters, placed.endSnapMeters);
@@ -456,7 +482,7 @@ export async function listPoints(ctx: McpContext, input: EventRefInput) {
   const pois = await prisma.pointOfInterest.findMany({
     where: { mapId: event.id },
     orderBy: { createdAt: "asc" },
-    include: { _count: { select: { activities: true } } },
+    include: { _count: { select: { activities: true } }, category: { select: { name: true } } },
   });
   return {
     eventId: event.id,
@@ -465,6 +491,8 @@ export async function listPoints(ctx: McpContext, input: EventRefInput) {
       id: p.id,
       title: p.title,
       icon: p.icon,
+      ...(p.code ? { code: p.code } : {}),
+      ...(p.category ? { category: p.category.name } : {}),
       lat: p.lat,
       lng: p.lng,
       ...(p.description ? { description: p.description } : {}),
@@ -487,9 +515,17 @@ export async function updatePoint(ctx: McpContext, input: UpdatePointInput) {
     title: input.title ?? poi.title,
     description: input.description ?? poi.description ?? undefined,
     icon: input.icon ?? poi.icon ?? undefined,
+    code: input.code === undefined ? poi.code : input.code,
+    color: input.color === undefined ? poi.color : input.color,
     ...pos,
   });
   if (!parsed.success) throw new ToolError(firstIssue(parsed.error));
+  const categoryId =
+    input.category === undefined
+      ? poi.categoryId
+      : input.category === null
+        ? null
+        : (await findOrCreateCategory(event.id, input.category, parsed.data.icon || null)).id;
 
   const saved = await prisma.pointOfInterest.update({
     where: { id: poi.id },
@@ -497,6 +533,9 @@ export async function updatePoint(ctx: McpContext, input: UpdatePointInput) {
       title: parsed.data.title,
       description: parsed.data.description || null,
       icon: parsed.data.icon || null,
+      code: parsed.data.code ?? null,
+      color: parsed.data.color ?? null,
+      categoryId,
       lat: coord(parsed.data.lat),
       lng: coord(parsed.data.lng),
     },

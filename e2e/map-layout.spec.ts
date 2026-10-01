@@ -8,6 +8,8 @@ import { prisma } from "../src/lib/prisma";
 test("map layout can be changed and is saved", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "run once");
 
+  // Start from streets so the click is a real change, whatever an earlier run left.
+  await prisma.event.updateMany({ where: { team: { slug: "demo-team" } }, data: { mapLayout: "streets" } });
   await signIn(page);
   // Sidebar "Map editor" (overview also has a Map editor card).
   await page.locator("aside").getByRole("link", { name: "Map editor" }).click();
@@ -32,4 +34,5 @@ test("map layout can be changed and is saved", async ({ page }, testInfo) => {
     orderBy: { updatedAt: "desc" },
   });
   expect(event).toBeTruthy();
+  await prisma.event.updateMany({ where: { team: { slug: "demo-team" } }, data: { mapLayout: "streets" } });
 });

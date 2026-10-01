@@ -5,6 +5,7 @@ import {
   MAP_LAYOUT_IDS,
   type MapLayoutId,
 } from "@/components/map/map-layouts";
+import { MARKER_LABELS } from "@/components/map/types";
 
 // Shared by the server actions and the MCP tools. Lives outside "use server"
 // files because those may only export async actions.
@@ -88,6 +89,14 @@ export const NEW_EVENT_MAP_DEFAULTS = {
   mapLayout: DEFAULT_MAP_LAYOUT,
 } as const;
 
+const hexColor = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-f]{6}$/i, "Pick a color like #8a1538");
+/** Empty form fields mean "not set" and clear the stored value. */
+const blankToNull = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((v) => (v === "" ? null : v), schema.nullish());
+
 export const poiSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(80),
   description: z.string().trim().max(500).optional(),
@@ -96,4 +105,19 @@ export const poiSchema = z.object({
   icon: z.string().trim().max(8).optional(),
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
+  // Stand number or letter as printed on the flyer.
+  code: blankToNull(z.string().trim().max(6, "Keep the number short, like 12 or GS")),
+  categoryId: blankToNull(z.string().min(1)),
+  color: blankToNull(hexColor),
+});
+
+export const categorySchema = z.object({
+  name: z.string().trim().min(1, "Name the category").max(40),
+  icon: z.string().trim().min(1, "Pick an icon").max(8),
+  color: hexColor,
+});
+
+export const markerStyleSchema = z.object({
+  markerLabel: z.enum(MARKER_LABELS),
+  markerColor: blankToNull(hexColor),
 });

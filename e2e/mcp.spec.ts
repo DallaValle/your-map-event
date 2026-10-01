@@ -156,8 +156,8 @@ test.describe("AI assistant (MCP)", () => {
       eventId,
       importId: anchored.data.importId,
       points: [
-        { title: "D. Stand gastronomico", icon: "🍝", x: 500, y: 400 },
-        { title: "1. Info point", icon: "ℹ️", description: "Maps and wristbands", x: 100, y: 100 },
+        { title: "D. Stand gastronomico", icon: "🍝", category: "Ristoro", x: 500, y: 400 },
+        { title: "1. Info point", icon: "ℹ️", category: "Servizi", description: "Maps and wristbands", x: 100, y: 100 },
       ],
     });
     expect(added.isError).toBe(false);
@@ -193,6 +193,16 @@ test.describe("AI assistant (MCP)", () => {
     expect(listed.data.count).toBe(4);
     const info = listed.data.points.find((p: { title: string }) => p.title === "1. Info point");
     expect(info.description).toBe("Maps and wristbands");
+    expect(info.category).toBe("Servizi");
+
+    // Legend names become categories once, with the icon of their first point.
+    const categories = await prisma.poiCategory.findMany({ where: { eventId }, orderBy: { position: "asc" } });
+    expect(categories.map((c) => [c.name, c.icon])).toEqual([
+      ["Ristoro", "🍝"],
+      ["Servizi", "ℹ️"],
+    ]);
+    const styled = await callTool(request, token, "update_event", { eventId, markerLabel: "number" });
+    expect(styled.data.markerLabel).toBe("number");
     const parallelIds = listed.data.points
       .filter((p: { title: string }) => p.title.endsWith("Parallel stand"))
       .map((p: { id: string }) => p.id);
