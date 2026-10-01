@@ -64,8 +64,11 @@ test.describe("schedule", () => {
 
     await page.locator("aside").getByRole("link", { name: "Schedule" }).click();
     await expect(page.getByRole("heading", { name: "Timeline Builder" })).toBeVisible();
-    await expect(page.getByRole("article").filter({ hasText: title })).toBeVisible();
-    await expect(page.getByRole("article").filter({ hasText: title })).toContainText("11:00 - 11:45");
+    const block = page.getByRole("article").filter({ hasText: title });
+    await expect(block).toBeVisible();
+    // 45 min is a short card at the default zoom: it shows the start, the title holds the range.
+    await expect(block).toContainText("11:00");
+    await expect(block).toHaveAttribute("title", `${title} · 11:00 - 11:45`);
   });
 
   test("viewer can read the schedule but cannot edit", async ({ page }, testInfo) => {

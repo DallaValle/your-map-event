@@ -604,9 +604,10 @@ export function TimelineBuilder({
                               style={{ left, width, height: ROW_H - 16 }}
                             >
                               <h3 className="truncate text-sm font-semibold">{activity.name}</h3>
-                              {!compact && (
-                                <p className="truncate text-[11px] opacity-70">{range}</p>
-                              )}
+                              {/* Short acts keep their start time; the full range is in the title. */}
+                              <p className="truncate text-[11px] tabular-nums opacity-70">
+                                {compact ? formatClock(activity.startTime!) : range}
+                              </p>
                               {live && (
                                 <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
                                   ● Live
