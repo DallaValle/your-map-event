@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import { cache } from "react";
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
@@ -11,7 +12,8 @@ interface PageProps {
   params: Promise<{ teamSlug: string; mapSlug: string }>;
 }
 
-async function getPublicMap(teamSlug: string, mapSlug: string) {
+// Cached per request: metadata, viewport and the page all read the same event.
+const getPublicMap = cache(async (teamSlug: string, mapSlug: string) => {
   const team = await prisma.team.findUnique({ where: { slug: teamSlug } });
   if (!team) return null;
   const map = await prisma.event.findUnique({
@@ -23,6 +25,13 @@ async function getPublicMap(teamSlug: string, mapSlug: string) {
   });
   if (!map || !map.published) return null;
   return { team, map };
+});
+
+// The browser status bar matches the organizer's bar color on phones.
+export async function generateViewport({ params }: PageProps): Promise<Viewport> {
+  const { teamSlug, mapSlug } = await params;
+  const barColor = (await getPublicMap(teamSlug, mapSlug))?.map.barColor;
+  return barColor ? { themeColor: barColor } : {};
 }
 
 // SEO for the attendee page: this is the link shared on posters and socials.
@@ -75,6 +84,7 @@ export default async function PublicMapPage({ params }: PageProps) {
         eventName={map.name}
         eventSubtitle={map.subtitle}
         eventLogoUrl={map.logoUrl}
+        barColor={map.barColor}
         team={{ name: team.name }}
         maxBounds={
           map.boundsSWLat != null
