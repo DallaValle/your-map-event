@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { setActiveEventAction } from "@/actions/active-event";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -28,6 +29,7 @@ export function EventSwitcher({
   activeEventId: string | null;
   isAdmin: boolean;
 }) {
+  const t = useTranslations("eventSwitcher");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -64,18 +66,18 @@ export function EventSwitcher({
   if (events.length === 0) {
     return (
       <div className="m-3 rounded-xl border border-dashed border-black/15 px-3 py-3 dark:border-white/15">
-        <p className="text-sm font-semibold">No event yet</p>
+        <p className="text-sm font-semibold">{t("noEvent")}</p>
         <p className="mt-0.5 text-[11px] leading-snug opacity-60">
           {isAdmin
-            ? "Pay and name your first event to open the console."
-            : "Nothing published for this team yet."}
+            ? t("noEventAdmin")
+            : t("noEventViewer")}
         </p>
         {isAdmin && (
           <Link
             href="/dashboard/events/new"
             className="mt-3 flex min-h-10 items-center justify-center rounded-lg bg-brand px-3 text-sm font-semibold text-brand-fg active:scale-[.98]"
           >
-            + New event
+            {t("newEvent")}
           </Link>
         )}
       </div>
@@ -89,7 +91,7 @@ export function EventSwitcher({
         onClick={() => setOpen((v) => !v)}
         disabled={pending}
         aria-busy={pending}
-        aria-label="Switch event"
+        aria-label={t("switch")}
         aria-expanded={open}
         aria-haspopup="listbox"
         className="flex w-full items-center gap-2.5 rounded-xl border border-black/10 px-3 py-2.5 text-left hover:bg-black/5 disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
@@ -103,10 +105,10 @@ export function EventSwitcher({
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2 truncate text-sm font-semibold">
             {pending ? <Spinner className="size-3.5 shrink-0" /> : null}
-            <span className="truncate">{pending ? "Switching…" : (active?.name ?? "Select an event")}</span>
+            <span className="truncate">{pending ? t("switching") : (active?.name ?? t("select"))}</span>
           </span>
           <span className="block truncate text-[11px] opacity-60">
-            {active ? (active.published ? "Live" : "Draft") : `${events.length} events`}
+            {active ? (active.published ? t("live") : t("draft")) : t("count", { count: events.length })}
           </span>
         </span>
         <span className="shrink-0 text-xs opacity-50" aria-hidden>
@@ -156,7 +158,7 @@ export function EventSwitcher({
               onClick={() => setOpen(false)}
               className="block border-t border-line px-3 py-2.5 text-sm font-semibold text-brand hover:bg-brand-soft"
             >
-              + New event
+              {t("newEvent")}
             </Link>
           )}
         </div>

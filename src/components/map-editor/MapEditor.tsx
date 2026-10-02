@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { setMapPublishedAction, updateMapViewAction } from "@/actions/maps";
 import { EditorMapCanvas } from "@/components/map/MapCanvas";
 import { GeocodeSearch } from "@/components/map/GeocodeSearch";
@@ -15,7 +16,6 @@ import type { MapBounds } from "@/components/map/LeafletMap";
 import type { LatLng, MarkerLabel, PoiCategoryData, PoiData } from "@/components/map/types";
 import {
   DEFAULT_MAP_LAYOUT,
-  MAP_LAYOUTS,
   MAP_LAYOUT_IDS,
   isMapLayoutId,
   type MapLayoutId,
@@ -81,6 +81,7 @@ export function MapEditor({
   teamName: string;
   uploadsEnabled: boolean;
 }) {
+  const t = useTranslations("editor");
   const router = useRouter();
 
   // --- Map view state (all controlled so we can snapshot + auto-save) -------
@@ -264,7 +265,7 @@ export function MapEditor({
       router.refresh();
     } else {
       setSaveStatus("error");
-      setSaveError(result?.error ?? "Couldn't save your change");
+      setSaveError(result?.error ?? t("saveChangeFailed"));
     }
   }
 
@@ -273,8 +274,8 @@ export function MapEditor({
   const saveRef = useRef(saveNow);
   saveRef.current = saveNow;
   useEffect(() => {
-    const t = setTimeout(() => saveRef.current(), 700);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => saveRef.current(), 700);
+    return () => clearTimeout(timer);
   }, [center, zoom, bearing, bounds, mapLayout]);
 
   // --- Map interaction ------------------------------------------------------
@@ -333,9 +334,9 @@ export function MapEditor({
 
   const statusLabel: Record<SaveStatus, string> = {
     idle: "",
-    saving: "Saving…",
-    saved: "All changes saved",
-    error: saveError ?? "Couldn't save",
+    saving: t("saving"),
+    saved: t("allSaved"),
+    error: saveError ?? t("saveFailed"),
   };
 
   return (
@@ -345,7 +346,7 @@ export function MapEditor({
       <header className="sticky top-0 z-[1200] shrink-0 border-b border-black/10 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-neutral-950/95">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 lg:px-8">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold leading-tight">{map.name || "Untitled event"}</p>
+            <p className="truncate text-sm font-bold leading-tight">{map.name || t("untitled")}</p>
             <p
               className={`truncate text-[11px] leading-tight ${
                 saveStatus === "error" ? "text-red-600 dark:text-red-400" : "opacity-60"
@@ -362,21 +363,21 @@ export function MapEditor({
               href={`/${teamSlug}/${map.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Preview attendee view"
-              title="Open the live attendee page in a new tab"
+              aria-label={t("previewLabel")}
+              title={t("previewTitle")}
               className="shrink-0 rounded-full border border-black/15 px-4 py-2 text-sm font-semibold dark:border-white/20"
             >
-              Preview
+              {t("preview")}
             </a>
           ) : (
             <button
               type="button"
               disabled
-              aria-label="Preview attendee view"
-              title="Publish the event to preview the live attendee page"
+              aria-label={t("previewLabel")}
+              title={t("previewDisabledTitle")}
               className="shrink-0 rounded-full border border-black/15 px-4 py-2 text-sm font-semibold opacity-60 dark:border-white/20"
             >
-              Preview
+              {t("preview")}
             </button>
           )}
           <button
@@ -392,8 +393,8 @@ export function MapEditor({
           >
             <PendingLabel
               pending={publishPending}
-              label={map.published ? "Live ✓ - Unpublish" : "Publish"}
-              pendingLabel="Saving…"
+              label={map.published ? t("unpublish") : t("publish")}
+              pendingLabel={t("saving")}
             />
           </button>
         </div>
@@ -451,7 +452,7 @@ export function MapEditor({
           <>
             <div className="pointer-events-none absolute inset-1.5 z-[500] rounded-xl border-2 border-dashed border-brand/90" />
             <span className="pointer-events-none absolute right-3 top-3 z-[500] rounded-full bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-fg shadow">
-              🔒 View locked
+              {t("viewLocked")}
             </span>
           </>
         )}
@@ -460,13 +461,13 @@ export function MapEditor({
         )}
         {placing && !sheet && !choices && (
           <div className="pointer-events-none absolute inset-x-0 bottom-14 z-[500] mx-auto flex w-fit items-center gap-2 rounded-full bg-black/75 px-3 py-1.5 text-[11px] font-medium text-white">
-            Tap the map to add points — one per tap
+            {t("placingHint")}
             <button
               type="button"
               onClick={() => setPlacing(false)}
               className="pointer-events-auto rounded-full bg-white/20 px-2 py-0.5 font-semibold"
             >
-              Done
+              {t("done")}
             </button>
           </div>
         )}
@@ -479,21 +480,20 @@ export function MapEditor({
         {/* Event location: search flies the map; panning the map sets the
             attendees' default view. */}
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">Event location</h2>
+          <h2 className="text-sm font-semibold">{t("location")}</h2>
           <GeocodeSearch
-            placeholder="Search event location…"
+            placeholder={t("locationSearch")}
             onSelect={(result) => {
               setFocus(result.bounds ? { ...result, bounds: result.bounds } : result);
               if (!bounds) setCenter({ lat: result.lat, lng: result.lng });
             }}
           />
           <p className="text-xs opacity-60">
-            Search to jump the map, or pan and pinch it — attendees open the
-            map exactly as you frame it.
+            {t("locationHint")}
           </p>
 
           <label className="flex flex-col gap-1 text-sm font-medium">
-            Location name
+            {t("locationName")}
             <input
               value={centerName}
               onChange={(e) => setCenterName(e.target.value)}
@@ -507,18 +507,17 @@ export function MapEditor({
         {/* Basemap style for editor + live attendee map. */}
         <section className="flex flex-col gap-3">
           <div>
-            <h2 className="text-sm font-semibold">Map layout</h2>
+            <h2 className="text-sm font-semibold">{t("layout")}</h2>
             <p className="mt-0.5 text-xs opacity-60">
-              Choose how the map looks for you and for attendees.
+              {t("layoutHint")}
             </p>
           </div>
           <div
             role="radiogroup"
-            aria-label="Map layout"
+            aria-label={t("layout")}
             className="grid grid-cols-1 gap-2 sm:grid-cols-2"
           >
             {MAP_LAYOUT_IDS.map((id) => {
-              const option = MAP_LAYOUTS[id];
               const selected = mapLayout === id;
               return (
                 <button
@@ -533,9 +532,9 @@ export function MapEditor({
                       : "border-line hover:border-foreground/30"
                   }`}
                 >
-                  <span className="block text-sm font-semibold">{option.label}</span>
+                  <span className="block text-sm font-semibold">{t(`layouts.${id}.label`)}</span>
                   <span className="mt-0.5 block text-xs opacity-60">
-                    {option.description}
+                    {t(`layouts.${id}.description`)}
                   </span>
                 </button>
               );
@@ -556,26 +555,23 @@ export function MapEditor({
         {/* View lock: freezing the phone-shaped view captures borders,
             orientation and zoom in one go. */}
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Attendee view lock</h2>
+          <h2 className="text-sm font-semibold">{t("lock")}</h2>
           {bounds ? (
             <div className="flex items-center justify-between gap-2 rounded-xl bg-brand-soft px-4 py-3 text-sm">
               <span className="text-brand">
-                🔒 Locked for attendees - borders, orientation and zoom stay
-                as framed. You can still zoom here to place points.
+                {t("lockedHint")}
               </span>
               <button
                 type="button"
                 onClick={handleClearBounds}
                 className="shrink-0 font-semibold text-red-600 dark:text-red-400"
               >
-                Unlock
+                {t("unlock")}
               </button>
             </div>
           ) : (
             <p className="rounded-xl border border-dashed border-black/20 px-4 py-3 text-sm opacity-70 dark:border-white/25">
-              Unlocked — attendees can pan freely. Frame the event in the
-              phone-shaped map, then tap{" "}
-              <strong>“Lock this view for attendees”</strong>.
+              {t.rich("unlockedHint", { strong: (chunks) => <strong>{chunks}</strong> })}
             </p>
           )}
         </section>
@@ -583,7 +579,7 @@ export function MapEditor({
         {/* Points of interest: placed on the map, listed here. */}
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Points of interest ({pois.length})</h2>
+            <h2 className="text-sm font-semibold">{t("points", { count: pois.length })}</h2>
             <button
               type="button"
               onClick={togglePlacing}
@@ -593,7 +589,7 @@ export function MapEditor({
                   : "bg-brand text-brand-fg"
               }`}
             >
-              {placing ? "✓ Done adding" : "+ Add points"}
+              {placing ? t("doneAdding") : t("addPoints")}
             </button>
           </div>
 
@@ -602,14 +598,14 @@ export function MapEditor({
               type="search"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter points…"
+              placeholder={t("filter")}
               className={inputClass}
             />
           )}
 
           {pois.length === 0 ? (
             <p className="rounded-xl border border-dashed border-black/20 px-4 py-8 text-center text-sm opacity-60 dark:border-white/25">
-              No points yet — tap “+ Add points”, then tap the map once per point.
+              {t("noPoints")}
             </p>
           ) : (
             <ul className="divide-y divide-black/10 rounded-2xl border border-black/10 dark:divide-white/15 dark:border-white/15">
@@ -634,10 +630,10 @@ export function MapEditor({
                         if (acts.length > 0) {
                           return (
                             <p className="truncate text-xs opacity-60">
-                              {acts.length} act{acts.length === 1 ? "" : "s"}
+                              {t("acts", { count: acts.length })}
                               {next
                                 ? ` · ${formatRange(next.startTime!, next.endTime!)}`
-                                : " · unscheduled"}
+                                : ` · ${t("unscheduled")}`}
                             </p>
                           );
                         }
@@ -649,12 +645,12 @@ export function MapEditor({
                         return null;
                       })()}
                     </div>
-                    <span className="text-sm opacity-40">Edit</span>
+                    <span className="text-sm opacity-40">{t("edit")}</span>
                   </button>
                 </li>
               ))}
               {filtered.length === 0 && (
-                <li className="px-4 py-3 text-sm opacity-60">No matches.</li>
+                <li className="px-4 py-3 text-sm opacity-60">{t("noMatches")}</li>
               )}
             </ul>
           )}
@@ -662,13 +658,13 @@ export function MapEditor({
 
         {/* Share + go live */}
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">Share</h2>
+          <h2 className="text-sm font-semibold">{t("share")}</h2>
           {map.published && (
             <Link
               href={`/${teamSlug}/${map.slug}`}
               className="block rounded-xl border border-brand/40 px-6 py-3 text-center font-semibold text-brand"
             >
-              View live map →
+              {t("viewLive")}
             </Link>
           )}
           <ShareCard

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { BrandMark, Wordmark } from "./BrandMark";
 
 export function SiteFooter({
@@ -8,6 +9,7 @@ export function SiteFooter({
   homeHref?: string;
   workspaceLinks?: boolean;
 }) {
+  const t = useTranslations("nav");
   const year = new Date().getFullYear();
 
   return (
@@ -18,19 +20,19 @@ export function SiteFooter({
           <span className="min-w-0">
             <Wordmark className="block text-sm leading-none" />
             <span className="mt-0.5 hidden text-[11px] text-muted sm:block">
-              Maps for live events
+              {t("footerTagline")}
             </span>
           </span>
         </Link>
 
-        <nav aria-label="Footer" className="flex items-center gap-3 text-[11px] font-medium text-muted">
+        <nav aria-label={t("footer")} className="flex items-center gap-3 text-[11px] font-medium text-muted">
           {workspaceLinks && (
             <>
               <Link href="/dashboard/team" className="hidden hover:text-foreground sm:inline">
-                Team
+                {t("team")}
               </Link>
               <Link href="/dashboard/settings" className="hover:text-foreground">
-                Settings
+                {t("settings")}
               </Link>
             </>
           )}

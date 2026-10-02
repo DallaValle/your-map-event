@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 export interface GeocodeResult {
   lat: number;
@@ -23,12 +24,14 @@ interface NominatimItem {
  * per-keystroke autocomplete.
  */
 export function GeocodeSearch({
-  placeholder = "Search for a place or address…",
+  placeholder,
   onSelect,
 }: {
   placeholder?: string;
   onSelect: (result: GeocodeResult) => void;
 }) {
+  const t = useTranslations("geocode");
+  const locale = useLocale();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeocodeResult[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,7 +41,7 @@ export function GeocodeSearch({
   async function search() {
     const q = query.trim();
     if (q.length < 3) {
-      setError("Type at least 3 characters.");
+      setError(t("tooShort"));
       return;
     }
     // Client-side throttle to stay well within Nominatim's 1 req/s policy.
@@ -50,10 +53,10 @@ export function GeocodeSearch({
     setError(null);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=${encodeURIComponent(q)}`,
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=${locale}&q=${encodeURIComponent(q)}`,
         { headers: { Accept: "application/json" } },
       );
-      if (!response.ok) throw new Error(`Search failed (${response.status})`);
+      if (!response.ok) throw new Error(t("failedStatus", { status: response.status }));
       const items = (await response.json()) as NominatimItem[];
       setResults(
         items.map((item) => ({
@@ -71,7 +74,7 @@ export function GeocodeSearch({
         })),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed.");
+      setError(err instanceof Error ? err.message : t("failed"));
       setResults(null);
     } finally {
       setLoading(false);
@@ -91,8 +94,8 @@ export function GeocodeSearch({
               search();
             }
           }}
-          placeholder={placeholder}
-          aria-label="Search for a place"
+          placeholder={placeholder ?? t("placeholder")}
+          aria-label={t("label")}
           className="min-w-0 flex-1 rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
         />
         <button
@@ -115,7 +118,7 @@ export function GeocodeSearch({
         <ul className="overflow-hidden rounded-xl border border-black/10 bg-white dark:border-white/15 dark:bg-neutral-900">
           {results.length === 0 ? (
             <li className="px-4 py-3 text-sm opacity-60">
-              No places found — try a more specific search.
+              {t("none")}
             </li>
           ) : (
             results.map((result, index) => (
@@ -137,7 +140,7 @@ export function GeocodeSearch({
         </ul>
       )}
       <p className="text-[10px] opacity-40">
-        Search by{" "}
+        {t("by")}{" "}
         <a href="https://nominatim.openstreetmap.org" target="_blank" rel="noreferrer" className="underline">
           Nominatim / OpenStreetMap
         </a>

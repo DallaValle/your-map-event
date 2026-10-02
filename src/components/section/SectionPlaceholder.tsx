@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 /**
  * Consistent "coming soon" body for the dashboard sections that aren't built
  * yet. Shows the section's icon, name and a one-line description of what will
@@ -12,6 +14,7 @@ export function SectionPlaceholder({
   title: string;
   description: string;
 }) {
+  const t = useTranslations("common");
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-6 py-20 text-center">
       <span className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-3xl" aria-hidden>
@@ -21,7 +24,7 @@ export function SectionPlaceholder({
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-2xl font-bold">{title}</h1>
           <span className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-medium opacity-60 dark:bg-white/10">
-            Coming soon
+            {t("comingSoon")}
           </span>
         </div>
         <p className="mx-auto max-w-md text-balance text-sm opacity-70">

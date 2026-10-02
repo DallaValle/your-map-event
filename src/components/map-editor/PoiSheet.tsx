@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createPoiAction, updatePoiAction, deletePoiAction } from "@/actions/pois";
 import { ImageField } from "@/components/upload/ImageField";
 import { POI_ICONS, type LatLng, type PoiCategoryData, type PoiData } from "@/components/map/types";
@@ -47,6 +48,7 @@ export function PoiSheet({
   onClose: () => void;
   onPositionChange: (position: LatLng) => void;
 }) {
+  const t = useTranslations("poiSheet");
   const router = useRouter();
   const isEdit = mode.type === "edit";
 
@@ -108,7 +110,7 @@ export function PoiSheet({
 
   async function handleDelete() {
     if (!isEdit) return;
-    if (!confirm(`Delete "${mode.poi.title}"?`)) return;
+    if (!confirm(t("confirmDelete", { name: mode.poi.title }))) return;
     setDeleting(true);
     const result = await deletePoiAction(mode.poi.id);
     setDeleting(false);
@@ -127,12 +129,12 @@ export function PoiSheet({
       <div className="max-h-[calc(100dvh-15rem)] overflow-y-auto rounded-2xl bg-white/97 p-4 shadow-2xl backdrop-blur dark:bg-neutral-950/97">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-base font-bold">
-            {isEdit ? "Edit point" : "New point"}
+            {isEdit ? t("editTitle") : t("newTitle")}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("close")}
             className="flex size-8 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
           >
             ✕
@@ -140,7 +142,7 @@ export function PoiSheet({
         </div>
 
         <p className="mb-3 text-xs opacity-60">
-          Tap the map to move the point, or type exact coordinates.
+          {t("hint")}
         </p>
 
         <form action={formAction} className="flex flex-col gap-3">
@@ -150,27 +152,27 @@ export function PoiSheet({
             maxLength={80}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title (e.g. Main Stage)"
-            aria-label="Title"
+            placeholder={t("titlePlaceholder")}
+            aria-label={t("title")}
             autoFocus={!isEdit}
             className={inputClass}
           />
 
           <div className="flex gap-2">
             <label className="flex w-24 shrink-0 flex-col gap-0.5 text-xs font-medium opacity-70">
-              Number
+              {t("number")}
               <input
                 name="code"
                 maxLength={6}
                 defaultValue={isEdit ? (mode.poi.code ?? "") : ""}
                 // A "12." title prefix already counts; the field overrides it.
                 placeholder={titleCode ?? "12"}
-                aria-label="Number"
+                aria-label={t("number")}
                 className={`${inputClass} font-normal text-black dark:text-white`}
               />
             </label>
             <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs font-medium opacity-70">
-              Category
+              {t("category")}
               <select
                 name="categoryId"
                 value={categoryId}
@@ -179,10 +181,10 @@ export function PoiSheet({
                   const next = categories.find((c) => c.id === e.target.value);
                   if (next) setIcon(next.icon);
                 }}
-                aria-label="Category"
+                aria-label={t("category")}
                 className={`${inputClass} font-normal text-black dark:text-white`}
               >
-                <option value="">No category</option>
+                <option value="">{t("noCategory")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.icon} {c.name}
@@ -194,13 +196,13 @@ export function PoiSheet({
 
           {/* Marker icon */}
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium opacity-70">Marker icon</span>
+            <span className="text-xs font-medium opacity-70">{t("icon")}</span>
             <div className="flex flex-wrap gap-1">
               {iconChoices.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"
-                  aria-label={`Use ${emoji} as marker icon`}
+                  aria-label={t("useIcon", { icon: emoji })}
                   aria-pressed={icon === emoji}
                   onClick={() => setIcon(emoji)}
                   className={`flex size-9 items-center justify-center rounded-full border text-lg ${
@@ -217,7 +219,7 @@ export function PoiSheet({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-            <span className="opacity-70">Marker color</span>
+            <span className="opacity-70">{t("color")}</span>
             <button
               type="button"
               aria-pressed={!ownColor}
@@ -231,7 +233,7 @@ export function PoiSheet({
                 className="size-2.5 rounded-full"
                 style={{ background: markerColor ?? category?.color ?? suggestedColor(icon) }}
               />
-              {markerColor ? "Event color" : category ? "Category color" : "Automatic"}
+              {markerColor ? t("eventColor") : category ? t("categoryColor") : t("automatic")}
             </button>
             <button
               type="button"
@@ -241,14 +243,14 @@ export function PoiSheet({
                 ownColor ? "border-brand bg-brand-soft" : "border-black/10 dark:border-white/15"
               }`}
             >
-              Own color
+              {t("ownColor")}
             </button>
             {ownColor && (
               <input
                 type="color"
                 value={ownColor}
                 onChange={(e) => setOwnColor(e.target.value)}
-                aria-label="Own marker color"
+                aria-label={t("ownColorLabel")}
                 className="size-7 cursor-pointer rounded-full border-0 bg-transparent p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
               />
             )}
@@ -257,7 +259,7 @@ export function PoiSheet({
 
           <div className="flex gap-2">
             <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs opacity-70">
-              Latitude
+              {t("latitude")}
               <input
                 name="lat"
                 type="number"
@@ -271,7 +273,7 @@ export function PoiSheet({
               />
             </label>
             <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs opacity-70">
-              Longitude
+              {t("longitude")}
               <input
                 name="lng"
                 type="number"
@@ -288,14 +290,14 @@ export function PoiSheet({
 
           {/* Description: always shown so every point gets one. */}
           <label className="flex flex-col gap-1 text-xs font-medium opacity-70">
-            Description
+            {t("description")}
             <textarea
               name="description"
               rows={2}
               maxLength={500}
               defaultValue={isEdit ? (mode.poi.description ?? "") : ""}
-              placeholder="What is this point? Shown to attendees on the map."
-              aria-label="Description"
+              placeholder={t("descriptionPlaceholder")}
+              aria-label={t("description")}
               className={`${inputClass} font-normal`}
             />
           </label>
@@ -304,7 +306,7 @@ export function PoiSheet({
           {showPhoto ? (
             <ImageField
               name="imageUrl"
-              label="Photo (optional)"
+              label={t("photo")}
               endpoint="poiImage"
               uploadsEnabled={uploadsEnabled}
               defaultValue={isEdit ? mode.poi.imageUrl : null}
@@ -323,7 +325,7 @@ export function PoiSheet({
                 onClick={() => setShowPhoto(true)}
                 className="self-start text-sm font-semibold text-brand"
               >
-                + Add photo
+                {t("addPhoto")}
               </button>
             </>
           )}
@@ -343,7 +345,7 @@ export function PoiSheet({
                 aria-busy={deleting}
                 className="rounded-xl border border-red-300 px-4 py-3 font-semibold text-red-600 disabled:opacity-60 dark:border-red-900 dark:text-red-400"
               >
-                <PendingLabel pending={deleting} label="Delete" pendingLabel="Deleting…" />
+                <PendingLabel pending={deleting} label={t("delete")} pendingLabel={t("deleting")} />
               </button>
             )}
             <button
@@ -354,8 +356,8 @@ export function PoiSheet({
             >
               <PendingLabel
                 pending={pending}
-                label={isEdit ? "Save" : "Add point"}
-                pendingLabel="Saving…"
+                label={isEdit ? t("save") : t("add")}
+                pendingLabel={t("saving")}
               />
             </button>
           </div>

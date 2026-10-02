@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useMap } from "react-leaflet";
 import { useMapControlRef } from "./control-utils";
 
@@ -10,6 +11,7 @@ import { useMapControlRef } from "./control-utils";
  * Bounds mirror the editor's saved-zoom floor (14) and the tile ceiling (19).
  */
 export function ZoomControl({ min = 14, max = 19 }: { min?: number; max?: number }) {
+  const t = useTranslations("mapControls");
   const map = useMap();
   const controlRef = useMapControlRef();
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -30,7 +32,7 @@ export function ZoomControl({ min = 14, max = 19 }: { min?: number; max?: number
       <div ref={controlRef} className="leaflet-control m-2 flex flex-col items-center gap-2">
         <button
           type="button"
-          aria-label="Zoom in"
+          aria-label={t("zoomIn")}
           onClick={() => map.zoomIn()}
           disabled={zoom >= max}
           className={buttonClass}
@@ -39,7 +41,7 @@ export function ZoomControl({ min = 14, max = 19 }: { min?: number; max?: number
         </button>
         <button
           type="button"
-          aria-label="Zoom out"
+          aria-label={t("zoomOut")}
           onClick={() => map.zoomOut()}
           disabled={zoom <= min}
           className={buttonClass}

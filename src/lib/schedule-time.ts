@@ -13,19 +13,29 @@ export const MINUTE_MS = 60_000;
 export const DEFAULT_DURATION_MS = HOUR_MS;
 export const MAX_ACTIVITY_DAYS = 14;
 
-const SHORT_DAY = new Intl.DateTimeFormat("en-GB", {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
+const SHORT_DAY = new Map<string, Intl.DateTimeFormat>();
+
+function shortDayFormat(locale: string) {
+  let format = SHORT_DAY.get(locale);
+  if (!format) {
+    format = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+    });
+    SHORT_DAY.set(locale, format);
+  }
+  return format;
+}
 
 /**
- * "Sat 18 Jul". Built from parts because Node and browsers ship different
- * locale data ("Sat, 18 Jul" vs "Sat 18 Jul"), which breaks hydration.
+ * "Sat 18 Jul", "sab 18 lug". Built from parts because Node and browsers ship
+ * different locale data ("Sat, 18 Jul" vs "Sat 18 Jul"), which breaks hydration.
  */
-function shortDay(date: Date): string {
-  const parts = SHORT_DAY.formatToParts(date);
+export function formatShortDay(value: string | Date, locale = "en"): string {
+  const date = toDate(value);
+  const parts = shortDayFormat(locale).formatToParts(date);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
   return `${part("weekday")} ${part("day")} ${part("month")}`;
 }
@@ -58,8 +68,9 @@ export function formatClock(value: string | Date): string {
   return `${hours}:${minutes}`;
 }
 
-/** Timeline header tick: `10AM`, `3PM`, `3:30PM`. */
-export function formatHourTick(value: string | Date): string {
+/** Timeline header tick: `10AM`, `3PM`, `3:30PM` in English, the 24h clock elsewhere. */
+export function formatHourTick(value: string | Date, locale = "en"): string {
+  if (locale !== "en") return formatClock(value);
   const date = toDate(value);
   const minutes = date.getUTCMinutes();
   let hours = date.getUTCHours();
@@ -70,10 +81,6 @@ export function formatHourTick(value: string | Date): string {
 
 export function formatRange(start: string | Date, end: string | Date): string {
   return `${formatClock(start)} - ${formatClock(end)}`;
-}
-
-export function formatDayTab(value: string | Date, index: number): string {
-  return `Day ${index + 1} ${shortDay(toDate(value))}`;
 }
 
 /** Value for `<input type="datetime-local">`. */

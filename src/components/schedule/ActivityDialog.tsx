@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   createActivityAction,
   deleteActivityAction,
@@ -30,6 +31,8 @@ export function ActivityDialog({
   state: ActivityDialogState;
   onClose: () => void;
 }) {
+  const t = useTranslations("activityDialog");
+  const typeLabel = useTranslations("activityTypes");
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const isEdit = state.mode === "edit";
@@ -67,7 +70,7 @@ export function ActivityDialog({
 
   async function handleDelete() {
     if (!activity) return;
-    if (!confirm(`Delete "${activity.name}"? This cannot be undone.`)) return;
+    if (!confirm(t("confirmDelete", { name: activity.name }))) return;
     await deleteActivityAction(activity.id);
     router.refresh();
     onClose();
@@ -88,12 +91,12 @@ export function ActivityDialog({
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 id="activity-dialog-title" className="text-lg font-bold">
-            {isEdit ? "Edit activity" : "Add activity"}
+            {isEdit ? t("editTitle") : t("addTitle")}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("close")}
             className="flex size-8 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
           >
             ✕
@@ -102,20 +105,20 @@ export function ActivityDialog({
 
         <form ref={formRef} action={formAction} className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm font-medium">
-            Name
+            {t("name")}
             <input
               name="name"
               required
               maxLength={80}
               defaultValue={activity?.name ?? ""}
-              placeholder="DJ Solaris"
+              placeholder={t("namePlaceholder")}
               autoFocus
               className={inputClass}
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium">
-            Type
+            {t("type")}
             <select
               name="type"
               defaultValue={activity?.type ?? "performance"}
@@ -123,16 +126,16 @@ export function ActivityDialog({
             >
               {ACTIVITY_TYPES.map((type) => (
                 <option key={type.id} value={type.id}>
-                  {type.emoji} {type.label}
+                  {type.emoji} {typeLabel(type.id)}
                 </option>
               ))}
             </select>
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium">
-            Location
+            {t("location")}
             <select name="poiId" defaultValue={defaultPoi ?? ""} className={inputClass}>
-              <option value="">Unassigned</option>
+              <option value="">{t("unassigned")}</option>
               {pois.map((poi) => (
                 <option key={poi.id} value={poi.id}>
                   {poi.icon ? `${poi.icon} ` : ""}
@@ -144,7 +147,7 @@ export function ActivityDialog({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm font-medium">
-              Start
+              {t("start")}
               <input
                 name="startTime"
                 type="datetime-local"
@@ -153,7 +156,7 @@ export function ActivityDialog({
               />
             </label>
             <label className="flex flex-col gap-1 text-sm font-medium">
-              End
+              {t("end")}
               <input
                 name="endTime"
                 type="datetime-local"
@@ -163,7 +166,7 @@ export function ActivityDialog({
             </label>
           </div>
           <p className="text-xs opacity-60">
-            Leave start and end empty to keep it in the unscheduled library.
+            {t("hint")}
           </p>
 
           {formState && !formState.ok && (
@@ -179,7 +182,7 @@ export function ActivityDialog({
                 onClick={handleDelete}
                 className="rounded-xl border border-red-300 px-4 py-2.5 text-sm font-semibold text-red-600 dark:border-red-900 dark:text-red-400"
               >
-                Delete
+                {t("delete")}
               </button>
             )}
             <button
@@ -190,8 +193,8 @@ export function ActivityDialog({
             >
               <PendingLabel
                 pending={pending}
-                label={isEdit ? "Save" : "Add activity"}
-                pendingLabel="Saving…"
+                label={isEdit ? t("save") : t("addTitle")}
+                pendingLabel={t("saving")}
               />
             </button>
           </div>

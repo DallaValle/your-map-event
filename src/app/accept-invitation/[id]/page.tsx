@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { AcceptInvitation } from "@/components/team/AcceptInvitation";
 
-export const metadata: Metadata = { title: "Team invitation" };
+export const generateMetadata = pageTitle("invitation");
 
 export default async function AcceptInvitationPage({
   params,

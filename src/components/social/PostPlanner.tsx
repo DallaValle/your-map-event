@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import {
   deleteScheduledPostAction,
   setScheduledPostStatusAction,
 } from "@/actions/social";
 import { PostComposer } from "@/components/social/PostComposer";
-import { channelLabel, formatWallClock, type PostStatus } from "@/lib/social";
+import { formatWallClock, isPostChannel, POST_STATUSES } from "@/lib/social";
 import { PendingLabel } from "@/components/ui/Spinner";
 
 type PlannerPost = {
@@ -19,12 +20,6 @@ type PlannerPost = {
   scheduledAt: Date | string | null;
 };
 
-const COLUMNS: { status: PostStatus; title: string }[] = [
-  { status: "draft", title: "Draft" },
-  { status: "scheduled", title: "Scheduled" },
-  { status: "done", title: "Done" },
-];
-
 export function PostPlanner({
   eventId,
   posts,
@@ -34,38 +29,38 @@ export function PostPlanner({
   posts: PlannerPost[];
   isAdmin: boolean;
 }) {
+  const t = useTranslations("social");
   return (
     <section className="flex flex-col gap-5">
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
-          Post planner
+          {t("planner")}
         </h2>
         <p className="mt-0.5 text-sm opacity-60">
-          Draft, schedule, then mark done when you have posted. Nothing is sent
-          to X or Instagram from here.
+          {t("plannerHint")}
         </p>
       </div>
 
       {isAdmin && <PostComposer eventId={eventId} />}
 
       <div className="flex flex-col gap-5">
-        {COLUMNS.map((column) => {
-          const items = posts.filter((post) => post.status === column.status);
+        {POST_STATUSES.map((status) => {
+          const items = posts.filter((post) => post.status === status);
           return (
             <div
-              key={column.status}
-              data-status={column.status}
+              key={status}
+              data-status={status}
               className="flex flex-col gap-2"
             >
               <h3 className="text-sm font-semibold">
-                {column.title}
+                {t(`columns.${status}`)}
                 <span className="ml-2 rounded-full bg-black/5 px-2 py-0.5 text-xs font-medium opacity-60 dark:bg-white/10">
                   {items.length}
                 </span>
               </h3>
               {items.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-black/10 px-4 py-5 text-sm opacity-50 dark:border-white/15">
-                  No {column.title.toLowerCase()} posts.
+                  {t(`empty.${status}`)}
                 </p>
               ) : (
                 <ul className="flex flex-col gap-2">
@@ -85,6 +80,8 @@ export function PostPlanner({
 }
 
 function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
+  const t = useTranslations("social");
+  const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
@@ -117,10 +114,10 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-black/10 px-4 py-3 dark:border-white/15">
       <div className="flex flex-wrap items-center gap-2 text-xs font-medium opacity-60">
-        <span>{channelLabel(post.channel)}</span>
+        <span>{isPostChannel(post.channel) ? t(`channels.${post.channel}`) : post.channel}</span>
         {post.scheduledAt && (
           <time dateTime={asDate(post.scheduledAt).toISOString()}>
-            {formatWallClock(asDate(post.scheduledAt))}
+            {formatWallClock(asDate(post.scheduledAt), locale)}
           </time>
         )}
       </div>
@@ -134,7 +131,7 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
                 type="datetime-local"
                 value={when}
                 onChange={(event) => setWhen(event.target.value)}
-                aria-label="Schedule time"
+                aria-label={t("scheduleTime")}
                 className="rounded-lg border border-black/15 px-3 py-1.5 text-xs outline-brand dark:border-white/20 dark:bg-white/5"
               />
               <button
@@ -150,8 +147,8 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
               >
                 <PendingLabel
                   pending={isBusy("schedule")}
-                  label="Schedule"
-                  pendingLabel="Saving…"
+                  label={t("schedule")}
+                  pendingLabel={t("saving")}
                   spinnerClassName={spinner}
                 />
               </button>
@@ -164,8 +161,8 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
               >
                 <PendingLabel
                   pending={isBusy("done")}
-                  label="Mark done"
-                  pendingLabel="Saving…"
+                  label={t("markDone")}
+                  pendingLabel={t("saving")}
                   spinnerClassName={spinner}
                 />
               </button>
@@ -182,8 +179,8 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
               >
                 <PendingLabel
                   pending={isBusy("done")}
-                  label="Mark done"
-                  pendingLabel="Saving…"
+                  label={t("markDone")}
+                  pendingLabel={t("saving")}
                   spinnerClassName={spinner}
                 />
               </button>
@@ -196,8 +193,8 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
               >
                 <PendingLabel
                   pending={isBusy("draft")}
-                  label="Back to draft"
-                  pendingLabel="Saving…"
+                  label={t("backToDraft")}
+                  pendingLabel={t("saving")}
                   spinnerClassName={spinner}
                 />
               </button>
@@ -213,8 +210,8 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
             >
               <PendingLabel
                 pending={isBusy("draft")}
-                label="Back to draft"
-                pendingLabel="Saving…"
+                label={t("backToDraft")}
+                pendingLabel={t("saving")}
                 spinnerClassName={spinner}
               />
             </button>
@@ -228,8 +225,8 @@ function PostCard({ post, isAdmin }: { post: PlannerPost; isAdmin: boolean }) {
           >
             <PendingLabel
               pending={isBusy("delete")}
-              label="Delete"
-              pendingLabel="Deleting…"
+              label={t("delete")}
+              pendingLabel={t("deleting")}
               spinnerClassName={spinner}
             />
           </button>

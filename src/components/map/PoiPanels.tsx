@@ -1,6 +1,7 @@
 "use client";
 
 import type { Ref } from "react";
+import { useTranslations } from "next-intl";
 import { poiCode, resolveBadge } from "./poi-badge";
 import { DEFAULT_MARKER_STYLE, type MarkerStyle, type PoiData } from "./types";
 
@@ -38,13 +39,14 @@ const sheetClass =
   "absolute inset-x-0 bottom-0 z-[1060] max-h-[60%] overflow-y-auto rounded-t-3xl bg-white px-5 pb-4 pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.18)] dark:bg-neutral-950";
 
 function Header({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("liveMap");
   return (
     <>
       <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
       <button
         type="button"
         onClick={onClose}
-        aria-label="Close"
+        aria-label={t("close")}
         className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/5 text-sm dark:bg-white/10"
       >
         ✕
@@ -67,10 +69,11 @@ export function PoiChooser({
   onClose: () => void;
   ref?: Ref<HTMLElement>;
 }) {
+  const t = useTranslations("liveMap");
   return (
-    <section ref={ref} aria-label="Points here" className={sheetClass}>
+    <section ref={ref} aria-label={t("pointsHereLabel")} className={sheetClass}>
       <Header onClose={onClose} />
-      <h2 className="pb-2 pr-10 pt-1 text-base font-bold">{pois.length} points here</h2>
+      <h2 className="pb-2 pr-10 pt-1 text-base font-bold">{t("pointsHere", { count: pois.length })}</h2>
       <ul className="divide-y divide-black/10 dark:divide-white/15">
         {pois.map((poi) => (
           <li key={poi.id}>
@@ -112,12 +115,13 @@ export function PoiDetails({
   onClose: () => void;
   ref?: Ref<HTMLElement>;
 }) {
+  const t = useTranslations("liveMap");
   const { name, category } = resolveBadge(poi, style);
   const step =
     "flex min-h-11 min-w-0 flex-1 items-center gap-1 rounded-xl border border-black/10 px-3 text-sm font-semibold active:bg-black/5 disabled:opacity-30 dark:border-white/15 dark:active:bg-white/10";
 
   return (
-    <section ref={ref} aria-label="Point details" className={sheetClass}>
+    <section ref={ref} aria-label={t("details")} className={sheetClass}>
       <Header onClose={onClose} />
       <div className="space-y-3 pt-1">
         {poi.imageUrl && (
@@ -145,7 +149,7 @@ export function PoiDetails({
               type="button"
               disabled={!prev}
               onClick={() => prev && onPick(prev)}
-              aria-label={prev ? `Previous: ${prev.title}` : "No previous point"}
+              aria-label={prev ? t("previous", { name: prev.title }) : t("noPrevious")}
               className={step}
             >
               <span aria-hidden>‹</span>
@@ -155,7 +159,7 @@ export function PoiDetails({
               type="button"
               disabled={!next}
               onClick={() => next && onPick(next)}
-              aria-label={next ? `Next: ${next.title}` : "No next point"}
+              aria-label={next ? t("next", { name: next.title }) : t("noNext")}
               className={`${step} justify-end`}
             >
               <span className="truncate">{next && shortName(next)}</span>

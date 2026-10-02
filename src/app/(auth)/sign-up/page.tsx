@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { AuthForm } from "@/components/auth/AuthForm";
 
-export const metadata: Metadata = { title: "Create account" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("auth"))("createAccount") };
+}
 
 export default function SignUpPage() {
   const googleEnabled =

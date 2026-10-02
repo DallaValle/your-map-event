@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import {
   placeActivityAction,
   unscheduleActivityAction,
   updateEventWindowAction,
 } from "@/actions/activities";
 import {
-  ACTIVITY_TYPES,
   ROW_DOTS,
   activityDurationMs,
   activityTypeMeta,
@@ -29,9 +29,9 @@ import {
   dayKey,
   eachUtcDay,
   formatClock,
-  formatDayTab,
   formatHourTick,
   formatRange,
+  formatShortDay,
   snapMs,
   toLocalInputValue,
   utcDayStart,
@@ -44,9 +44,9 @@ const UNASSIGNED_ID = "__unassigned__";
 const VENUE_ICONS = new Set(["🎤", "🎪", "🍔", "🍺", "☕", "🚪", "🎡", "🧸"]);
 
 const ZOOM = [
-  { id: "30m", label: "30m", hourWidth: 160, snap: 30 * MINUTE_MS },
-  { id: "1h", label: "1h", hourWidth: 112, snap: HOUR_MS },
-  { id: "2h", label: "2h", hourWidth: 72, snap: HOUR_MS },
+  { id: "30m", hourWidth: 160, snap: 30 * MINUTE_MS },
+  { id: "1h", hourWidth: 112, snap: HOUR_MS },
+  { id: "2h", hourWidth: 72, snap: HOUR_MS },
 ] as const;
 
 type ZoomId = (typeof ZOOM)[number]["id"];
@@ -107,6 +107,8 @@ export function TimelineBuilder({
   isAdmin: boolean;
   editorHref: string | null;
 }) {
+  const t = useTranslations("schedule");
+  const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [query, setQuery] = useState("");
@@ -176,7 +178,7 @@ export function TimelineBuilder({
         return bN - aN;
       })
       .map((poi) => ({ id: poi.id, title: poi.title, icon: poi.icon })),
-    { id: UNASSIGNED_ID, title: "Unassigned", icon: "📍", hint: "No map location yet" },
+    { id: UNASSIGNED_ID, title: t("unassigned"), icon: "📍", hint: t("noLocation") },
   ];
 
   const suggestion = unscheduled[0]
@@ -205,7 +207,7 @@ export function TimelineBuilder({
     setSaveError(null);
     startTransition(async () => {
       const result = await work();
-      if (result && !result.ok) setSaveError(result.error ?? "Save failed");
+      if (result && !result.ok) setSaveError(result.error ?? t("saveFailed"));
       router.refresh();
     });
   }
@@ -269,9 +271,9 @@ export function TimelineBuilder({
     <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground">
       <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line bg-surface px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Schedule</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">{t("eyebrow")}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-lg font-bold">Timeline Builder</h1>
+            <h1 className="text-lg font-bold">{t("title")}</h1>
             <span
               className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                 event.published
@@ -279,7 +281,7 @@ export function TimelineBuilder({
                   : "bg-brand-soft text-muted"
               }`}
             >
-              {event.published ? "● Live" : "Draft"}
+              {event.published ? t("live") : t("draft")}
             </span>
           </div>
         </div>
@@ -291,7 +293,7 @@ export function TimelineBuilder({
             disabled={!canEdit || undo.length === 0 || pending}
             className="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold disabled:opacity-40"
           >
-            Undo
+            {t("undo")}
           </button>
           <button
             type="button"
@@ -303,7 +305,7 @@ export function TimelineBuilder({
                 : "border-line bg-surface"
             }`}
           >
-            Preview
+            {t("preview")}
           </button>
           <span
             className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-brand-fg"
@@ -312,8 +314,8 @@ export function TimelineBuilder({
           >
             <PendingLabel
               pending={pending}
-              label={saveError ? "Save failed" : "Saved"}
-              pendingLabel="Saving…"
+              label={saveError ? t("saveFailed") : t("saved")}
+              pendingLabel={t("saving")}
             />
           </span>
         </div>
@@ -331,26 +333,26 @@ export function TimelineBuilder({
 
       <div className="flex min-h-0 flex-1">
         <aside
-          aria-label="Activity library"
+          aria-label={t("library")}
           className="flex w-72 shrink-0 flex-col border-r border-line bg-surface"
         >
           <div className="border-b border-line px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-              Activity library
+              {t("library")}
             </p>
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search activities…"
+              placeholder={t("search")}
               className="mt-2 w-full rounded-xl border border-line bg-background px-3 py-2 text-sm outline-brand"
             />
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
             <LibraryGroup
-              label={`Unscheduled · ${filteredUnscheduled.length}`}
-              empty="Nothing waiting to be placed."
+              label={t("unscheduledCount", { count: filteredUnscheduled.length })}
+              empty={t("unscheduledEmpty")}
             >
               {filteredUnscheduled.map((activity) => (
                 <LibraryCard
@@ -363,8 +365,8 @@ export function TimelineBuilder({
             </LibraryGroup>
 
             <LibraryGroup
-              label={`Scheduled · ${filteredScheduled.length}`}
-              empty="Drop an activity onto the timeline."
+              label={t("scheduledCount", { count: filteredScheduled.length })}
+              empty={t("scheduledEmpty")}
             >
               {filteredScheduled.map((activity) => (
                 <LibraryCard
@@ -384,15 +386,15 @@ export function TimelineBuilder({
                 onClick={() => setDialog({ mode: "create" })}
                 className="w-full rounded-xl border border-dashed border-line px-3 py-2.5 text-sm font-semibold text-muted hover:border-brand hover:text-brand"
               >
-                + Add activity
+                {t("addActivity")}
               </button>
             </div>
           )}
         </aside>
 
-        <section className="flex min-w-0 flex-1 flex-col" aria-label="Schedule timeline">
+        <section className="flex min-w-0 flex-1 flex-col" aria-label={t("timeline")}>
           <div className="flex flex-wrap items-center gap-2 border-b border-line bg-surface px-4 py-2.5">
-            <div role="tablist" aria-label="Event days" className="flex flex-wrap gap-1">
+            <div role="tablist" aria-label={t("days")} className="flex flex-wrap gap-1">
               {days.map((day, index) => {
                 const selected = day === selectedDay || dayKey(day) === (selectedDay ? dayKey(selectedDay) : "");
                 return (
@@ -408,25 +410,25 @@ export function TimelineBuilder({
                         : "bg-brand-soft text-muted hover:text-foreground"
                     }`}
                   >
-                    {formatDayTab(day, index)}
+                    {t("dayTab", { n: index + 1, day: formatShortDay(day, locale) })}
                   </button>
                 );
               })}
               {days.length === 0 && (
-                <span className="text-sm text-muted">Set event hours to open the days.</span>
+                <span className="text-sm text-muted">{t("noDays")}</span>
               )}
             </div>
 
             <div className="ml-auto flex flex-wrap items-center gap-3">
               <ul className="hue hidden items-center gap-3 text-[11px] font-medium text-muted sm:flex">
                 <li className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-rose-400" /> Conflict
+                  <span className="size-2 rounded-full bg-rose-400" /> {t("legendConflict")}
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-red-500" /> Live
+                  <span className="size-2 rounded-full bg-red-500" /> {t("legendLive")}
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-zinc-300" /> Empty slot
+                  <span className="size-2 rounded-full bg-zinc-300" /> {t("legendEmpty")}
                 </li>
               </ul>
               <div className="flex items-center rounded-lg border border-line">
@@ -442,7 +444,7 @@ export function TimelineBuilder({
                         : "text-muted"
                     }`}
                   >
-                    {option.label}
+                    {t(`zoom.${option.id}`)}
                   </button>
                 ))}
               </div>
@@ -451,7 +453,7 @@ export function TimelineBuilder({
                   href={editorHref}
                   className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold"
                 >
-                  + Add location
+                  {t("addLocation")}
                 </Link>
               )}
               {isAdmin && (
@@ -460,7 +462,7 @@ export function TimelineBuilder({
                   onClick={() => setWindowOpen((v) => !v)}
                   className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold"
                 >
-                  Event hours
+                  {t("eventHours")}
                 </button>
               )}
             </div>
@@ -468,7 +470,7 @@ export function TimelineBuilder({
 
           {days.length === 0 ? (
             <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted">
-              Set the event start and end to open the timeline, or add an activity with times.
+              {t("noTimeline")}
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto">
@@ -488,7 +490,7 @@ export function TimelineBuilder({
                         className="shrink-0 border-l border-line py-2 text-center text-[11px] font-semibold text-muted"
                         style={{ width: zoom.hourWidth }}
                       >
-                        {formatHourTick(hour)}
+                        {formatHourTick(hour, locale)}
                       </div>
                     ))}
                     {nowLeft != null && (
@@ -522,7 +524,7 @@ export function TimelineBuilder({
                           <p className="truncate text-sm font-semibold">{row.title}</p>
                         </div>
                         <p className="pl-4 text-[11px] text-muted">
-                          {row.hint ?? `${rowActs.length} act${rowActs.length === 1 ? "" : "s"}`}
+                          {row.hint ?? t("actCount", { count: rowActs.length })}
                         </p>
                         {canEdit && row.id !== UNASSIGNED_ID && (
                           <button
@@ -538,7 +540,7 @@ export function TimelineBuilder({
                             }}
                             className="pl-4 text-left text-[11px] font-semibold text-brand"
                           >
-                            + Add act
+                            {t("addAct")}
                           </button>
                         )}
                       </div>
@@ -570,7 +572,7 @@ export function TimelineBuilder({
 
                         {rowActs.length === 0 && (
                           <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted">
-                            {canEdit ? "Drop activity here" : "Empty"}
+                            {canEdit ? t("dropHere") : t("empty")}
                           </p>
                         )}
 
@@ -610,7 +612,7 @@ export function TimelineBuilder({
                               </p>
                               {live && (
                                 <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-                                  ● Live
+                                  {t("live")}
                                 </span>
                               )}
                             </article>
@@ -632,10 +634,10 @@ export function TimelineBuilder({
 
                 {pois.length === 0 && (
                   <div className="flex items-center gap-2 px-6 py-10 text-sm text-muted">
-                    <span>Locations come from the map.</span>
+                    <span>{t("locationsFromMap")}</span>
                     {editorHref && (
                       <Link href={editorHref} className="font-semibold text-brand">
-                        Open map editor
+                        {t("openEditor")}
                       </Link>
                     )}
                   </div>
@@ -652,18 +654,25 @@ export function TimelineBuilder({
           <p className="min-w-0 flex-1">
             {conflicts.length > 0 ? (
               <>
-                <strong>
-                  {conflicts.length} conflict{conflicts.length === 1 ? "" : "s"} detected:
-                </strong>{" "}
-                {conflicts[0].left.name} overlaps {conflicts[0].right.name}
-                {conflicts[0].left.poiTitle ? ` on ${conflicts[0].left.poiTitle}` : ""}.
+                <strong>{t("conflicts", { count: conflicts.length })}</strong>{" "}
+                {conflicts[0].left.poiTitle
+                  ? t("overlapsOn", {
+                      left: conflicts[0].left.name,
+                      right: conflicts[0].right.name,
+                      location: conflicts[0].left.poiTitle,
+                    })
+                  : t("overlaps", { left: conflicts[0].left.name, right: conflicts[0].right.name })}
               </>
             ) : (
               <>
-                <strong>1 conflict detected:</strong> {unscheduled[0].name} is unscheduled
+                <strong>{t("conflicts", { count: 1 })}</strong>{" "}
                 {suggestion
-                  ? ` - slot available on ${suggestion.poiTitle} at ${formatClock(suggestion.startTime)}.`
-                  : "."}
+                  ? t("unscheduledSlot", {
+                      name: unscheduled[0].name,
+                      location: suggestion.poiTitle,
+                      time: formatClock(suggestion.startTime),
+                    })
+                  : t("unscheduledNoSlot", { name: unscheduled[0].name })}
               </>
             )}
           </p>
@@ -673,7 +682,7 @@ export function TimelineBuilder({
               onClick={autoResolve}
               className="rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-amber-950 shadow-sm dark:bg-amber-100"
             >
-              Auto-resolve
+              {t("autoResolve")}
             </button>
           )}
         </div>
@@ -725,6 +734,8 @@ function LibraryCard({
   draggable: boolean;
   onOpen: () => void;
 }) {
+  const t = useTranslations("schedule");
+  const typeLabel = useTranslations("activityTypes");
   const meta = activityTypeMeta(activity.type);
   const scheduled = isScheduled(activity);
   return (
@@ -748,8 +759,8 @@ function LibraryCard({
           <span className="block truncate text-sm font-semibold">{activity.name}</span>
           <span className="block truncate text-[11px] text-muted">
             {scheduled
-              ? `${activity.poiTitle ?? "Unassigned"} · ${formatRange(activity.startTime!, activity.endTime!)}`
-              : ACTIVITY_TYPES.find((t) => t.id === activity.type)?.label ?? activity.type}
+              ? `${activity.poiTitle ?? t("unassigned")} · ${formatRange(activity.startTime!, activity.endTime!)}`
+              : typeLabel(meta.id)}
           </span>
         </span>
         {scheduled && (
@@ -769,6 +780,7 @@ function EventWindowBar({
   event: ScheduleEvent;
   onClose: () => void;
 }) {
+  const t = useTranslations("schedule");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -791,10 +803,10 @@ function EventWindowBar({
       }}
     >
       <p className="w-full text-xs font-semibold uppercase tracking-wide text-muted">
-        Event hours
+        {t("eventHours")}
       </p>
       <label className="flex flex-col gap-1 text-xs font-medium">
-        Start
+        {t("start")}
         <input
           name="startTime"
           type="datetime-local"
@@ -804,7 +816,7 @@ function EventWindowBar({
         />
       </label>
       <label className="flex flex-col gap-1 text-xs font-medium">
-        End
+        {t("end")}
         <input
           name="endTime"
           type="datetime-local"
@@ -819,11 +831,11 @@ function EventWindowBar({
         aria-busy={pending}
         className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-fg disabled:opacity-60"
       >
-        <PendingLabel pending={pending} label="Apply" pendingLabel="Saving…" />
+        <PendingLabel pending={pending} label={t("apply")} pendingLabel={t("saving")} />
       </button>
       {event.startTime && event.endTime && (
         <button type="button" onClick={onClose} className="text-sm font-semibold text-muted">
-          Close
+          {t("close")}
         </button>
       )}
       {error && (

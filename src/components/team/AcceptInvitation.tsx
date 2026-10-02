@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { authClient, useSession } from "@/lib/auth-client";
 import { PendingLabel, Spinner } from "@/components/ui/Spinner";
 import { BrandMark } from "@/components/nav/BrandMark";
@@ -20,7 +21,18 @@ interface InvitationDetails {
  * invited them and accept with one click.
  */
 export function AcceptInvitation({ invitationId }: { invitationId: string }) {
+  const t = useTranslations("invitation");
+  const locale = useLocale();
   const router = useRouter();
+
+  // Wrong account gets its own hint; other server text is English, kept only for English readers.
+  const describe = useCallback(
+    (apiError: { code?: string; message?: string } | null, fallback: string) => {
+      if (apiError?.code === "YOU_ARE_NOT_THE_RECIPIENT_OF_THE_INVITATION") return t("wrongAccount");
+      return locale === "en" ? (apiError?.message ?? fallback) : fallback;
+    },
+    [t, locale],
+  );
   const { data: session, isPending: sessionPending, refetch } = useSession();
 
   // Arriving from sign-up, the shared session store can still hold the
@@ -44,10 +56,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
       .then(({ data, error: apiError }) => {
         if (cancelled) return;
         if (apiError || !data) {
-          setError(
-            apiError?.message ??
-              "This invitation is invalid or has expired. Ask for a new link.",
-          );
+          setError(describe(apiError, t("invalid")));
           return;
         }
         setInvitation(data);
@@ -55,7 +64,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [session, invitationId]);
+  }, [session, invitationId, t, describe]);
 
   async function accept() {
     setAccepting(true);
@@ -65,7 +74,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
     });
     if (apiError) {
       setAccepting(false);
-      setError(apiError.message ?? "Could not accept the invitation.");
+      setError(describe(apiError, t("acceptFailed")));
       return;
     }
     router.push("/dashboard");
@@ -78,16 +87,18 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-6 px-6 py-12 text-center">
       <div className="space-y-2">
         <BrandMark size={56} className="mx-auto" />
-        <h1 className="text-2xl font-bold">Team invitation</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         {invitation ? (
           <p className="text-sm opacity-70">
-            <strong>{invitation.inviterEmail}</strong> invited you to join{" "}
-            <strong>{invitation.organizationName}</strong> as{" "}
-            {invitation.role === "admin" ? "an Admin" : "a Viewer"}.
+            {t.rich(invitation.role === "admin" ? "invitedAdmin" : "invitedViewer", {
+              inviter: invitation.inviterEmail,
+              team: invitation.organizationName,
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
         ) : (
           <p className="text-sm opacity-70">
-            You have been invited to collaborate on event maps.
+            {t("generic")}
           </p>
         )}
       </div>
@@ -100,7 +111,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
 
       {sessionPending ? (
         <p className="inline-flex items-center justify-center gap-2 text-sm opacity-60">
-          <Spinner /> Checking your session…
+          <Spinner /> {t("checkingSession")}
         </p>
       ) : session ? (
         !error && (
@@ -111,25 +122,25 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
             aria-busy={accepting}
             className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
           >
-            <PendingLabel pending={accepting} label="Join the team" pendingLabel="Joining…" />
+            <PendingLabel pending={accepting} label={t("join")} pendingLabel={t("joining")} />
           </button>
         )
       ) : (
         <div className="flex flex-col gap-3">
           <p className="text-sm opacity-70">
-            Sign in with the email address the invitation was sent to.
+            {t("signInHint")}
           </p>
           <Link
             href={`/sign-in?redirect=${redirect}`}
             className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg active:scale-[.98]"
           >
-            Sign in
+            {t("signIn")}
           </Link>
           <Link
             href={`/sign-up?redirect=${redirect}`}
             className="rounded-xl border border-brand/40 px-6 py-3.5 font-semibold text-brand active:scale-[.98]"
           >
-            Create an account
+            {t("createAccount")}
           </Link>
         </div>
       )}

@@ -3,11 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { BrandMark } from "@/components/nav/BrandMark";
 import { SiteFooter } from "@/components/nav/SiteFooter";
 import { PendingLabel } from "@/components/ui/Spinner";
 import { syncThemeCookieAction } from "@/actions/settings";
+
+const AUTH_ERRORS = {
+  INVALID_EMAIL_OR_PASSWORD: "invalidCredentials",
+  INVALID_EMAIL: "invalidEmail",
+  PASSWORD_TOO_SHORT: "passwordTooShort",
+  USER_ALREADY_EXISTS: "userExists",
+  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: "userExists",
+} as const;
+
+// Better Auth answers in English: known codes get our wording, others keep its text for English readers.
+function authErrorMessage(
+  error: { code?: string; message?: string },
+  t: ReturnType<typeof useTranslations<"auth">>,
+  locale: string,
+) {
+  const key = AUTH_ERRORS[error.code as keyof typeof AUTH_ERRORS];
+  if (key) return t(`errors.${key}`);
+  return locale === "en" && error.message ? error.message : t("errors.generic");
+}
 
 /**
  * Shared sign-in / sign-up form. Kept as one component because the two flows
@@ -20,6 +40,8 @@ export function AuthForm({
   mode: "sign-in" | "sign-up";
   googleEnabled: boolean;
 }) {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") ?? "/dashboard";
@@ -56,7 +78,7 @@ export function AuthForm({
     setPending(false);
 
     if (result.error) {
-      setError(result.error.message ?? "Something went wrong. Please try again.");
+      setError(authErrorMessage(result.error, t, locale));
       return;
     }
 
@@ -95,7 +117,7 @@ export function AuthForm({
     });
   }
 
-  const title = mode === "sign-up" ? "Create your account" : "Welcome back";
+  const title = mode === "sign-up" ? t("createYourAccount") : t("welcomeBack");
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -110,7 +132,7 @@ export function AuthForm({
       <form onSubmit={handleSubmit} method="post" className="flex flex-col gap-3">
         {mode === "sign-up" && (
           <label className="flex flex-col gap-1 text-sm font-medium">
-            Name
+            {t("name")}
             <input
               name="name"
               required
@@ -120,7 +142,7 @@ export function AuthForm({
           </label>
         )}
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Email
+          {t("email")}
           <input
             name="email"
             type="email"
@@ -134,7 +156,7 @@ export function AuthForm({
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Password
+          {t("password")}
           <input
             name="password"
             type="password"
@@ -154,7 +176,7 @@ export function AuthForm({
               defaultChecked
               className="size-5 accent-brand"
             />
-            Remember me
+            {t("rememberMe")}
           </label>
         )}
 
@@ -172,8 +194,8 @@ export function AuthForm({
         >
           <PendingLabel
             pending={pending}
-            label={mode === "sign-up" ? "Create account" : "Sign in"}
-            pendingLabel="Please wait…"
+            label={mode === "sign-up" ? t("createAccount") : t("signIn")}
+            pendingLabel={t("pleaseWait")}
           />
         </button>
       </form>
@@ -182,7 +204,7 @@ export function AuthForm({
         <>
           <div className="flex items-center gap-3 text-xs uppercase opacity-40">
             <span className="h-px flex-1 bg-current" />
-            or
+            {t("or")}
             <span className="h-px flex-1 bg-current" />
           </div>
           <button
@@ -190,7 +212,7 @@ export function AuthForm({
             onClick={handleGoogle}
             className="rounded-xl border border-black/15 px-6 py-3.5 font-semibold active:scale-[.98] dark:border-white/20"
           >
-            Continue with Google
+            {t("continueWithGoogle")}
           </button>
         </>
       )}
@@ -198,16 +220,16 @@ export function AuthForm({
       <p className="text-center text-sm opacity-70">
         {mode === "sign-up" ? (
           <>
-            Already have an account?{" "}
+            {t("haveAccount")}{" "}
             <Link href="/sign-in" className="font-semibold text-brand">
-              Sign in
+              {t("signIn")}
             </Link>
           </>
         ) : (
           <>
-            New here?{" "}
+            {t("newHere")}{" "}
             <Link href="/sign-up" className="font-semibold text-brand">
-              Create an account
+              {t("createAnAccount")}
             </Link>
           </>
         )}

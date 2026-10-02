@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   createMcpTokenAction,
   revokeMcpTokenAction,
@@ -20,9 +21,10 @@ export interface TokenRow {
   lastUsedAt: string | null;
 }
 
-const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const DATE = { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" } as const;
 
 function RevokeButton({ token }: { token: TokenRow }) {
+  const t = useTranslations("ai");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -31,9 +33,9 @@ function RevokeButton({ token }: { token: TokenRow }) {
       <button
         type="button"
         disabled={pending}
-        aria-label={`Revoke ${token.name}`}
+        aria-label={t("revokeLabel", { name: token.name })}
         onClick={() => {
-          if (!window.confirm(`Revoke "${token.name}"? Clients using it stop working immediately.`)) return;
+          if (!window.confirm(t("confirmRevoke", { name: token.name }))) return;
           startTransition(async () => {
             const result = await revokeMcpTokenAction(token.id);
             setError(result && !result.ok ? result.error : null);
@@ -41,7 +43,7 @@ function RevokeButton({ token }: { token: TokenRow }) {
         }}
         className="rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-semibold text-danger disabled:opacity-60"
       >
-        {pending ? "Revoking…" : "Revoke"}
+        {pending ? t("revoking") : t("revoke")}
       </button>
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>
@@ -50,6 +52,8 @@ function RevokeButton({ token }: { token: TokenRow }) {
 
 /** Admin only: create team tokens (raw value shown once), list and revoke. */
 export function TokenManager({ teamId, tokens, endpoint }: { teamId: string; tokens: TokenRow[]; endpoint: string }) {
+  const t = useTranslations("ai");
+  const format = useFormatter();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState<CreateTokenState, FormData>(
     createMcpTokenAction.bind(null, teamId),
@@ -67,8 +71,8 @@ export function TokenManager({ teamId, tokens, endpoint }: { teamId: string; tok
           name="name"
           required
           maxLength={60}
-          aria-label="Token name"
-          placeholder="e.g. Claude Desktop on my laptop"
+          aria-label={t("tokenName")}
+          placeholder={t("tokenPlaceholder")}
           className={`${inputClass} min-w-0 flex-1`}
         />
         <button
@@ -76,7 +80,7 @@ export function TokenManager({ teamId, tokens, endpoint }: { teamId: string; tok
           disabled={pending}
           className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          {pending ? "Creating…" : "Create token"}
+          {pending ? t("creating") : t("createToken")}
         </button>
       </form>
 
@@ -89,7 +93,7 @@ export function TokenManager({ teamId, tokens, endpoint }: { teamId: string; tok
       {state?.ok && (
         <div role="status" className="flex flex-col gap-3 rounded-xl bg-brand-soft p-3">
           <p className="text-sm font-medium text-brand">
-            ✓ Token “{state.name}” created. Copy it now: it is not shown again.
+            {t("tokenCreated", { name: state.name })}
           </p>
           <div className="flex items-center gap-2">
             <code
@@ -98,24 +102,24 @@ export function TokenManager({ teamId, tokens, endpoint }: { teamId: string; tok
             >
               {state.token}
             </code>
-            <CopyButton value={state.token} label="Copy token" />
+            <CopyButton value={state.token} label={t("copyToken")} />
           </div>
           <div className="flex items-center gap-2">
             <code className="flex min-w-0 flex-1 items-center break-all rounded-lg bg-surface px-3 py-2 text-xs">
               {claudeCodeCommand(endpoint, state.token)}
             </code>
-            <CopyButton value={claudeCodeCommand(endpoint, state.token)} label="Copy Claude Code command" />
+            <CopyButton value={claudeCodeCommand(endpoint, state.token)} label={t("copyCommand")} />
           </div>
         </div>
       )}
 
       {tokens.length === 0 ? (
         <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-sm text-muted">
-          No active tokens yet.
+          {t("noTokens")}
         </p>
       ) : (
         <ul
-          aria-label="Active tokens"
+          aria-label={t("activeTokens")}
           className="divide-y divide-line rounded-2xl border border-line"
         >
           {tokens.map((token) => (
@@ -123,8 +127,11 @@ export function TokenManager({ teamId, tokens, endpoint }: { teamId: string; tok
               <div className="min-w-0">
                 <p className="truncate font-medium">{token.name}</p>
                 <p className="truncate text-xs opacity-60">
-                  <code>{token.prefix}…</code> · by {token.createdByEmail} · {DATE.format(new Date(token.createdAt))} ·{" "}
-                  {token.lastUsedAt ? `last used ${DATE.format(new Date(token.lastUsedAt))}` : "never used"}
+                  <code>{token.prefix}…</code> · {t("by", { email: token.createdByEmail })} ·{" "}
+                  {format.dateTime(new Date(token.createdAt), DATE)} ·{" "}
+                  {token.lastUsedAt
+                    ? t("lastUsed", { date: format.dateTime(new Date(token.lastUsedAt), DATE) })
+                    : t("neverUsed")}
                 </p>
               </div>
               <RevokeButton token={token} />

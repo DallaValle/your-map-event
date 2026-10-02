@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 /** Shared empty body when Board or Schedule has no selected event. */
 export function EmptyEventState({
@@ -8,6 +9,7 @@ export function EmptyEventState({
   isAdmin: boolean;
   section: "Board" | "Schedule";
 }) {
+  const t = useTranslations("eventHome");
   return (
     <div className="flex min-h-full items-center justify-center px-6 py-12">
       <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-black/10 bg-white px-8 py-10 text-center shadow-sm dark:border-white/10 dark:bg-white/5">
@@ -18,11 +20,11 @@ export function EmptyEventState({
           {section === "Board" ? "📋" : "🗓️"}
         </span>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">No event yet</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("noEvent")}</h1>
           <p className="text-balance text-sm leading-relaxed opacity-70">
             {isAdmin
-              ? `Create an event first, then come back to build the ${section.toLowerCase()}.`
-              : "No published events yet. Check back soon!"}
+              ? t(section === "Board" ? "noEventBoard" : "noEventSchedule")
+              : t("noEventViewer")}
           </p>
         </div>
         {isAdmin && (
@@ -30,7 +32,7 @@ export function EmptyEventState({
             href="/dashboard/events/new"
             className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
           >
-            + New event
+            {t("newEvent")}
           </Link>
         )}
       </div>

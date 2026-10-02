@@ -1,5 +1,7 @@
 import { headers } from "next/headers";
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { pageTitle } from "@/i18n/metadata";
+import { asLocale } from "@/i18n/config";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/session";
@@ -9,11 +11,13 @@ import { PasswordForm } from "@/components/settings/PasswordForm";
 import { ConnectedAccounts } from "@/components/settings/ConnectedAccounts";
 import { NotificationPrefsForm } from "@/components/settings/NotificationPrefsForm";
 import { ThemeForm } from "@/components/settings/ThemeForm";
+import { LanguageForm } from "@/components/settings/LanguageForm";
 
-export const metadata: Metadata = { title: "Settings" };
+export const generateMetadata = pageTitle("settings");
 
 export default async function SettingsPage() {
   const session = await requireSession();
+  const t = await getTranslations("settings");
   const [accounts, stored] = await Promise.all([
     auth.api.listUserAccounts({ headers: await headers() }).catch(() => []),
     prisma.userPreference.findUnique({ where: { userId: session.user.id } }),
@@ -24,22 +28,23 @@ export default async function SettingsPage() {
     pushNotifications: stored?.pushNotifications ?? DEFAULT_PREFS.pushNotifications,
     eventAnnouncements: stored?.eventAnnouncements ?? DEFAULT_PREFS.eventAnnouncements,
     theme: asTheme(stored?.theme),
+    locale: asLocale(stored?.locale),
   };
   const hasPassword = accounts.some((account) => account.providerId === "credential");
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">Settings</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="text-sm opacity-70">
-          Your personal account. Team profile and event details live on their own pages.
+          {t("intro")}
         </p>
       </div>
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">Profile</h2>
-          <p className="mt-0.5 text-sm opacity-60">Name and avatar shown in the account menu.</p>
+          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">{t("profile.title")}</h2>
+          <p className="mt-0.5 text-sm opacity-60">{t("profile.intro")}</p>
         </div>
         <ProfileForm
           name={session.user.name}
@@ -50,14 +55,14 @@ export default async function SettingsPage() {
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">Password</h2>
-          <p className="mt-0.5 text-sm opacity-60">Change the password you use with your email.</p>
+          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">{t("password.title")}</h2>
+          <p className="mt-0.5 text-sm opacity-60">{t("password.intro")}</p>
         </div>
         {hasPassword ? (
           <PasswordForm />
         ) : (
           <p className="rounded-2xl border border-black/10 px-4 py-3 text-sm opacity-70 dark:border-white/15">
-            You sign in through a connected account, so there is no password to change.
+            {t("password.none")}
           </p>
         )}
       </section>
@@ -65,9 +70,9 @@ export default async function SettingsPage() {
       <section className="flex flex-col gap-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
-            Connected accounts
+            {t("accounts.title")}
           </h2>
-          <p className="mt-0.5 text-sm opacity-60">Sign-in methods linked to this account.</p>
+          <p className="mt-0.5 text-sm opacity-60">{t("accounts.intro")}</p>
         </div>
         <ConnectedAccounts accounts={accounts} />
       </section>
@@ -75,11 +80,9 @@ export default async function SettingsPage() {
       <section className="flex flex-col gap-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
-            Notifications
+            {t("notifications.title")}
           </h2>
-          <p className="mt-0.5 text-sm opacity-60">
-            Choose what we send you. These are personal; they do not change team or event settings.
-          </p>
+          <p className="mt-0.5 text-sm opacity-60">{t("notifications.intro")}</p>
         </div>
         <NotificationPrefsForm
           emailNotifications={prefs.emailNotifications}
@@ -90,12 +93,18 @@ export default async function SettingsPage() {
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">Appearance</h2>
-          <p className="mt-0.5 text-sm opacity-60">
-            Light, dark, or black and white. Tokens live in the shared theme.
-          </p>
+          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">{t("appearance.title")}</h2>
+          <p className="mt-0.5 text-sm opacity-60">{t("appearance.intro")}</p>
         </div>
         <ThemeForm theme={prefs.theme} />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">{t("language.title")}</h2>
+          <p className="mt-0.5 text-sm opacity-60">{t("language.intro")}</p>
+        </div>
+        <LanguageForm locale={prefs.locale} />
       </section>
     </main>
   );

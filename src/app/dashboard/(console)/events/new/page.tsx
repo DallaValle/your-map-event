@@ -1,26 +1,27 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { pageTitle } from "@/i18n/metadata";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { NewEventFlow } from "@/components/event/NewEventFlow";
 
-export const metadata: Metadata = { title: "Pricing" };
+export const generateMetadata = pageTitle("pricing");
 
 export default async function NewEventPage() {
   const membership = await getMyTeam();
   if (!membership || !isAdminRole(membership.role)) redirect("/dashboard");
+  const t = await getTranslations("newEvent");
 
   return (
     <div className="flex min-h-full justify-center px-6 py-10">
       <div className="flex w-full max-w-lg flex-col gap-6">
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-wide opacity-50">
-            Pricing
+            {t("eyebrow")}
           </p>
-          <h1 className="text-2xl font-bold tracking-tight">New event</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-sm leading-relaxed opacity-70">
-            Pay for the event, give it a name, then build the map from your
-            dashboard.
+            {t("intro")}
           </p>
         </div>
         <NewEventFlow teamId={membership.team.id} />
@@ -28,7 +29,7 @@ export default async function NewEventPage() {
           href="/dashboard"
           className="inline-flex w-fit items-center gap-1.5 text-sm opacity-70 hover:opacity-100"
         >
-          <span aria-hidden>←</span> Back to dashboard
+          <span aria-hidden>←</span> {t("back")}
         </Link>
       </div>
     </div>

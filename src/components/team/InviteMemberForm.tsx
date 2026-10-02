@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -14,6 +15,7 @@ const inputClass =
  * (chat, email, however they like).
  */
 export function InviteMemberForm({ orgId }: { orgId: string }) {
+  const t = useTranslations("team");
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
     setPending(false);
 
     if (apiError || !data) {
-      setError(apiError?.message ?? "Could not create the invitation.");
+      setError(apiError?.message ?? t("inviteFailed"));
       return;
     }
 
@@ -62,12 +64,12 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
           name="email"
           type="email"
           required
-          placeholder="teammate@company.com"
+          placeholder={t("emailPlaceholder")}
           className={`${inputClass} min-w-0 flex-1`}
         />
-        <select name="role" defaultValue="member" className={inputClass} aria-label="Role">
-          <option value="member">Viewer</option>
-          <option value="admin">Admin</option>
+        <select name="role" defaultValue="member" className={inputClass} aria-label={t("role")}>
+          <option value="member">{t("viewer")}</option>
+          <option value="admin">{t("admin")}</option>
         </select>
         <button
           type="submit"
@@ -75,7 +77,7 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
           aria-busy={pending}
           className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
         >
-          <PendingLabel pending={pending} label="Invite" pendingLabel="Inviting…" />
+          <PendingLabel pending={pending} label={t("inviteButton")} pendingLabel={t("inviting")} />
         </button>
       </div>
 
@@ -88,7 +90,7 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
       {inviteLink && (
         <div className="flex flex-col gap-2 rounded-xl bg-brand-soft p-3">
           <p className="text-sm font-medium text-brand">
-            ✓ Invitation created. Send this link to your teammate:
+            {t("inviteCreated")}
           </p>
           <div className="flex items-stretch gap-2">
             <code className="flex min-w-0 flex-1 items-center overflow-x-auto whitespace-nowrap rounded-lg bg-white px-3 py-2 text-xs dark:bg-neutral-900">
@@ -99,7 +101,7 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
               onClick={copy}
               className="shrink-0 rounded-lg bg-brand px-3 text-xs font-semibold text-brand-fg active:scale-95"
             >
-              {copied ? "✓ Copied" : "Copy"}
+              {copied ? t("copied") : t("copy")}
             </button>
           </div>
         </div>

@@ -1,14 +1,16 @@
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { pageTitle } from "@/i18n/metadata";
 import { SectionPlaceholder } from "@/components/section/SectionPlaceholder";
 
-export const metadata: Metadata = { title: "History" };
+export const generateMetadata = pageTitle("history");
 
-export default function HistoryPage() {
+export default async function HistoryPage() {
+  const t = await getTranslations("placeholders");
   return (
     <SectionPlaceholder
       icon="🕑"
-      title="History"
-      description="A post-event archive and analytics: attendance, most-visited points of interest, and every past edition of your events in one place."
+      title={t("history.title")}
+      description={t("history.description")}
     />
   );
 }

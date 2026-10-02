@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { EventSwitcher, type SwitchableEvent } from "./EventSwitcher";
 import { SideNav } from "./SideNav";
 
@@ -21,6 +22,7 @@ export function DashboardSidebar({
   activeEventId: string | null;
   isAdmin: boolean;
 }) {
+  const t = useTranslations("nav");
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -55,9 +57,9 @@ export function DashboardSidebar({
         <button
           type="button"
           onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
           aria-expanded={!collapsed}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
           className="flex size-8 items-center justify-center rounded-lg text-sm opacity-60 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
         >
           <span aria-hidden>{collapsed ? "»" : "«"}</span>

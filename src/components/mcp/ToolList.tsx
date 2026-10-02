@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { ToolParam } from "@/lib/mcp/tools";
 
 export interface ToolDoc {
@@ -15,15 +16,16 @@ export interface PromptDoc {
 }
 
 function ParamsTable({ params }: { params: ToolParam[] }) {
-  if (params.length === 0) return <p className="text-xs opacity-60">No parameters.</p>;
+  const t = useTranslations("ai");
+  if (params.length === 0) return <p className="text-xs opacity-60">{t("noParams")}</p>;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-xs">
         <thead className="opacity-60">
           <tr>
-            <th className="py-1.5 pr-3 font-medium">Parameter</th>
-            <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">Type</th>
-            <th className="hidden py-1.5 font-medium sm:table-cell">Description</th>
+            <th className="py-1.5 pr-3 font-medium">{t("param")}</th>
+            <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">{t("type")}</th>
+            <th className="hidden py-1.5 font-medium sm:table-cell">{t("description")}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -32,7 +34,7 @@ function ParamsTable({ params }: { params: ToolParam[] }) {
               <td className="py-1.5 pr-3 font-mono sm:whitespace-nowrap">
                 {p.name}
                 {p.required && (
-                  <span className="ml-0.5 text-danger" title="Required" aria-label="required">
+                  <span className="ml-0.5 text-danger" title={t("required")} aria-label={t("required")}>
                     *
                   </span>
                 )}
@@ -54,11 +56,12 @@ function ParamsTable({ params }: { params: ToolParam[] }) {
 
 /** Rendered from the MCP registry, so it always matches the live server. */
 export function ToolList({ tools, prompts }: { tools: ToolDoc[]; prompts: PromptDoc[] }) {
+  const t = useTranslations("ai");
   return (
     <div className="flex flex-col gap-4">
       {prompts.map((prompt) => (
         <div key={prompt.name} className="rounded-2xl border-2 border-brand/30 bg-brand-soft p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand">Prompt</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand">{t("prompt")}</p>
           <h3 className="mt-1 font-semibold">
             {prompt.title} <code className="ml-1 text-xs font-normal opacity-60">{prompt.name}</code>
           </h3>
@@ -66,7 +69,7 @@ export function ToolList({ tools, prompts }: { tools: ToolDoc[]; prompts: Prompt
         </div>
       ))}
 
-      <ul aria-label="MCP tools" className="divide-y divide-line rounded-2xl border border-line">
+      <ul aria-label={t("mcpTools")} className="divide-y divide-line rounded-2xl border border-line">
         {tools.map((tool) => (
           <li key={tool.name}>
             <details className="group px-4 py-3" data-tool={tool.name}>
@@ -80,7 +83,7 @@ export function ToolList({ tools, prompts }: { tools: ToolDoc[]; prompts: Prompt
                 </div>
                 <span className="flex shrink-0 items-center gap-2">
                   <span className="rounded-full bg-surface px-2.5 py-0.5 text-xs font-medium">
-                    {tool.readOnly ? "Read" : "Write"}
+                    {tool.readOnly ? t("read") : t("write")}
                   </span>
                   <span aria-hidden className="text-xs opacity-50 transition-transform group-open:rotate-90">
                     ▶

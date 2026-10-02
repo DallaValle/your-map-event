@@ -7,6 +7,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSession, requireSession } from "@/lib/session";
 import { asTheme, DEFAULT_PREFS, THEME_COOKIE, THEMES, type ThemePreference } from "@/components/settings/prefs";
+import { asLocale, LOCALE_COOKIE, type AppLocale } from "@/i18n/config";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 const profileSchema = z.object({
@@ -50,23 +52,49 @@ async function setThemeCookie(theme: ThemePreference) {
   });
 }
 
-/** Align the theme cookie with the signed-in user's saved preference. */
-export async function syncThemeCookieAction(): Promise<{ theme: ThemePreference }> {
+async function setLocaleCookie(locale: AppLocale | null) {
+  const store = await cookies();
+  if (!locale) {
+    store.delete(LOCALE_COOKIE);
+    return;
+  }
+  store.set(LOCALE_COOKIE, locale, {
+    path: "/",
+    sameSite: "lax",
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 365,
+  });
+}
+
+/**
+ * Align the theme and language cookies with the signed-in user's saved
+ * preferences. `localeChanged` tells the caller the page needs a re-render.
+ */
+export async function syncThemeCookieAction(): Promise<{
+  theme: ThemePreference;
+  localeChanged: boolean;
+}> {
+  const store = await cookies();
   const session = await getSession();
   if (!session) {
-    (await cookies()).delete(THEME_COOKIE);
-    return { theme: DEFAULT_PREFS.theme };
+    store.delete(THEME_COOKIE);
+    return { theme: DEFAULT_PREFS.theme, localeChanged: false };
   }
   const stored = await prisma.userPreference.findUnique({
     where: { userId: session.user.id },
   });
   const theme = asTheme(stored?.theme);
+  const locale = asLocale(stored?.locale);
+  const localeChanged = (store.get(LOCALE_COOKIE)?.value ?? null) !== locale;
   await setThemeCookie(theme);
-  return { theme };
+  if (localeChanged) await setLocaleCookie(locale);
+  return { theme, localeChanged };
 }
 
 export async function clearThemeCookieAction() {
-  (await cookies()).delete(THEME_COOKIE);
+  const store = await cookies();
+  store.delete(THEME_COOKIE);
+  store.delete(LOCALE_COOKIE);
 }
 
 export async function updateProfileAction(
@@ -80,7 +108,7 @@ export async function updateProfileAction(
     image: formData.get("image"),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   try {
@@ -89,7 +117,7 @@ export async function updateProfileAction(
       headers: await headers(),
     });
   } catch (error) {
-    return { ok: false, error: errorMessage(error, "Could not update your profile.") };
+    return fail(errorMessage(error, "Could not update your profile."));
   }
 
   revalidatePath("/dashboard", "layout");
@@ -108,7 +136,7 @@ export async function changePasswordAction(
     confirmPassword: formData.get("confirmPassword"),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   try {
@@ -120,7 +148,7 @@ export async function changePasswordAction(
       headers: await headers(),
     });
   } catch (error) {
-    return { ok: false, error: errorMessage(error, "Could not update your password.") };
+    return fail(errorMessage(error, "Could not update your password."));
   }
 
   return { ok: true };
@@ -138,7 +166,7 @@ export async function updateNotificationPrefsAction(
     eventAnnouncements: formData.get("eventAnnouncements") === "on",
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   await prisma.userPreference.upsert({
@@ -159,7 +187,7 @@ export async function updateThemeAction(
 
   const parsed = themeSchema.safeParse({ theme: formData.get("theme") });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   await prisma.userPreference.upsert({
@@ -171,5 +199,27 @@ export async function updateThemeAction(
 
   revalidatePath("/", "layout");
   revalidatePath("/dashboard/settings");
+  return { ok: true };
+}
+
+export async function updateLocaleAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireSession();
+
+  // An empty choice means "follow the browser language".
+  const raw = String(formData.get("locale") ?? "");
+  const locale = asLocale(raw);
+  if (raw && !locale) return fail("Unknown language");
+
+  await prisma.userPreference.upsert({
+    where: { userId: session.user.id },
+    create: { userId: session.user.id, locale },
+    update: { locale },
+  });
+  await setLocaleCookie(locale);
+
+  revalidatePath("/", "layout");
   return { ok: true };
 }

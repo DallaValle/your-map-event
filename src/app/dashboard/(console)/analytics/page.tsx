@@ -1,14 +1,16 @@
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { pageTitle } from "@/i18n/metadata";
 import { SectionPlaceholder } from "@/components/section/SectionPlaceholder";
 
-export const metadata: Metadata = { title: "Analytics" };
+export const generateMetadata = pageTitle("analytics");
 
-export default function AnalyticsPage() {
+export default async function AnalyticsPage() {
+  const t = await getTranslations("placeholders");
   return (
     <SectionPlaceholder
       icon="📊"
-      title="Analytics"
-      description="Attendance, map engagement and social reach for your event, tracked over time. Coming soon."
+      title={t("analytics.title")}
+      description={t("analytics.description")}
     />
   );
 }

@@ -240,6 +240,14 @@ which verifies session → team → membership → role on the server.
    badges that grow with zoom, and a tap on a crowded spot lists every point
    under the finger. Tiles upscale past their last level up to zoom 21.
 
+## Languages
+
+English is the source language and Italian the first translation (`messages/en.json`, `messages/it.json`, via next-intl).
+The attendee map follows the phone language, falling back to English.
+Organizers pick their console language in Settings; until they do, it follows the browser.
+Organizer content (event names, point titles, descriptions, category names) is never translated.
+To add a language, add `messages/<locale>.json` with the same keys as `en.json`; `e2e/i18n.spec.ts` fails on a missing key.
+
 ## PWA & offline
 
 - `src/app/manifest.ts` + icons in `public/icons/` make the app installable.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { updateEventInfoAction } from "@/actions/maps";
 import { ImageField } from "@/components/upload/ImageField";
 import { toLocalInputValue } from "@/lib/schedule-time";
@@ -34,6 +35,7 @@ export function EventInfoForm({
   teamName: string;
   uploadsEnabled: boolean;
 }) {
+  const t = useTranslations("eventInfo");
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     updateEventInfoAction.bind(null, event.id),
     null,
@@ -42,7 +44,7 @@ export function EventInfoForm({
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Event name
+        {t("name")}
         <input
           name="name"
           defaultValue={event.name}
@@ -54,7 +56,7 @@ export function EventInfoForm({
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Subtitle
+        {t("subtitle")}
         <input
           name="subtitle"
           defaultValue={event.subtitle ?? ""}
@@ -63,23 +65,23 @@ export function EventInfoForm({
           className={inputClass}
         />
         <span className="text-xs opacity-60">
-          Shown under the event name in the attendee map top bar. Empty uses the team name.
+          {t("subtitleHint")}
         </span>
       </label>
 
       <ImageField
         name="logoUrl"
-        label="Event logo"
+        label={t("logo")}
         endpoint="eventLogo"
         uploadsEnabled={uploadsEnabled}
         defaultValue={event.logoUrl}
       />
       <p className="-mt-2 text-xs opacity-60">
-        Shown in the attendee map top bar. Prefer a square image.
+        {t("logoHint")}
       </p>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Public address
+        {t("address")}
         <div className="flex items-center gap-1 rounded-xl border border-black/15 px-4 py-3 dark:border-white/20 dark:bg-white/5">
           <span className="shrink-0 opacity-50">/{teamSlug}/</span>
           <input
@@ -91,12 +93,12 @@ export function EventInfoForm({
           />
         </div>
         <span className="text-xs opacity-60">
-          Part of the public link. Changing it breaks shared links and QR codes.
+          {t("addressHint")}
         </span>
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Description
+        {t("description")}
         <textarea
           name="description"
           defaultValue={event.description ?? ""}
@@ -105,13 +107,13 @@ export function EventInfoForm({
           className={inputClass}
         />
         <span className="text-xs opacity-60">
-          Shown in link previews when the event is shared.
+          {t("descriptionHint")}
         </span>
       </label>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Event start
+          {t("start")}
           <input
             name="startTime"
             type="datetime-local"
@@ -120,7 +122,7 @@ export function EventInfoForm({
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Event end
+          {t("end")}
           <input
             name="endTime"
             type="datetime-local"
@@ -130,7 +132,7 @@ export function EventInfoForm({
         </label>
       </div>
       <p className="-mt-2 text-xs opacity-60">
-        Operating hours for the schedule timeline. Leave empty until you know them.
+        {t("hoursHint")}
       </p>
 
       {state && !state.ok && (
@@ -140,7 +142,7 @@ export function EventInfoForm({
       )}
       {state?.ok && (
         <p role="status" className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
-          Saved.
+          {t("saved")}
         </p>
       )}
 
@@ -150,7 +152,7 @@ export function EventInfoForm({
         aria-busy={pending}
         className="self-start rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        <PendingLabel pending={pending} label="Save changes" pendingLabel="Saving…" />
+        <PendingLabel pending={pending} label={t("save")} pendingLabel={t("saving")} />
       </button>
     </form>
   );

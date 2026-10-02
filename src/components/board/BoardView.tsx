@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { deleteActivityAction } from "@/actions/activities";
 import { activityTypeMeta, isScheduled, type ActivityDTO, type SchedulePoi } from "@/lib/activity";
 import { formatRange } from "@/lib/schedule-time";
@@ -21,6 +22,7 @@ export function BoardView({
   pois: SchedulePoi[];
   isAdmin: boolean;
 }) {
+  const t = useTranslations("board");
   const [dialog, setDialog] = useState<ActivityDialogState | null>(null);
   const ordered = [...activities].sort((a, b) => {
     if (isScheduled(a) && isScheduled(b)) {
@@ -35,17 +37,14 @@ export function BoardView({
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Board</h1>
-          <p className="text-sm opacity-70">
-            Running order for {eventName}. The timeline is the same activities,
-            laid out on the map locations.
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-sm opacity-70">{t("intro", { event: eventName })}</p>
         </div>
         <Link
           href="/dashboard/schedule"
           className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-fg"
         >
-          Open timeline
+          {t("openTimeline")}
         </Link>
       </header>
 
@@ -55,16 +54,16 @@ export function BoardView({
           onClick={() => setDialog({ mode: "create" })}
           className="self-start rounded-xl border border-dashed border-black/20 px-4 py-3 text-sm font-semibold dark:border-white/20"
         >
-          + Add activity
+          {t("addActivity")}
         </button>
       )}
 
       {ordered.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-black/10 px-5 py-10 text-center text-sm opacity-60 dark:border-white/15">
-          {isAdmin ? "No activities yet. Add the first one above." : "No activities on the board yet."}
+          {isAdmin ? t("emptyAdmin") : t("emptyViewer")}
         </p>
       ) : (
-        <ul aria-label="Running order" className="divide-y divide-black/10 overflow-hidden rounded-2xl border border-black/10 dark:divide-white/15 dark:border-white/15">
+        <ul aria-label={t("runningOrder")} className="divide-y divide-black/10 overflow-hidden rounded-2xl border border-black/10 dark:divide-white/15 dark:border-white/15">
           {ordered.map((activity) => (
             <ActivityRow
               key={activity.id}
@@ -97,11 +96,13 @@ function ActivityRow({
   isAdmin: boolean;
   onEdit: () => void;
 }) {
+  const t = useTranslations("board");
+  const typeLabel = useTranslations("activityTypes");
   const router = useRouter();
   const meta = activityTypeMeta(activity.type);
 
   async function remove() {
-    if (!confirm(`Delete "${activity.name}"? This cannot be undone.`)) return;
+    if (!confirm(t("confirmDelete", { name: activity.name }))) return;
     await deleteActivityAction(activity.id);
     router.refresh();
   }
@@ -112,11 +113,11 @@ function ActivityRow({
         <h3 className="truncate font-semibold">{activity.name}</h3>
         <p className="mt-0.5 text-sm opacity-60">
           <span className={`mr-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.chip}`}>
-            {meta.label}
+            {typeLabel(meta.id)}
           </span>
           {isScheduled(activity)
             ? `${formatRange(activity.startTime!, activity.endTime!)}${activity.poiTitle ? ` · ${activity.poiTitle}` : ""}`
-            : "Unscheduled"}
+            : t("unscheduled")}
         </p>
       </div>
       {isAdmin && (
@@ -126,14 +127,14 @@ function ActivityRow({
             onClick={onEdit}
             className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-semibold dark:border-white/20"
           >
-            Edit
+            {t("edit")}
           </button>
           <button
             type="button"
             onClick={remove}
             className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 dark:border-red-900 dark:text-red-400"
           >
-            Delete
+            {t("delete")}
           </button>
         </div>
       )}

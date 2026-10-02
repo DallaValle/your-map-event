@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useMap } from "react-leaflet";
 import { useMapControlRef } from "./control-utils";
 
@@ -16,6 +17,7 @@ export function RotateControl({
 }: {
   onBearingChange?: (bearing: number) => void;
 }) {
+  const t = useTranslations("mapControls");
   const map = useMap();
   const controlRef = useMapControlRef();
   const [bearing, setBearing] = useState(() => map.getBearing?.() ?? 0);
@@ -77,7 +79,7 @@ export function RotateControl({
       <div ref={controlRef} className="leaflet-control m-2 mt-20 flex flex-col items-center gap-2">
         <button
           type="button"
-          aria-label="Rotate map counter-clockwise (hold for continuous)"
+          aria-label={t("rotateLeft")}
           {...holdProps(-1)}
           className={buttonClass}
         >
@@ -88,7 +90,7 @@ export function RotateControl({
         </span>
         <button
           type="button"
-          aria-label="Rotate map clockwise (hold for continuous)"
+          aria-label={t("rotateRight")}
           {...holdProps(1)}
           className={buttonClass}
         >

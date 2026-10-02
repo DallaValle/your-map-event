@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 
 interface PageProps {
@@ -23,10 +24,11 @@ async function getTeamWithPublishedMaps(teamSlug: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { teamSlug } = await params;
   const team = await getTeamWithPublishedMaps(teamSlug);
-  if (!team) return { title: "Not found" };
+  const t = await getTranslations("teamPage");
+  if (!team) return { title: t("notFound") };
   return {
     title: team.name,
-    description: `Event maps by ${team.name}.`,
+    description: t("description", { team: team.name }),
     ...(team.logoUrl ? { openGraph: { images: [team.logoUrl] } } : {}),
   };
 }
@@ -39,6 +41,7 @@ export default async function TeamPage({ params }: PageProps) {
   const { teamSlug } = await params;
   const team = await getTeamWithPublishedMaps(teamSlug);
   if (!team) notFound();
+  const t = await getTranslations("teamPage");
 
   if (team.events.length === 1) {
     redirect(`/${team.slug}/${team.events[0].slug}`);
@@ -58,7 +61,7 @@ export default async function TeamPage({ params }: PageProps) {
 
       {team.events.length === 0 ? (
         <p className="rounded-xl border border-dashed border-black/20 px-4 py-10 text-center text-sm opacity-60 dark:border-white/25">
-          No published event map yet — check back closer to the event.
+          {t("empty")}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -70,8 +73,7 @@ export default async function TeamPage({ params }: PageProps) {
               >
                 <h2 className="font-semibold">{map.name}</h2>
                 <p className="mt-1 text-sm opacity-60">
-                  {map.centerName} · {map._count.pois} point
-                  {map._count.pois === 1 ? "" : "s"} of interest
+                  {map.centerName} · {t("pointCount", { count: map._count.pois })}
                 </p>
               </Link>
             </li>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { useTranslations } from "next-intl";
 
 /**
  * Always-on poster QR for the published map URL. ShareCard already has a
@@ -16,6 +17,7 @@ export function PosterShareAsset({
   eventName: string;
   published: boolean;
 }) {
+  const t = useTranslations("social");
   const [url, setUrl] = useState("");
   const [qr, setQr] = useState<string | null>(null);
 
@@ -39,12 +41,12 @@ export function PosterShareAsset({
     <section className="flex flex-col gap-4 rounded-2xl border border-black/10 p-5 dark:border-white/15">
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
-          Poster QR
+          {t("posterQr")}
         </h2>
         <p className="mt-0.5 text-sm opacity-60">
           {published
-            ? "Print this on badges and flyers. It opens the published map."
-            : "The QR is ready. It goes live when you publish the map."}
+            ? t("posterHint")
+            : t("posterHintDraft")}
         </p>
       </div>
 
@@ -53,7 +55,7 @@ export function PosterShareAsset({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={qr}
-            alt={`Poster QR for ${eventName}`}
+            alt={t("posterAlt", { event: eventName })}
             className="size-52 rounded-lg bg-white p-2"
           />
         ) : (
@@ -72,7 +74,7 @@ export function PosterShareAsset({
             download={`${path.replace(/\//g, "-")}-poster-qr.png`}
             className="text-sm font-semibold text-brand"
           >
-            Download poster PNG
+            {t("downloadPoster")}
           </a>
         )}
       </div>

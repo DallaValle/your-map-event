@@ -10,6 +10,7 @@ import {
   parseWallClock,
   type PostStatus,
 } from "@/lib/social";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 const createSchema = z.object({
@@ -80,19 +81,19 @@ export async function createScheduledPostAction(
     scheduledAt: String(formData.get("scheduledAt") ?? "").trim() || undefined,
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   const { body, channel, status, scheduledAt } = parsed.data;
   if (!isPostChannel(channel)) {
-    return { ok: false, error: "Pick a channel." };
+    return fail("Pick a channel.");
   }
   if (!isPostStatus(status) || status === "done") {
-    return { ok: false, error: "Save as a draft or schedule the post." };
+    return fail("Save as a draft or schedule the post.");
   }
 
   const when = parseScheduledAt(scheduledAt, status === "scheduled");
-  if ("error" in when) return { ok: false, error: when.error };
+  if ("error" in when) return fail(when.error);
 
   const campaign = await ensureCampaign(event.id, event.name);
   await prisma.scheduledPost.create({
@@ -116,13 +117,13 @@ export async function setScheduledPostStatusAction(
 ): Promise<ActionState> {
   const post = await loadPostForAdmin(postId);
   if (!isPostStatus(status)) {
-    return { ok: false, error: "Unknown post status." };
+    return fail("Unknown post status.");
   }
 
   let nextScheduledAt = post.scheduledAt;
   if (status === "scheduled") {
     const when = parseScheduledAt(scheduledAt, !post.scheduledAt);
-    if ("error" in when) return { ok: false, error: when.error };
+    if ("error" in when) return fail(when.error);
     if (when.date) nextScheduledAt = when.date;
   }
 
