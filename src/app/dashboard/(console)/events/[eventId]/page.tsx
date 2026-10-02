@@ -20,6 +20,7 @@ export default async function EventEditorPage({
     where: { id: eventId },
     include: {
       pois: { orderBy: { createdAt: "asc" } },
+      categories: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
       activities: {
         include: { poi: { select: { title: true, icon: true } } },
         orderBy: { startTime: "asc" },
@@ -33,6 +34,7 @@ export default async function EventEditorPage({
     <MapEditor
       map={map}
       pois={map.pois}
+      categories={map.categories.map(({ id, name, icon, color }) => ({ id, name, icon, color }))}
       activities={map.activities.map((row) => ({
         id: row.id,
         name: row.name,

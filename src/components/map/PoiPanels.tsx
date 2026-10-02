@@ -1,28 +1,35 @@
 "use client";
 
 import type { Ref } from "react";
-import { isParking, poiCode, poiColor } from "./poi-badge";
-import type { PoiData } from "./types";
+import { poiCode, resolveBadge } from "./poi-badge";
+import { DEFAULT_MARKER_STYLE, type MarkerStyle, type PoiData } from "./types";
 
 /** The map badge in list form, so the list and the map read the same. */
-export function PoiBadge({ poi, large = false }: { poi: PoiData; large?: boolean }) {
-  const { code } = poiCode(poi.title);
-  const label = code ?? (isParking(poi.icon) ? "P" : poi.icon || "📍");
+export function PoiBadge({
+  poi,
+  style = DEFAULT_MARKER_STYLE,
+  large = false,
+}: {
+  poi: PoiData;
+  style?: MarkerStyle;
+  large?: boolean;
+}) {
+  const { label, icon, color, square } = resolveBadge(poi, style);
   return (
     <span
       aria-hidden
       className={`flex shrink-0 items-center justify-center font-bold text-white shadow-sm ${
-        isParking(poi.icon) ? "rounded-md" : "rounded-full"
+        square ? "rounded-md" : "rounded-full"
       } ${large ? "size-11 text-base" : "size-10 text-sm"}`}
-      style={{ background: poiColor(poi.icon) }}
+      style={{ background: color }}
     >
-      {label}
+      {label ?? (icon || "📍")}
     </span>
   );
 }
 
 function shortName(poi: PoiData) {
-  const { code, name } = poiCode(poi.title);
+  const { code, name } = poiCode(poi);
   const first = name.split(",")[0];
   return `${code ? `${code} ` : ""}${first}`;
 }
@@ -49,11 +56,13 @@ function Header({ onClose }: { onClose: () => void }) {
 /** Several points under one tap: list them in walking order and let the attendee pick. */
 export function PoiChooser({
   pois,
+  style,
   onPick,
   onClose,
   ref,
 }: {
   pois: PoiData[];
+  style?: MarkerStyle;
   onPick: (poi: PoiData) => void;
   onClose: () => void;
   ref?: Ref<HTMLElement>;
@@ -70,9 +79,9 @@ export function PoiChooser({
               onClick={() => onPick(poi)}
               className="flex w-full items-center gap-3 py-2.5 text-left active:bg-black/5 dark:active:bg-white/10"
             >
-              <PoiBadge poi={poi} />
+              <PoiBadge poi={poi} style={style} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{poiCode(poi.title).name}</span>
+                <span className="block truncate font-medium">{poiCode(poi).name}</span>
                 {poi.description && (
                   <span className="block truncate text-xs opacity-60">{poi.description}</span>
                 )}
@@ -88,6 +97,7 @@ export function PoiChooser({
 /** One point's details, with neighbours so a row of stands can be walked in order. */
 export function PoiDetails({
   poi,
+  style = DEFAULT_MARKER_STYLE,
   prev,
   next,
   onPick,
@@ -95,13 +105,14 @@ export function PoiDetails({
   ref,
 }: {
   poi: PoiData;
+  style?: MarkerStyle;
   prev?: PoiData;
   next?: PoiData;
   onPick: (poi: PoiData) => void;
   onClose: () => void;
   ref?: Ref<HTMLElement>;
 }) {
-  const { name } = poiCode(poi.title);
+  const { name, category } = resolveBadge(poi, style);
   const step =
     "flex min-h-11 min-w-0 flex-1 items-center gap-1 rounded-xl border border-black/10 px-3 text-sm font-semibold active:bg-black/5 disabled:opacity-30 dark:border-white/15 dark:active:bg-white/10";
 
@@ -115,8 +126,13 @@ export function PoiDetails({
           <img src={poi.imageUrl} alt={poi.title} className="h-32 w-full rounded-xl object-cover" />
         )}
         <div className="flex items-start gap-3 pr-10">
-          <PoiBadge poi={poi} large />
+          <PoiBadge poi={poi} style={style} large />
           <div className="min-w-0">
+            {category && (
+              <p className="text-[11px] font-semibold uppercase tracking-wide opacity-60">
+                {category.icon} {category.name}
+              </p>
+            )}
             <h2 className="text-lg font-bold leading-tight">{name}</h2>
             {poi.description && (
               <p className="mt-1 text-sm leading-snug opacity-80">{poi.description}</p>

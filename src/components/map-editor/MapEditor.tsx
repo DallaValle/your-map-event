@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setMapPublishedAction, updateMapViewAction } from "@/actions/maps";
 import { EditorMapCanvas } from "@/components/map/MapCanvas";
 import { GeocodeSearch } from "@/components/map/GeocodeSearch";
 import { PoiBadge, PoiChooser } from "@/components/map/PoiPanels";
-import { walkOrder } from "@/components/map/poi-badge";
+import { markerStyleOf, walkOrder } from "@/components/map/poi-badge";
+import { updateMarkerStyleAction } from "@/actions/categories";
+import { MarkerStyleSection } from "./MarkerStyleSection";
 import type { MapFocus } from "@/components/map/EditorMapView";
 import type { MapBounds } from "@/components/map/LeafletMap";
-import type { LatLng, PoiData } from "@/components/map/types";
+import type { LatLng, MarkerLabel, PoiCategoryData, PoiData } from "@/components/map/types";
 import {
   DEFAULT_MAP_LAYOUT,
   MAP_LAYOUTS,
@@ -35,6 +37,8 @@ export interface EditorMapData {
   zoom: number;
   bearing: number;
   mapLayout: string;
+  markerLabel: string;
+  markerColor: string | null;
   published: boolean;
   boundsSWLat: number | null;
   boundsSWLng: number | null;
@@ -43,6 +47,7 @@ export interface EditorMapData {
 }
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+type MarkerLook = { markerLabel: MarkerLabel; markerColor: string | null };
 
 const ZOOM_MIN = 14;
 const ZOOM_MAX = 19;
@@ -62,6 +67,7 @@ const inputClass =
 export function MapEditor({
   map,
   pois,
+  categories = [],
   activities = [],
   teamSlug,
   teamName,
@@ -69,6 +75,7 @@ export function MapEditor({
 }: {
   map: EditorMapData;
   pois: PoiData[];
+  categories?: PoiCategoryData[];
   activities?: ActivityDTO[];
   teamSlug: string;
   teamName: string;
@@ -100,6 +107,57 @@ export function MapEditor({
       : null,
   );
   const [focus, setFocus] = useState<MapFocus | null>(null);
+
+  // --- Marker look: applied at once on the map, saved shortly after ----------
+  const savedStyle = markerStyleOf(map, categories);
+  const [markerLook, setMarkerLook] = useState<MarkerLook>({
+    markerLabel: savedStyle.label,
+    markerColor: savedStyle.color,
+  });
+  const markerStyle = useMemo(
+    () => markerStyleOf(markerLook, categories),
+    [markerLook, categories],
+  );
+  const [markerError, setMarkerError] = useState<string | null>(null);
+  const pendingLook = useRef<{ look: MarkerLook; timer: number } | null>(null);
+
+  function saveLook(look: MarkerLook) {
+    void updateMarkerStyleAction(map.id, look).then((result) => {
+      if (result && !result.ok) setMarkerError(result.error);
+      else {
+        setMarkerError(null);
+        router.refresh();
+      }
+    });
+  }
+
+  // Clicks save at once; only a dragged color waits for the hand to settle.
+  function changeLook(look: MarkerLook, { debounce = false } = {}) {
+    setMarkerLook(look);
+    if (pendingLook.current) window.clearTimeout(pendingLook.current.timer);
+    pendingLook.current = null;
+    if (!debounce) return saveLook(look);
+    const timer = window.setTimeout(() => {
+      pendingLook.current = null;
+      saveLook(look);
+    }, 500);
+    pendingLook.current = { look, timer };
+  }
+
+  // Leaving mid drag still keeps the last color.
+  const saveLookRef = useRef(saveLook);
+  useEffect(() => {
+    saveLookRef.current = saveLook;
+  });
+  useEffect(
+    () => () => {
+      const pending = pendingLook.current;
+      if (!pending) return;
+      window.clearTimeout(pending.timer);
+      saveLookRef.current(pending.look);
+    },
+    [],
+  );
 
   // --- POI editing state ----------------------------------------------------
   const [sheet, setSheet] = useState<PoiSheetMode | null>(null);
@@ -265,11 +323,13 @@ export function MapEditor({
     });
   }
 
+  // Stand number order, the same the attendee list and previous / next use.
+  const ordered = walkOrder(pois);
   const filtered = filter.trim()
-    ? pois.filter((poi) =>
+    ? ordered.filter((poi) =>
         poi.title.toLowerCase().includes(filter.trim().toLowerCase()),
       )
-    : pois;
+    : ordered;
 
   const statusLabel: Record<SaveStatus, string> = {
     idle: "",
@@ -362,6 +422,7 @@ export function MapEditor({
           bearing={map.bearing}
           layout={mapLayout}
           pois={pois}
+          markerStyle={markerStyle}
           // An untouched edit is already marked by its highlighted badge.
           draftPosition={
             sheet?.type === "edit" &&
@@ -395,7 +456,7 @@ export function MapEditor({
           </>
         )}
         {choices && (
-          <PoiChooser pois={choices} onPick={editPoi} onClose={() => setChoices(null)} />
+          <PoiChooser pois={choices} style={markerStyle} onPick={editPoi} onClose={() => setChoices(null)} />
         )}
         {placing && !sheet && !choices && (
           <div className="pointer-events-none absolute inset-x-0 bottom-14 z-[500] mx-auto flex w-fit items-center gap-2 rounded-full bg-black/75 px-3 py-1.5 text-[11px] font-medium text-white">
@@ -482,6 +543,16 @@ export function MapEditor({
           </div>
         </section>
 
+        <MarkerStyleSection
+          eventId={map.id}
+          pois={pois}
+          categories={categories}
+          markerLabel={markerLook.markerLabel}
+          markerColor={markerLook.markerColor}
+          onStyleChange={changeLook}
+          styleError={markerError}
+        />
+
         {/* View lock: freezing the phone-shaped view captures borders,
             orientation and zoom in one go. */}
         <section className="flex flex-col gap-2">
@@ -553,7 +624,7 @@ export function MapEditor({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
                     ) : (
-                      <PoiBadge poi={poi} />
+                      <PoiBadge poi={poi} style={markerStyle} />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{poi.title}</p>
@@ -613,11 +684,15 @@ export function MapEditor({
           and taps reposition the draft point while it's open. */}
       {sheet && sheetDraft && (
         <PoiSheet
+          // A fresh form per point: switching points must not carry over fields.
+          key={sheet.type === "edit" ? sheet.poi.id : "new"}
           mapId={map.id}
           mode={sheet}
           position={sheetDraft}
           uploadsEnabled={uploadsEnabled}
           activities={activities}
+          categories={categories}
+          markerColor={markerLook.markerColor}
           onClose={closeSheet}
           onPositionChange={setSheetDraft}
         />

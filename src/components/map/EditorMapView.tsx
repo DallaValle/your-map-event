@@ -8,7 +8,7 @@ import { RotateControl } from "./RotateControl";
 import { ZoomControl } from "./ZoomControl";
 import { useMapControlRef } from "./control-utils";
 import { PoiMarkers } from "./PoiMarkers";
-import type { LatLng, PoiData } from "./types";
+import type { LatLng, MarkerStyle, PoiData } from "./types";
 
 export interface MapFocus {
   lat: number;
@@ -160,6 +160,7 @@ export default function EditorMapView({
   bearing = 0,
   layout,
   pois,
+  markerStyle,
   draftPosition,
   bounds,
   focus = null,
@@ -179,6 +180,8 @@ export default function EditorMapView({
   /** Basemap layout (streets, light, dark, satellite, outdoors). */
   layout?: string | null;
   pois: PoiData[];
+  /** Same look attendees get: numbers or icons, colors. */
+  markerStyle?: MarkerStyle;
   draftPosition: LatLng | null;
   /** Saved borders. When set (and editable), the view is locked to them. */
   bounds?: MapBounds | null;
@@ -227,6 +230,7 @@ export default function EditorMapView({
       )}
       <PoiMarkers
         pois={pois}
+        style={markerStyle}
         selectedId={selectedPoiId}
         onPick={onPoiPick}
         pickOnMapClick={false}

@@ -167,6 +167,39 @@ test("live map: open details survive panning and location updates", async ({ pag
   await expect(marker.locator('[data-selected="true"]')).toBeVisible();
 });
 
+test("live map: a focused marker opens with the keyboard", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "keyboard flow");
+  await openLiveMap(page);
+  await page.locator('.leaflet-marker-icon[title="Beer Garden"]').focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("region", { name: "Point details" })).toContainText("Local craft beer");
+});
+
+test("live map: points on the same spot still show their numbers when zoomed in", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "run once");
+  const event = await prisma.event.findFirstOrThrow({ where: { slug: "lakeside-festival-2026" } });
+  const spot = { lat: HOME.lat + 0.0006, lng: HOME.lng + 0.0006 };
+  const twins = await prisma.$transaction(
+    ["7. Twin Alpha", "8. Twin Bravo"].map((title) =>
+      prisma.pointOfInterest.create({ data: { mapId: event.id, title, icon: "🍷", ...spot } }),
+    ),
+  );
+  try {
+    await openLiveMap(page, `${LIVE}?e2e=twins`);
+    await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+    await page.locator("ul li button", { hasText: "Twin Alpha" }).click();
+    await expect.poll(async () => (await readView(page)).zoom).toBe(19);
+    await page.getByRole("button", { name: "Close" }).click();
+    await page.locator(".leaflet-container").focus();
+    await page.keyboard.press("Equal");
+    await expect.poll(async () => (await readView(page)).zoom).toBe(20);
+    await expect(page.locator('.leaflet-marker-icon[title="7 Twin Alpha"]')).toHaveText("7");
+    await expect(page.locator('.leaflet-marker-icon[title="8 Twin Bravo"]')).toHaveText("8");
+  } finally {
+    await prisma.pointOfInterest.deleteMany({ where: { id: { in: twins.map((t) => t.id) } } });
+  }
+});
+
 test("live map: a tap on a crowded row lists every stand under the finger", async ({ page }) => {
   const { id: eventId, prev } = await patchLakeside({
     boundsSWLat: null,
@@ -205,6 +238,10 @@ test("live map: a tap on a crowded row lists every stand under the finger", asyn
     // Zooming past the tile server's last level separates the row and shows codes.
     await page.getByRole("button", { name: "Close" }).click();
     await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+    // Listed by stand number, not by creation order (Charlie was added first).
+    await expect(page.locator("ul li button").nth(0)).toContainText("1. Alpha Wines");
+    await expect(page.locator("ul li button").nth(1)).toContainText("2. Bravo Wines");
+    await expect(page.locator("ul li button").nth(2)).toContainText("3. Charlie Wines");
     await page.locator("ul li button", { hasText: "Alpha Wines" }).click();
     await expect.poll(async () => (await readView(page)).zoom).toBe(19);
     // Keyboard zoom keeps the row centred, unlike a double-click in a corner.

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PublicMapCanvas } from "@/components/map/MapCanvas";
+import { markerStyleOf } from "@/components/map/poi-badge";
 import { getLatestAnnouncement } from "@/lib/notifications";
 import { AnnouncementBanner } from "@/components/notifications/AnnouncementBanner";
 
@@ -14,7 +15,10 @@ async function getPublicMap(teamSlug: string, mapSlug: string) {
   if (!team) return null;
   const map = await prisma.event.findUnique({
     where: { teamId_slug: { teamId: team.id, slug: mapSlug } },
-    include: { pois: { orderBy: { createdAt: "asc" } } },
+    include: {
+      pois: { orderBy: { createdAt: "asc" } },
+      categories: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
+    },
   });
   if (!map || !map.published) return null;
   return { team, map };
@@ -65,6 +69,7 @@ export default async function PublicMapPage({ params }: PageProps) {
         bearing={map.bearing}
         layout={map.mapLayout}
         pois={map.pois}
+        markerStyle={markerStyleOf(map, map.categories)}
         eventName={map.name}
         eventSubtitle={map.subtitle}
         eventLogoUrl={map.logoUrl}

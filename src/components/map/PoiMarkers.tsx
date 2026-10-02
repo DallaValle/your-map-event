@@ -4,15 +4,8 @@ import { memo, useCallback, useMemo, useRef, useState } from "react";
 import type L from "leaflet";
 import { Marker, useMapEvents } from "react-leaflet";
 import { poiBadgeIcon } from "./poi-icon";
-import {
-  BADGE_LABEL_MIN,
-  badgeSize,
-  isParking,
-  poiCode,
-  poiColor,
-  nearestSpacing,
-} from "./poi-badge";
-import type { PoiData } from "./types";
+import { BADGE_LABEL_MIN, badgeSize, nearestSpacing, resolveBadge } from "./poi-badge";
+import { DEFAULT_MARKER_STYLE, type MarkerStyle, type PoiData } from "./types";
 
 /** Fingertips land 10 to 15 px off target, so a tap reaches past a small dot. */
 const TAP_RADIUS = 22;
@@ -20,28 +13,40 @@ const SELECTED_MIN = 28;
 
 const PoiMarker = memo(function PoiMarker({
   poi,
+  style,
   size,
   selected,
   onTap,
 }: {
   poi: PoiData;
+  style: MarkerStyle;
   size: number;
   selected: boolean;
   onTap: (poi: PoiData, event: L.LeafletMouseEvent) => void;
 }) {
   const position = useMemo<[number, number]>(() => [poi.lat, poi.lng], [poi.lat, poi.lng]);
-  const { code, name } = poiCode(poi.title);
+  const { label, code, name, color, square } = resolveBadge(poi, style);
   const shown = selected ? Math.max(size, SELECTED_MIN) : size;
   const icon = poiBadgeIcon({
-    label: code ?? (isParking(poi.icon) ? "P" : poi.icon || "📍"),
-    color: poiColor(poi.icon),
+    label: label ?? "",
+    color,
     size: shown,
-    square: isParking(poi.icon),
+    square,
     selected,
-    showLabel: shown >= BADGE_LABEL_MIN,
+    showLabel: !!label && shown >= BADGE_LABEL_MIN,
   });
   const eventHandlers = useMemo(
-    () => ({ click: (event: L.LeafletMouseEvent) => onTap(poi, event) }),
+    () => ({
+      click: (event: L.LeafletMouseEvent) => onTap(poi, event),
+      // Markers are focusable buttons; without popups nothing else opens them from the keyboard.
+      keypress: (event: L.LeafletKeyboardEvent) => {
+        const key = event.originalEvent.key;
+        if (key !== "Enter" && key !== " ") return;
+        // Space would also scroll a scrollable page such as the editor.
+        event.originalEvent.preventDefault();
+        onTap(poi, event as unknown as L.LeafletMouseEvent);
+      },
+    }),
     [onTap, poi],
   );
 
@@ -67,11 +72,14 @@ const PoiMarker = memo(function PoiMarker({
  */
 export function PoiMarkers({
   pois,
+  style = DEFAULT_MARKER_STYLE,
   selectedId,
   onPick,
   pickOnMapClick = true,
 }: {
   pois: PoiData[];
+  /** Admin choices: numbers or icons, one color or category colors. Keep it stable. */
+  style?: MarkerStyle;
   selectedId?: string | null;
   /** One point or every point under the finger, nearest first. Empty on a miss. */
   onPick: (hits: PoiData[]) => void;
@@ -124,6 +132,7 @@ export function PoiMarkers({
         <PoiMarker
           key={poi.id}
           poi={poi}
+          style={style}
           size={sizeOf(poi)}
           selected={poi.id === selectedId}
           onTap={onTap}

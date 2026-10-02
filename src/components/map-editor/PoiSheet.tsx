@@ -4,7 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPoiAction, updatePoiAction, deletePoiAction } from "@/actions/pois";
 import { ImageField } from "@/components/upload/ImageField";
-import { POI_ICONS, type LatLng, type PoiData } from "@/components/map/types";
+import { POI_ICONS, type LatLng, type PoiCategoryData, type PoiData } from "@/components/map/types";
+import { poiCode, suggestedColor } from "@/components/map/poi-badge";
 import type { ActivityDTO } from "@/lib/activity";
 import { PoiScheduleSection } from "./PoiScheduleSection";
 import type { ActionState } from "@/actions/types";
@@ -26,6 +27,8 @@ export function PoiSheet({
   position,
   uploadsEnabled,
   activities = [],
+  categories = [],
+  markerColor = null,
   eventStartTime = null,
   eventEndTime = null,
   onClose,
@@ -36,6 +39,9 @@ export function PoiSheet({
   position: LatLng;
   uploadsEnabled: boolean;
   activities?: ActivityDTO[];
+  categories?: PoiCategoryData[];
+  /** Event wide marker color; it wins over category colors, like on the map. */
+  markerColor?: string | null;
   eventStartTime?: string | null;
   eventEndTime?: string | null;
   onClose: () => void;
@@ -47,6 +53,13 @@ export function PoiSheet({
   const [lat, setLat] = useState(position.lat.toFixed(6));
   const [lng, setLng] = useState(position.lng.toFixed(6));
   const [icon, setIcon] = useState(isEdit ? (mode.poi.icon ?? "📍") : "📍");
+  const [title, setTitle] = useState(isEdit ? mode.poi.title : "");
+  const [categoryId, setCategoryId] = useState(isEdit ? (mode.poi.categoryId ?? "") : "");
+  const category = categories.find((c) => c.id === categoryId);
+  const [ownColor, setOwnColor] = useState<string | null>(isEdit ? (mode.poi.color ?? null) : null);
+  // Icons in use come first, so a 🍷 imported from a flyer stays selectable.
+  const iconChoices = [...new Set([icon, ...categories.map((c) => c.icon), ...POI_ICONS])];
+  const titleCode = poiCode({ title, code: null }).code;
 
   // Map taps update `position` from outside — mirror them into the inputs.
   // Manual typing round-trips through onPositionChange to the same value,
@@ -135,18 +148,55 @@ export function PoiSheet({
             name="title"
             required
             maxLength={80}
-            defaultValue={isEdit ? mode.poi.title : ""}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="Title (e.g. Main Stage)"
             aria-label="Title"
             autoFocus={!isEdit}
             className={inputClass}
           />
 
+          <div className="flex gap-2">
+            <label className="flex w-24 shrink-0 flex-col gap-0.5 text-xs font-medium opacity-70">
+              Number
+              <input
+                name="code"
+                maxLength={6}
+                defaultValue={isEdit ? (mode.poi.code ?? "") : ""}
+                // A "12." title prefix already counts; the field overrides it.
+                placeholder={titleCode ?? "12"}
+                aria-label="Number"
+                className={`${inputClass} font-normal text-black dark:text-white`}
+              />
+            </label>
+            <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs font-medium opacity-70">
+              Category
+              <select
+                name="categoryId"
+                value={categoryId}
+                onChange={(e) => {
+                  setCategoryId(e.target.value);
+                  const next = categories.find((c) => c.id === e.target.value);
+                  if (next) setIcon(next.icon);
+                }}
+                aria-label="Category"
+                className={`${inputClass} font-normal text-black dark:text-white`}
+              >
+                <option value="">No category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.icon} {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           {/* Marker icon */}
           <div className="flex flex-col gap-1">
             <span className="text-xs font-medium opacity-70">Marker icon</span>
             <div className="flex flex-wrap gap-1">
-              {POI_ICONS.map((emoji) => (
+              {iconChoices.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"
@@ -164,6 +214,45 @@ export function PoiSheet({
               ))}
             </div>
             <input type="hidden" name="icon" value={icon} />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+            <span className="opacity-70">Marker color</span>
+            <button
+              type="button"
+              aria-pressed={!ownColor}
+              onClick={() => setOwnColor(null)}
+              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${
+                !ownColor ? "border-brand bg-brand-soft" : "border-black/10 dark:border-white/15"
+              }`}
+            >
+              <span
+                aria-hidden
+                className="size-2.5 rounded-full"
+                style={{ background: markerColor ?? category?.color ?? suggestedColor(icon) }}
+              />
+              {markerColor ? "Event color" : category ? "Category color" : "Automatic"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={!!ownColor}
+              onClick={() => setOwnColor(ownColor ?? markerColor ?? category?.color ?? suggestedColor(icon))}
+              className={`rounded-full border px-2.5 py-1 ${
+                ownColor ? "border-brand bg-brand-soft" : "border-black/10 dark:border-white/15"
+              }`}
+            >
+              Own color
+            </button>
+            {ownColor && (
+              <input
+                type="color"
+                value={ownColor}
+                onChange={(e) => setOwnColor(e.target.value)}
+                aria-label="Own marker color"
+                className="size-7 cursor-pointer rounded-full border-0 bg-transparent p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+              />
+            )}
+            <input type="hidden" name="color" value={ownColor ?? ""} />
           </div>
 
           <div className="flex gap-2">

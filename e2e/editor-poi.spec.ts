@@ -146,6 +146,10 @@ test.describe("editor: points", () => {
       await signIn(page);
       await openLakesideEditor(page);
 
+      // The points list follows stand numbers, whatever order they were added in.
+      const listed = page.locator("ul li button", { hasText: "Wines" });
+      await expect(listed).toHaveText([/1\. Alpha Wines/, /2\. Bravo Wines/, /3\. Charlie Wines/]);
+
       await page.locator('.leaflet-marker-icon[title="2 Bravo Wines"]').click();
       const chooser = page.getByRole("region", { name: "Points here" });
       await expect(chooser.getByRole("heading")).toHaveText("3 points here");

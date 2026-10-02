@@ -32,6 +32,7 @@ Work in this order and keep the chat short.
    - Isolated items: add_points with pixel x/y and the importId, in batches of up to 200.
    - Titles copy the legend, number first: "12. Tenuta San Gallo, Soligo (TV)". Letters too: "D. Stand gastronomico".
    - Icons by category: 🍷 wine, 🍝 food, 🍺 beer, ℹ️ info, 🚻 toilets, 🅿️ parking, ⛑️ first aid, 🎵 music, 📌 anything else.
+   - Give each point the category its legend uses ("Banchi", "Ristoro", "Parcheggi") so attendees can filter by it. Categories are created on first use with that point's icon.
 6. Timed legend entries (for example "Gara del Salame, Sunday 15:00" on point GS): add_activities with venue local times and poiTitle.
 7. Finish with list_points. Summarize counts per category, mention anything you could not place, and give the editor link so the organizer can check, drag points and publish from the dashboard. Never claim the map is published: publishing is their click.
 

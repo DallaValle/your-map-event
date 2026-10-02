@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { ToolAnnotations } from "@modelcontextprotocol/server";
 import { ACTIVITY_TYPE_IDS } from "@/lib/activity";
 import { MAP_LAYOUT_IDS, type MapLayoutId } from "@/components/map/map-layouts";
+import { MARKER_LABELS } from "@/components/map/types";
 import type { McpContext } from "./auth";
 import * as events from "./events";
 import { findStreet, geocode } from "./osm";
@@ -27,6 +28,14 @@ const importId = z
 const title = z.string().trim().min(1).max(80).describe("Point title as the legend writes it, e.g. \"12. Tenuta San Gallo, Soligo (TV)\"");
 const description = z.string().max(500).describe("Optional detail shown when the attendee opens the point");
 const icon = z.string().max(8).describe("One emoji for the marker, e.g. 🍷 wine, 🍝 food, ℹ️ info, 🅿️ parking, 🚻 toilets");
+const code = z.string().max(6).describe("Stand number or letter printed on the map, e.g. \"12\" or \"C\". Optional when the title starts with it (\"12. Name\")");
+const category = z
+  .string()
+  .trim()
+  .min(1)
+  .max(40)
+  .describe("Legend group as the flyer names it, e.g. \"Banchi vini\" or \"Ristoro\". Created with the point's icon when new");
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/).describe("Hex color like #8a1538");
 
 const positionShape = {
   lat: lat.optional(),
@@ -84,6 +93,11 @@ const updateEventInput = z.object({
   bounds: boundsInput.nullable().optional(),
   startTime: wallClock.nullable().optional(),
   endTime: wallClock.nullable().optional(),
+  markerLabel: z
+    .enum(MARKER_LABELS)
+    .optional()
+    .describe("What markers show: auto (number when the point has one, else icon), number, or icon"),
+  markerColor: hexColor.nullable().optional().describe("One color for every marker; null colors them by category"),
 });
 export type UpdateEventInput = z.infer<typeof updateEventInput>;
 
@@ -111,6 +125,8 @@ const pointInput = z.object({
   title,
   description: description.optional(),
   icon: icon.optional(),
+  code: code.optional(),
+  category: category.optional(),
   ...positionShape,
 });
 
@@ -118,6 +134,7 @@ const addPointsInput = z.object({
   eventId,
   importId: importId.optional(),
   icon: icon.optional().describe("Default emoji for points that do not set their own"),
+  category: category.optional().describe("Default category for points that do not set their own"),
   points: z
     .array(pointInput)
     .min(1)
@@ -138,11 +155,12 @@ const placeAlongStreetInput = z.object({
   start: position.describe("Where the first item sits: lat + lng, or x + y on the photo"),
   end: position.describe("Where the last item sits: lat + lng, or x + y on the photo"),
   points: z
-    .array(pointInput.pick({ title: true, description: true, icon: true }))
+    .array(pointInput.pick({ title: true, description: true, icon: true, code: true, category: true }))
     .min(1)
     .max(200)
     .describe("Items in order from start to end, spread evenly by distance along the street"),
   icon: icon.optional().describe("Default emoji for points that do not set their own"),
+  category: category.optional().describe("Default category for points that do not set their own"),
   side: z.enum(["left", "right", "center"]).default("center").describe("Side of the street, seen walking from start to end"),
   offsetMeters: z.number().min(0).max(50).default(6).describe("Distance from the street centerline for left/right"),
 });
@@ -158,6 +176,9 @@ const updatePointInput = z.object({
   title: title.optional(),
   description: description.optional(),
   icon: icon.optional(),
+  code: code.nullable().optional(),
+  category: category.nullable().optional().describe("Category name; null removes the point from its category"),
+  color: hexColor.nullable().optional().describe("Own marker color; null uses the category color"),
   ...positionShape,
 });
 export type UpdatePointInput = z.infer<typeof updatePointInput>;

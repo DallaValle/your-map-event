@@ -13,6 +13,9 @@ import {
   type MapLayoutId,
 } from "./map-layouts";
 
+/** Past the tile server's last level Leaflet upscales tiles, so stands a few metres apart can separate. */
+export const MAP_MAX_ZOOM = 21;
+
 /**
  * The only component that touches Leaflet's DOM API directly. It must never
  * be imported by server code — MapCanvas dynamic-imports it with ssr: false.
@@ -20,8 +23,6 @@ import {
  * Tile usage: each layout declares its own host + attribution. OSM still uses
  * the single canonical host (the {s} subdomains are deprecated there).
  */
-/** Past the tile server's last level Leaflet upscales tiles, so stands a few metres apart can separate. */
-export const MAP_MAX_ZOOM = 21;
 
 export interface MapBounds {
   swLat: number;

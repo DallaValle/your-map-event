@@ -14,7 +14,17 @@ function parsePoiForm(formData: FormData) {
     icon: formData.get("icon") || undefined,
     lat: formData.get("lat"),
     lng: formData.get("lng"),
+    code: formData.get("code") ?? undefined,
+    categoryId: formData.get("categoryId") ?? undefined,
+    color: formData.get("color") ?? undefined,
   });
+}
+
+/** A point may only join a category of its own event. */
+async function checkCategory(mapId: string, categoryId: string | null | undefined) {
+  if (!categoryId) return true;
+  const category = await prisma.poiCategory.findFirst({ where: { id: categoryId, eventId: mapId } });
+  return !!category;
 }
 
 /** Resolve the POI's map and verify the caller administers its team. */
@@ -50,6 +60,9 @@ export async function createPoiAction(
     return { ok: false, error: parsed.error.issues[0].message };
   }
   const { imageUrl, icon, ...rest } = parsed.data;
+  if (!(await checkCategory(mapId, rest.categoryId))) {
+    return { ok: false, error: "That category no longer exists. Pick another one." };
+  }
 
   await prisma.pointOfInterest.create({
     data: { mapId, ...rest, imageUrl: imageUrl || null, icon: icon || null },
@@ -79,6 +92,9 @@ export async function updatePoiAction(
     return { ok: false, error: parsed.error.issues[0].message };
   }
   const { imageUrl, icon, ...rest } = parsed.data;
+  if (!(await checkCategory(poi.mapId, rest.categoryId))) {
+    return { ok: false, error: "That category no longer exists. Pick another one." };
+  }
 
   await prisma.pointOfInterest.update({
     where: { id: poiId },
