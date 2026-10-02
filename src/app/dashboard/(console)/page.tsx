@@ -151,6 +151,7 @@ export default async function EventPage() {
                 slug: event.slug,
                 description: event.description,
                 logoUrl: event.logoUrl,
+                barColor: event.barColor,
                 startTime: event.startTime?.toISOString() ?? null,
                 endTime: event.endTime?.toISOString() ?? null,
               }}

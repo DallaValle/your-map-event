@@ -6,6 +6,7 @@ import { useMap } from "react-leaflet";
 import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, Focus, MapPin, Navigation, X } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
+import { readableTextOn } from "@/lib/color";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { PoiMarkers } from "./PoiMarkers";
 import { PoiBadge, PoiChooser, PoiDetails } from "./PoiPanels";
@@ -107,6 +108,7 @@ export default function PublicMap({
   eventName,
   eventSubtitle,
   eventLogoUrl,
+  barColor,
   chromeInsets,
   banner,
 }: {
@@ -127,6 +129,8 @@ export default function PublicMap({
   eventSubtitle?: string | null;
   /** Event branding in the top bar (falls back to a pin if missing). */
   eventLogoUrl?: string | null;
+  /** Organizer color for the top and bottom bars; null keeps the theme default. */
+  barColor?: string | null;
   /**
    * Extra clearance (in rem) for the top and bottom bars, on top of the device
    * safe-area insets. Real devices supply their own insets; this is for
@@ -253,16 +257,29 @@ export default function PublicMap({
     map.flyTo([center.lat, center.lng], zoom);
   }
 
-  const navButton =
-    "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium active:bg-black/5 dark:active:bg-white/10 disabled:opacity-40";
+  // An organizer color wins over the theme in both modes; text and tints follow its contrast.
+  const barText = barColor ? readableTextOn(barColor) : null;
+  const onDarkBar = barText === "#ffffff";
+  const barStyle = barColor ? { background: barColor, color: barText! } : undefined;
+  const barTheme = barColor ? "" : "bg-white dark:bg-neutral-900";
+  const barTint = barColor ? (onDarkBar ? "bg-white/20" : "bg-black/10") : "bg-brand-soft text-brand";
+  const barPress = barColor
+    ? onDarkBar
+      ? "active:bg-white/15"
+      : "active:bg-black/10"
+    : "active:bg-black/5 dark:active:bg-white/10";
+
+  const navButton = `flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium disabled:opacity-40 ${barPress}`;
 
   return (
     <div className="relative flex h-full w-full flex-col">
       {/* Top navigation bar: event icon + name. In normal flow (not overlaying
-          the map) so points near the top edge stay clickable and readable. */}
+          the map) so points near the top edge stay clickable and readable; only
+          its rounded corners let the map show through. */}
       <div
-        className="z-[1000] shrink-0 border-b border-black/10 bg-white/95 dark:border-white/10 dark:bg-neutral-900/95"
-        style={{ paddingTop: `calc(max(0.5rem, env(safe-area-inset-top)) + ${topInset}rem)` }}
+        data-testid="live-map-header"
+        className={`z-[1000] shrink-0 rounded-b-3xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] ${barTheme}`}
+        style={{ ...barStyle, paddingTop: `calc(max(0.5rem, env(safe-area-inset-top)) + ${topInset}rem)` }}
       >
         <div className="flex items-center gap-2.5 px-4 pb-2.5 pt-0.5">
           {eventLogoUrl ? (
@@ -273,20 +290,22 @@ export default function PublicMap({
               className="size-8 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+            <span className={`flex size-8 shrink-0 items-center justify-center rounded-full ${barTint}`}>
               <Icon icon={MapPin} size="sm" />
             </span>
           )}
+          {/* Whole-pixel line heights keep the map on the pixel grid: a fractional header height draws seams between tiles. */}
           <div className="min-w-0">
             <p className="truncate font-semibold leading-tight">{eventName}</p>
-            <p className="truncate text-[11px] leading-tight opacity-60">{eventSubtitle || team.name}</p>
+            <p className="truncate text-[11px] leading-[14px] opacity-60">{eventSubtitle || team.name}</p>
           </div>
         </div>
       </div>
 
-      {/* Map fills the space between the bars. */}
+      {/* Map fills the space between the bars and tucks under the header's
+          rounded corners; isolate keeps Leaflet's z-indexes below the header. */}
       <div
-        className="relative min-h-0 flex-1"
+        className="relative isolate -mt-6 min-h-0 flex-1"
         data-testid="live-map-view"
         data-lat={view.lat}
         data-lng={view.lng}
@@ -294,7 +313,7 @@ export default function PublicMap({
         data-bearing={view.bearing}
       >
         {(banner || shownCategory) && (
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-[1050] flex flex-col items-center gap-2 p-3">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-[1050] flex flex-col items-center gap-2 p-3 pt-9">
             {banner && <div className="pointer-events-auto w-full">{banner}</div>}
             {shownCategory && (
               <button
@@ -328,7 +347,7 @@ export default function PublicMap({
           <AttendeeMapBehavior onView={onView} />
           <PoiMarkers pois={shown} style={markerStyle} selectedId={selectedId} onPick={onPick} />
           <GeolocateLayer onChange={onGeoChange} maxBounds={maxBounds} />
-          <CompassControl className="m-3" />
+          <CompassControl className="m-3 mt-9" />
         </LeafletMap>
         {offMapNotice && (
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-[1050] flex justify-center px-4">
@@ -489,15 +508,16 @@ export default function PublicMap({
 
       {/* Bottom navigation bar: points list, locate, recenter. */}
       <div
-        className="z-[1000] shrink-0 border-t border-black/10 bg-white/95 dark:border-white/10 dark:bg-neutral-900/95"
-        style={{ paddingBottom: `calc(max(0rem, env(safe-area-inset-bottom)) + ${bottomInset}rem)` }}
+        data-testid="live-map-footer"
+        className={`z-[1000] shrink-0 ${barColor ? "" : "border-t border-black/10 dark:border-white/10"} ${barTheme}`}
+        style={{ ...barStyle, paddingBottom: `calc(max(0rem, env(safe-area-inset-bottom)) + ${bottomInset}rem)` }}
       >
         <div className="flex items-stretch">
           <button
             type="button"
             onClick={() => (listOpen ? closeList() : setListOpen(true))}
             aria-expanded={listOpen}
-            className={`${navButton} ${listOpen ? "text-brand" : ""}`}
+            className={`${navButton} ${listOpen ? (barColor ? barTint : "text-brand") : ""}`}
           >
             <Icon icon={MapPin} />
             {t("points", { count: pois.length })}
