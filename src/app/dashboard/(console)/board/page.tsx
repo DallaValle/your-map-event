@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { getActiveEvent } from "@/lib/active-event";
 import { getEventActivities, getEventSchedulePois } from "@/lib/activity-data";
 import { BoardView } from "@/components/board/BoardView";
 import { EmptyEventState } from "@/components/board/EmptyEventState";
 
-export const metadata: Metadata = { title: "Board" };
+export const generateMetadata = pageTitle("board");
 
 export default async function BoardPage() {
   const membership = await getMyTeam();

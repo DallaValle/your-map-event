@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { isActivityType } from "@/lib/activity";
 import { MAX_ACTIVITY_DAYS, parseWallClock } from "@/lib/schedule-time";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 const MAX_SPAN_MS = MAX_ACTIVITY_DAYS * 24 * 60 * 60 * 1000;
@@ -134,11 +135,11 @@ export async function createActivityAction(
   try {
     await requireEventAdmin(eventId);
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 
   const parsed = parseActivityForm(formData);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  if (!parsed.success) return fail(parsed.error.issues[0].message);
 
   try {
     await assertPoiOnEvent(eventId, parsed.data.poiId);
@@ -146,7 +147,7 @@ export async function createActivityAction(
       data: { eventId, ...parsed.data },
     });
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Could not create activity" };
+    return fail(error instanceof Error ? error.message : "Could not create activity");
   }
 
   await revalidateSchedule(eventId);
@@ -163,11 +164,11 @@ export async function updateActivityAction(
     const { activity } = await requireActivityAdmin(activityId);
     eventId = activity.eventId;
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 
   const parsed = parseActivityForm(formData);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  if (!parsed.success) return fail(parsed.error.issues[0].message);
 
   try {
     await assertPoiOnEvent(eventId, parsed.data.poiId);
@@ -176,7 +177,7 @@ export async function updateActivityAction(
       data: parsed.data,
     });
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Could not update activity" };
+    return fail(error instanceof Error ? error.message : "Could not update activity");
   }
 
   await revalidateSchedule(eventId);
@@ -190,7 +191,7 @@ export async function deleteActivityAction(activityId: string): Promise<ActionSt
     await revalidateSchedule(activity.eventId);
     return { ok: true };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 }
 
@@ -219,11 +220,11 @@ export async function placeActivityAction(
     const { activity } = await requireActivityAdmin(activityId);
     eventId = activity.eventId;
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 
   const parsed = placementSchema.safeParse(payload);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  if (!parsed.success) return fail(parsed.error.issues[0].message);
 
   try {
     await assertPoiOnEvent(eventId, parsed.data.poiId);
@@ -232,7 +233,7 @@ export async function placeActivityAction(
       data: parsed.data,
     });
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Could not place activity" };
+    return fail(error instanceof Error ? error.message : "Could not place activity");
   }
 
   await revalidateSchedule(eventId);
@@ -249,7 +250,7 @@ export async function unscheduleActivityAction(activityId: string): Promise<Acti
     await revalidateSchedule(activity.eventId);
     return { ok: true };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 }
 
@@ -271,14 +272,14 @@ export async function updateEventWindowAction(
   try {
     await requireEventAdmin(eventId);
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 
   const parsed = windowSchema.safeParse({
     startTime: formData.get("startTime"),
     endTime: formData.get("endTime"),
   });
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  if (!parsed.success) return fail(parsed.error.issues[0].message);
 
   await prisma.event.update({
     where: { id: eventId },

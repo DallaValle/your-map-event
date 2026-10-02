@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { UploadButton } from "@/lib/uploadthing";
 
 /**
@@ -24,6 +25,7 @@ export function ImageField({
   uploadsEnabled: boolean;
   defaultValue?: string | null;
 }) {
+  const t = useTranslations("upload");
   const [url, setUrl] = useState(defaultValue ?? "");
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +37,7 @@ export function ImageField({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={url}
-          alt="Preview"
+          alt={t("preview")}
           className="h-28 w-full rounded-xl border border-black/10 object-cover dark:border-white/15"
         />
       )}
@@ -50,6 +52,11 @@ export function ImageField({
               if (res[0]) setUrl(res[0].ufsUrl);
             }}
             onUploadError={(e) => setError(e.message)}
+            content={{
+              button: ({ ready, isUploading }) =>
+                isUploading ? t("uploading") : ready ? t("choose") : t("loading"),
+              allowedContent: ({ ready }) => (ready ? t("allowed") : t("loading")),
+            }}
             appearance={{
               button:
                 "ut-ready:bg-brand ut-uploading:bg-brand-soft w-full rounded-xl py-3 text-sm font-semibold",
@@ -62,7 +69,7 @@ export function ImageField({
           name={name}
           type="url"
           inputMode="url"
-          placeholder="https://… (image URL)"
+          placeholder={t("urlPlaceholder")}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
@@ -75,7 +82,7 @@ export function ImageField({
           onClick={() => setUrl("")}
           className="self-start text-sm font-medium text-red-600 dark:text-red-400"
         >
-          Remove image
+          {t("remove")}
         </button>
       )}
 

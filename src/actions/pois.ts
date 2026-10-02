@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { poiSchema } from "@/lib/event-schemas";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 function parsePoiForm(formData: FormData) {
@@ -52,16 +53,16 @@ export async function createPoiAction(
   try {
     ({ team, map } = await requirePoiAdmin(mapId));
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 
   const parsed = parsePoiForm(formData);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
   const { imageUrl, icon, ...rest } = parsed.data;
   if (!(await checkCategory(mapId, rest.categoryId))) {
-    return { ok: false, error: "That category no longer exists. Pick another one." };
+    return fail("That category no longer exists. Pick another one.");
   }
 
   await prisma.pointOfInterest.create({
@@ -78,22 +79,22 @@ export async function updatePoiAction(
   formData: FormData,
 ): Promise<ActionState> {
   const poi = await prisma.pointOfInterest.findUnique({ where: { id: poiId } });
-  if (!poi) return { ok: false, error: "Point of interest not found" };
+  if (!poi) return fail("Point of interest not found");
 
   let team, map;
   try {
     ({ team, map } = await requirePoiAdmin(poi.mapId));
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 
   const parsed = parsePoiForm(formData);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
   const { imageUrl, icon, ...rest } = parsed.data;
   if (!(await checkCategory(poi.mapId, rest.categoryId))) {
-    return { ok: false, error: "That category no longer exists. Pick another one." };
+    return fail("That category no longer exists. Pick another one.");
   }
 
   await prisma.pointOfInterest.update({
@@ -107,13 +108,13 @@ export async function updatePoiAction(
 
 export async function deletePoiAction(poiId: string): Promise<ActionState> {
   const poi = await prisma.pointOfInterest.findUnique({ where: { id: poiId } });
-  if (!poi) return { ok: false, error: "Point of interest not found" };
+  if (!poi) return fail("Point of interest not found");
 
   let team, map;
   try {
     ({ team, map } = await requirePoiAdmin(poi.mapId));
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Forbidden" };
+    return fail(error instanceof Error ? error.message : "Forbidden");
   }
 
   await prisma.pointOfInterest.delete({ where: { id: poiId } });

@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireSession } from "@/lib/session";
 import { slugify, validateSlug } from "@/lib/slug";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 const teamSchema = z.object({
@@ -26,15 +27,15 @@ export async function createTeamAction(
     slug: formData.get("slug") || slugify(String(formData.get("name") ?? "")),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
   const { name, slug } = parsed.data;
 
   const slugError = validateSlug(slug);
-  if (slugError) return { ok: false, error: slugError };
+  if (slugError) return fail(slugError);
 
   if (await prisma.team.findUnique({ where: { slug } })) {
-    return { ok: false, error: `The address "/${slug}" is already taken.` };
+    return fail(`The address "/${slug}" is already taken.`);
   }
 
   let orgId: string;
@@ -48,10 +49,7 @@ export async function createTeamAction(
     if (!org) throw new Error("Organization creation returned no result");
     orgId = org.id;
   } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Could not create the team.",
-    };
+    return fail(error instanceof Error ? error.message : "Could not create the team.");
   }
 
   await prisma.team.create({ data: { orgId, slug, name } });
@@ -77,15 +75,15 @@ export async function updateTeamAction(
     logoUrl: formData.get("logoUrl"),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
   const { name, slug, logoUrl } = parsed.data;
 
   if (slug !== team.slug) {
     const slugError = validateSlug(slug);
-    if (slugError) return { ok: false, error: slugError };
+    if (slugError) return fail(slugError);
     if (await prisma.team.findUnique({ where: { slug } })) {
-      return { ok: false, error: `The address "/${slug}" is already taken.` };
+      return fail(`The address "/${slug}" is already taken.`);
     }
   }
 

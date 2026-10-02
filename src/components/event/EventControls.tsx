@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { setMapPublishedAction, deleteMapAction } from "@/actions/maps";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -13,6 +14,7 @@ export function PublishToggle({
   eventId: string;
   published: boolean;
 }) {
+  const t = useTranslations("eventControls");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -37,8 +39,8 @@ export function PublishToggle({
     >
       <PendingLabel
         pending={pending}
-        label={published ? "Live ✓ - Unpublish" : "Publish"}
-        pendingLabel="Saving…"
+        label={published ? t("unpublish") : t("publish")}
+        pendingLabel={t("saving")}
       />
     </button>
   );
@@ -52,14 +54,11 @@ export function DeleteEventButton({
   eventId: string;
   eventName: string;
 }) {
+  const t = useTranslations("eventControls");
   const [pending, startTransition] = useTransition();
 
   function handleDelete() {
-    if (
-      !confirm(
-        `Delete the event "${eventName}" with its map and all its points? This cannot be undone.`,
-      )
-    ) {
+    if (!confirm(t("confirmDelete", { name: eventName }))) {
       return;
     }
     startTransition(async () => {
@@ -75,7 +74,7 @@ export function DeleteEventButton({
       aria-busy={pending}
       className="self-start rounded-xl border border-red-300 px-6 py-2.5 text-sm font-semibold text-red-600 disabled:opacity-60 dark:border-red-900 dark:text-red-400"
     >
-      <PendingLabel pending={pending} label="Delete this event" pendingLabel="Deleting…" />
+      <PendingLabel pending={pending} label={t("delete")} pendingLabel={t("deleting")} />
     </button>
   );
 }

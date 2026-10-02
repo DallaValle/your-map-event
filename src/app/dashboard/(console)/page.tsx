@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { getActiveEvent } from "@/lib/active-event";
@@ -8,19 +9,20 @@ import { ShareCard } from "@/components/share/ShareCard";
 import { EventInfoForm } from "@/components/event/EventInfoForm";
 import { PublishToggle, DeleteEventButton } from "@/components/event/EventControls";
 
-export const metadata: Metadata = { title: "Event" };
+export const generateMetadata = pageTitle("event");
 
 export default async function EventPage() {
   const membership = await getMyTeam();
+  const t = await getTranslations("eventHome");
 
   // No team yet (fresh account or social sign-up): offer to create one.
   if (!membership) {
     return (
       <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-6 py-10">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Create your team</h1>
+          <h1 className="text-2xl font-bold">{t("createTeam")}</h1>
           <p className="text-sm opacity-70">
-            A team owns your events and gets its own public map address.
+            {t("createTeamHint")}
           </p>
         </div>
         <CreateTeamForm />
@@ -45,11 +47,11 @@ export default async function EventPage() {
             🗺️
           </span>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">No event yet</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("noEvent")}</h1>
             <p className="text-balance text-sm leading-relaxed opacity-70">
               {isAdmin
-                ? "Pay for your first event, give it a name, then build the map from this dashboard."
-                : "No published events yet. Check back soon!"}
+                ? t("noEventAdmin")
+                : t("noEventViewer")}
             </p>
           </div>
           {isAdmin && (
@@ -57,7 +59,7 @@ export default async function EventPage() {
               href="/dashboard/events/new"
               className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
             >
-              + New event
+              {t("newEvent")}
             </Link>
           )}
         </div>
@@ -81,11 +83,11 @@ export default async function EventPage() {
                   : "bg-black/5 opacity-60 dark:bg-white/10"
               }`}
             >
-              {event.published ? "Live" : "Draft"}
+              {event.published ? t("live") : t("draft")}
             </span>
           </div>
           <p className="mt-0.5 text-sm opacity-60">
-            {event.centerName} · {poiCount} point{poiCount === 1 ? "" : "s"} of interest
+            {event.centerName} · {t("pointCount", { count: poiCount })}
           </p>
         </div>
         {isAdmin && <PublishToggle eventId={event.id} published={event.published} />}
@@ -101,9 +103,9 @@ export default async function EventPage() {
             🗺️
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-semibold">Map editor</span>
+            <span className="block font-semibold">{t("mapEditor")}</span>
             <span className="block text-sm opacity-60">
-              Frame the venue, lock the attendee view, place points of interest.
+              {t("mapEditorHint")}
             </span>
           </span>
           <span className="shrink-0 text-xl opacity-40 transition-transform group-hover:translate-x-0.5" aria-hidden>
@@ -116,7 +118,7 @@ export default async function EventPage() {
             href={`/${team.slug}/${event.slug}`}
             className="block rounded-xl border border-brand/40 px-6 py-3 text-center font-semibold text-brand"
           >
-            View live map →
+            {t("viewLiveMap")}
           </Link>
         )
       )}
@@ -131,7 +133,7 @@ export default async function EventPage() {
         <>
           <section className="flex flex-col gap-4">
             <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
-              Basic info
+              {t("basicInfo")}
             </h2>
             <EventInfoForm
               // The inputs are uncontrolled (defaultValue) — remount the form
@@ -156,10 +158,10 @@ export default async function EventPage() {
           <section className="flex flex-col gap-3 rounded-2xl border border-red-200 p-5 dark:border-red-950">
             <div>
               <h2 className="text-sm font-semibold text-red-600 dark:text-red-400">
-                Danger zone
+                {t("dangerZone")}
               </h2>
               <p className="mt-0.5 text-sm opacity-60">
-                Deleting the event removes its map and all its points of interest.
+                {t("dangerZoneHint")}
               </p>
             </div>
             <DeleteEventButton eventId={event.id} eventName={event.name} />

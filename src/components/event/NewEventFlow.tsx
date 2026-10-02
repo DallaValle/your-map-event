@@ -1,12 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import { createMapAction } from "@/actions/maps";
 import { PendingLabel } from "@/components/ui/Spinner";
 
 /** Placeholder price until Stripe (or similar) is wired up. */
-const EVENT_PRICE_LABEL = "$29";
-const EVENT_PRICE_NOTE = "one-time per event · mock checkout";
+const EVENT_PRICE = { amount: 29, currency: "USD" };
 
 type Step = "pay" | "name";
 
@@ -15,6 +15,13 @@ type Step = "pay" | "name";
  * Real billing later replaces the pay step; the name form and create action stay.
  */
 export function NewEventFlow({ teamId }: { teamId: string }) {
+  const t = useTranslations("newEvent");
+  const format = useFormatter();
+  const price = format.number(EVENT_PRICE.amount, {
+    style: "currency",
+    currency: EVENT_PRICE.currency,
+    maximumFractionDigits: 0,
+  });
   const [step, setStep] = useState<Step>("pay");
   const [paying, setPaying] = useState(false);
   const [state, formAction, pending] = useActionState(
@@ -35,18 +42,14 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
       <div className="flex flex-col gap-6">
         <div className="rounded-2xl border border-black/10 p-6 dark:border-white/15">
           <p className="text-xs font-semibold uppercase tracking-wide opacity-50">
-            Per event
+            {t("perEvent")}
           </p>
           <p className="mt-1 flex items-baseline gap-2">
-            <span className="text-4xl font-bold tracking-tight">{EVENT_PRICE_LABEL}</span>
-            <span className="text-sm opacity-60">{EVENT_PRICE_NOTE}</span>
+            <span className="text-4xl font-bold tracking-tight">{price}</span>
+            <span className="text-sm opacity-60">{t("priceNote")}</span>
           </p>
           <ul className="mt-5 space-y-2.5 text-sm">
-            {[
-              "Interactive event map with custom POIs",
-              "Public share link for attendees",
-              "Team access and live publish controls",
-            ].map((item) => (
+            {[t("featureMap"), t("featureLink"), t("featureTeam")].map((item) => (
               <li key={item} className="flex items-start gap-2.5">
                 <span className="mt-0.5 text-brand" aria-hidden>
                   ✓
@@ -58,7 +61,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
         </div>
 
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-          Demo only — no card is charged. A real payment provider will replace this step.
+          {t("demoNote")}
         </p>
 
         <button
@@ -70,8 +73,8 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
         >
           <PendingLabel
             pending={paying}
-            label={`Pay ${EVENT_PRICE_LABEL} and continue`}
-            pendingLabel="Processing…"
+            label={t("pay", { price })}
+            pendingLabel={t("processing")}
           />
         </button>
       </div>
@@ -89,25 +92,24 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
         >
           ✓
         </span>
-        Payment confirmed
+        {t("paymentConfirmed")}
       </div>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Event name
+        {t("name")}
         <input
           name="name"
           required
           minLength={2}
           maxLength={80}
           autoFocus
-          placeholder="Summer Festival 2026"
+          placeholder={t("namePlaceholder")}
           className="rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5"
         />
       </label>
 
       <p className="text-sm opacity-60">
-        You can set the venue, map framing, and points of interest on the
-        dashboard after this.
+        {t("afterCreate")}
       </p>
 
       {state && !state.ok && (
@@ -125,7 +127,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
         aria-busy={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        <PendingLabel pending={pending} label="Create event" pendingLabel="Creating…" />
+        <PendingLabel pending={pending} label={t("create")} pendingLabel={t("creating")} />
       </button>
     </form>
   );

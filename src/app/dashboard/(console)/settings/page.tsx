@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/session";
@@ -10,7 +10,7 @@ import { ConnectedAccounts } from "@/components/settings/ConnectedAccounts";
 import { NotificationPrefsForm } from "@/components/settings/NotificationPrefsForm";
 import { ThemeForm } from "@/components/settings/ThemeForm";
 
-export const metadata: Metadata = { title: "Settings" };
+export const generateMetadata = pageTitle("settings");
 
 export default async function SettingsPage() {
   const session = await requireSession();

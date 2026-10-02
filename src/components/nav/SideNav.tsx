@@ -2,6 +2,7 @@
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/ui/Spinner";
 
 interface NavItem {
@@ -31,18 +32,19 @@ export function SideNav({
   activeEventId: string | null;
   collapsed?: boolean;
 }) {
+  const t = useTranslations("nav");
   const pathname = usePathname();
 
   const eventSections: NavItem[] = [
     {
       href: "/dashboard",
-      label: "Dashboard",
+      label: t("dashboard"),
       icon: "🎫",
       isActive: (p) => p === "/dashboard",
     },
     {
       href: "/dashboard/schedule",
-      label: "Schedule",
+      label: t("schedule"),
       icon: "🗓️",
       isActive: (p) => p.startsWith("/dashboard/schedule"),
     },
@@ -52,7 +54,7 @@ export function SideNav({
       ? [
           {
             href: `/dashboard/events/${activeEventId}`,
-            label: "Map editor",
+            label: t("mapEditor"),
             icon: "🗺️",
             isActive: isEventEditorPath,
           },
@@ -60,25 +62,25 @@ export function SideNav({
       : []),
     {
       href: "/dashboard/board",
-      label: "Board",
+      label: t("board"),
       icon: "📋",
       isActive: (p) => p.startsWith("/dashboard/board"),
     },
     {
       href: "/dashboard/social",
-      label: "Social campaign",
+      label: t("social"),
       icon: "📣",
       isActive: (p) => p.startsWith("/dashboard/social"),
     },
     {
       href: "/dashboard/analytics",
-      label: "Analytics",
+      label: t("analytics"),
       icon: "📊",
       isActive: (p) => p.startsWith("/dashboard/analytics"),
     },
     {
       href: "/dashboard/history",
-      label: "History",
+      label: t("history"),
       icon: "🕑",
       isActive: (p) => p.startsWith("/dashboard/history"),
     },
@@ -89,13 +91,13 @@ export function SideNav({
       ? [
           {
             href: "/dashboard/events/new",
-            label: "Pricing",
+            label: t("pricing"),
             icon: "💳",
             isActive: isPricingPath,
           },
           {
             href: "/dashboard/team",
-            label: "Team",
+            label: t("team"),
             icon: "👥",
             isActive: (p: string) => p.startsWith("/dashboard/team"),
           },
@@ -103,13 +105,13 @@ export function SideNav({
       : []),
     {
       href: "/dashboard/ai",
-      label: "AI assistant",
+      label: t("ai"),
       icon: "✨",
       isActive: (p) => p.startsWith("/dashboard/ai"),
     },
     {
       href: "/dashboard/settings",
-      label: "Settings",
+      label: t("settings"),
       icon: "⚙️",
       isActive: (p) => p.startsWith("/dashboard/settings"),
     },
@@ -139,7 +141,7 @@ export function SideNav({
   };
 
   return (
-    <nav aria-label="Dashboard" className="flex flex-1 flex-col gap-1 px-3 pb-3">
+    <nav aria-label={t("dashboard")} className="flex flex-1 flex-col gap-1 px-3 pb-3">
       <ul className="flex flex-col gap-0.5">{eventSections.map(renderItem)}</ul>
 
       <div className="my-2 h-px bg-black/10 dark:bg-white/10" role="separator" />

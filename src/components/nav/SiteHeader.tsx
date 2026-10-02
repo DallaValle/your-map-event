@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { clearThemeCookieAction } from "@/actions/settings";
 import { BrandMark, Wordmark } from "./BrandMark";
@@ -46,6 +47,7 @@ export function SiteHeader({
   /** Unread announcements for the selected event. Hidden when 0. */
   unreadCount?: number;
 }) {
+  const t = useTranslations("nav");
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -83,8 +85,8 @@ export function SiteHeader({
       <div className="flex items-center gap-1">
         <Link
           href="/dashboard/notifications"
-          aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
-          title="Notifications"
+          aria-label={unreadCount > 0 ? t("notificationsUnread", { count: unreadCount }) : t("notifications")}
+          title={t("notifications")}
           className="relative flex size-9 items-center justify-center rounded-full text-lg hover:bg-black/5 dark:hover:bg-white/10"
         >
           <span aria-hidden>🔔</span>
@@ -103,7 +105,7 @@ export function SiteHeader({
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              aria-label="Account menu"
+              aria-label={t("accountMenu")}
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               className="flex size-9 overflow-hidden rounded-full ring-1 ring-line"
@@ -119,7 +121,7 @@ export function SiteHeader({
                 <div className="flex flex-col items-center gap-2 px-4 py-5 text-center">
                   <Avatar user={user} className="size-16 rounded-full text-xl" />
                   <div className="min-w-0 self-stretch">
-                    <p className="truncate font-semibold">{user.name || "You"}</p>
+                    <p className="truncate font-semibold">{user.name || t("you")}</p>
                     <p className="truncate text-xs opacity-60">{user.email}</p>
                   </div>
                 </div>
@@ -128,7 +130,7 @@ export function SiteHeader({
                   onClick={handleSignOut}
                   className="w-full border-t border-line px-4 py-3 text-sm font-medium hover:bg-brand-soft"
                 >
-                  Log out
+                  {t("logOut")}
                 </button>
               </div>
             )}

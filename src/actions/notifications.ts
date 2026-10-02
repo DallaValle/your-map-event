@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole, requireAdmin } from "@/lib/session";
 import { setSeenAt } from "@/lib/notifications";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 const announcementSchema = z.object({
@@ -27,7 +28,7 @@ export async function sendAnnouncementAction(
     where: { id: eventId },
     include: { team: { select: { slug: true } } },
   });
-  if (!event) return { ok: false, error: "Event not found" };
+  if (!event) return fail("Event not found");
 
   const { session } = await requireAdmin(event.teamId);
 
@@ -36,7 +37,7 @@ export async function sendAnnouncementAction(
     body: formData.get("body"),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   const authorName = session.user.name?.trim() || session.user.email;

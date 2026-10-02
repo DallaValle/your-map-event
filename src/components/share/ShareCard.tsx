@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { useTranslations } from "next-intl";
 
 /**
  * Makes the attendee-facing URL impossible to miss and one-tap shareable:
@@ -18,6 +19,7 @@ export function ShareCard({
   teamName: string;
   published: boolean;
 }) {
+  const t = useTranslations("share");
   // window.location is unavailable during SSR/prerender — resolve on mount.
   const [url, setUrl] = useState("");
   const [qr, setQr] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function ShareCard({
     window.setTimeout(() => setCopied(false), 2000);
   }
 
-  const text = `${teamName} — event map`;
+  const text = t("shareText", { team: teamName });
   const encodedUrl = encodeURIComponent(url);
   const encodedText = encodeURIComponent(text);
 
@@ -60,18 +62,18 @@ export function ShareCard({
     { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
     { label: "X", href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}` },
     { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}` },
-    { label: "Email", href: `mailto:?subject=${encodedText}&body=${encodedText}%0A${encodedUrl}` },
+    { label: t("email"), href: `mailto:?subject=${encodedText}&body=${encodedText}%0A${encodedUrl}` },
   ];
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl border-2 border-brand/40 bg-brand-soft p-4">
       <div>
         <h2 className="text-sm font-bold">
-          📢 Attendees open your map here{published ? "" : " (once published)"}
+          {published ? t("heading") : t("headingDraft")}
         </h2>
         {!published && (
           <p className="mt-0.5 text-xs opacity-60">
-            The link goes live as soon as you publish a map.
+            {t("draftHint")}
           </p>
         )}
       </div>
@@ -85,7 +87,7 @@ export function ShareCard({
           onClick={copy}
           className="shrink-0 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-fg active:scale-95"
         >
-          {copied ? "✓ Copied" : "Copy"}
+          {copied ? t("copied") : t("copy")}
         </button>
       </div>
 
@@ -95,7 +97,7 @@ export function ShareCard({
           onClick={toggleQr}
           className="rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
         >
-          {qr ? "Hide QR code" : "⊞ QR code"}
+          {qr ? t("hideQr") : t("showQr")}
         </button>
         {canNativeShare && (
           <button
@@ -103,7 +105,7 @@ export function ShareCard({
             onClick={() => navigator.share({ title: text, url }).catch(() => {})}
             className="rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
           >
-            ↗ Share…
+            {t("share")}
           </button>
         )}
       </div>
@@ -111,13 +113,13 @@ export function ShareCard({
       {qr && (
         <div className="flex flex-col items-center gap-2 rounded-xl bg-white p-4 dark:bg-neutral-900">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qr} alt={`QR code for ${url}`} className="size-52 rounded-lg" />
+          <img src={qr} alt={t("qrAlt", { url })} className="size-52 rounded-lg" />
           <a
             href={qr}
             download={`${path.replace(/\//g, "-")}-qr.png`}
             className="text-sm font-semibold text-brand"
           >
-            ⬇ Download PNG (for posters & badges)
+            {t("downloadQr")}
           </a>
         </div>
       )}

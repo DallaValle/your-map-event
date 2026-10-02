@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { describeTools } from "@/lib/mcp/tools";
@@ -9,7 +9,7 @@ import { ConnectSnippet } from "@/components/mcp/ConnectSnippet";
 import { TokenManager } from "@/components/mcp/TokenManager";
 import { ToolList } from "@/components/mcp/ToolList";
 
-export const metadata: Metadata = { title: "AI assistant" };
+export const generateMetadata = pageTitle("ai");
 
 async function publicOrigin() {
   const h = await headers();

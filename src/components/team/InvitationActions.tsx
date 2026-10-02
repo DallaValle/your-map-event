@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { PendingLabel } from "@/components/ui/Spinner";
 
 /** Copy-link + revoke controls for one pending invitation. */
 export function InvitationActions({ invitationId }: { invitationId: string }) {
+  const t = useTranslations("team");
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -33,7 +35,7 @@ export function InvitationActions({ invitationId }: { invitationId: string }) {
         onClick={copy}
         className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/5"
       >
-        {copied ? "✓ Copied" : "Copy link"}
+        {copied ? t("copied") : t("copyLink")}
       </button>
       <button
         type="button"
@@ -44,8 +46,8 @@ export function InvitationActions({ invitationId }: { invitationId: string }) {
       >
         <PendingLabel
           pending={pending}
-          label="Revoke"
-          pendingLabel="Revoking…"
+          label={t("revoke")}
+          pendingLabel={t("revoking")}
           spinnerClassName="size-3"
         />
       </button>

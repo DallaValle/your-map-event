@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { getActiveEvent } from "@/lib/active-event";
 import { listAnnouncements } from "@/lib/notifications";
@@ -7,7 +7,7 @@ import { ComposeAnnouncementForm } from "@/components/notifications/ComposeAnnou
 import { AnnouncementList } from "@/components/notifications/AnnouncementList";
 import { MarkAnnouncementsSeen } from "@/components/notifications/MarkAnnouncementsSeen";
 
-export const metadata: Metadata = { title: "Notifications" };
+export const generateMetadata = pageTitle("notifications");
 
 export default async function NotificationsPage() {
   const membership = await getMyTeam();

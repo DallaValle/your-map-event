@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getActiveEvent } from "@/lib/active-event";
@@ -8,7 +8,7 @@ import { ShareCard } from "@/components/share/ShareCard";
 import { PosterShareAsset } from "@/components/social/PosterShareAsset";
 import { PostPlanner } from "@/components/social/PostPlanner";
 
-export const metadata: Metadata = { title: "Social campaign" };
+export const generateMetadata = pageTitle("social");
 
 export default async function SocialPage() {
   const membership = await getMyTeam();

@@ -1,10 +1,10 @@
 import { notFound, redirect } from "next/navigation";
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { MapEditor } from "@/components/map-editor/MapEditor";
 
-export const metadata: Metadata = { title: "Edit event" };
+export const generateMetadata = pageTitle("editEvent");
 
 export default async function EventEditorPage({
   params,

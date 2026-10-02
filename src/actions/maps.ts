@@ -14,6 +14,7 @@ import {
   uniqueMapSlug,
 } from "@/lib/event-schemas";
 import { parseWallClock } from "@/lib/schedule-time";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 const eventInfoSchema = z.object({
@@ -61,14 +62,14 @@ export async function createMapAction(
   // Mock checkout gate: the client only submits this after the pay step.
   // Swap for a real Stripe session / webhook check when payments go live.
   if (formData.get("paymentConfirmed") !== "1") {
-    return { ok: false, error: "Payment is required before creating an event." };
+    return fail("Payment is required before creating an event.");
   }
 
   const info = eventInfoSchema.safeParse({
     name: formData.get("name"),
   });
   if (!info.success) {
-    return { ok: false, error: info.error.issues[0].message };
+    return fail(info.error.issues[0].message);
   }
 
   const map = await prisma.event.create({
@@ -101,7 +102,7 @@ export async function updateEventInfoAction(
   formData: FormData,
 ): Promise<ActionState> {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
-  if (!event) return { ok: false, error: "Event not found" };
+  if (!event) return fail("Event not found");
   const { team } = await requireAdmin(event.teamId);
 
   const parsed = eventInfoSchema.safeParse({
@@ -111,7 +112,7 @@ export async function updateEventInfoAction(
     logoUrl: formData.get("logoUrl"),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   // Optional public-address change (URL segment under the team).
@@ -119,12 +120,12 @@ export async function updateEventInfoAction(
   const requestedSlug = String(formData.get("slug") ?? "").trim().toLowerCase();
   if (requestedSlug && requestedSlug !== event.slug) {
     const slugError = validateMapSlug(requestedSlug);
-    if (slugError) return { ok: false, error: slugError };
+    if (slugError) return fail(slugError);
     const clash = await prisma.event.findUnique({
       where: { teamId_slug: { teamId: team.id, slug: requestedSlug } },
     });
     if (clash && clash.id !== eventId) {
-      return { ok: false, error: `"/${team.slug}/${requestedSlug}" is already taken.` };
+      return fail(`"/${team.slug}/${requestedSlug}" is already taken.`);
     }
     slug = requestedSlug;
   }
@@ -133,13 +134,13 @@ export async function updateEventInfoAction(
   const endRaw = formData.get("endTime");
   const startTime = startRaw ? parseWallClock(startRaw) : null;
   const endTime = endRaw ? parseWallClock(endRaw) : null;
-  if (startRaw && !startTime) return { ok: false, error: "Event start is invalid" };
-  if (endRaw && !endTime) return { ok: false, error: "Event end is invalid" };
+  if (startRaw && !startTime) return fail("Event start is invalid");
+  if (endRaw && !endTime) return fail("Event end is invalid");
   if ((startTime && !endTime) || (!startTime && endTime)) {
-    return { ok: false, error: "Set both event start and end, or leave both empty." };
+    return fail("Set both event start and end, or leave both empty.");
   }
   if (startTime && endTime && endTime.getTime() <= startTime.getTime()) {
-    return { ok: false, error: "Event end must be after start" };
+    return fail("Event end must be after start");
   }
 
   const { name, subtitle, description, logoUrl } = parsed.data;
@@ -174,12 +175,12 @@ export async function updateMapViewAction(
   formData: FormData,
 ): Promise<ActionState> {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
-  if (!event) return { ok: false, error: "Event not found" };
+  if (!event) return fail("Event not found");
   const { team } = await requireAdmin(event.teamId);
 
   const parsed = parseMapViewForm(formData);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   await prisma.event.update({
@@ -196,7 +197,7 @@ export async function setMapPublishedAction(
   published: boolean,
 ): Promise<ActionState> {
   const map = await prisma.event.findUnique({ where: { id: mapId } });
-  if (!map) return { ok: false, error: "Map not found" };
+  if (!map) return fail("Map not found");
   const { team } = await requireAdmin(map.teamId);
 
   await prisma.event.update({ where: { id: mapId }, data: { published } });
@@ -207,7 +208,7 @@ export async function setMapPublishedAction(
 
 export async function deleteMapAction(mapId: string): Promise<ActionState> {
   const map = await prisma.event.findUnique({ where: { id: mapId } });
-  if (!map) return { ok: false, error: "Map not found" };
+  if (!map) return fail("Map not found");
   const { team } = await requireAdmin(map.teamId);
 
   // POIs cascade via the schema's onDelete: Cascade.

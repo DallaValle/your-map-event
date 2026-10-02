@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSession, requireSession } from "@/lib/session";
 import { asTheme, DEFAULT_PREFS, THEME_COOKIE, THEMES, type ThemePreference } from "@/components/settings/prefs";
+import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
 const profileSchema = z.object({
@@ -80,7 +81,7 @@ export async function updateProfileAction(
     image: formData.get("image"),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   try {
@@ -89,7 +90,7 @@ export async function updateProfileAction(
       headers: await headers(),
     });
   } catch (error) {
-    return { ok: false, error: errorMessage(error, "Could not update your profile.") };
+    return fail(errorMessage(error, "Could not update your profile."));
   }
 
   revalidatePath("/dashboard", "layout");
@@ -108,7 +109,7 @@ export async function changePasswordAction(
     confirmPassword: formData.get("confirmPassword"),
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   try {
@@ -120,7 +121,7 @@ export async function changePasswordAction(
       headers: await headers(),
     });
   } catch (error) {
-    return { ok: false, error: errorMessage(error, "Could not update your password.") };
+    return fail(errorMessage(error, "Could not update your password."));
   }
 
   return { ok: true };
@@ -138,7 +139,7 @@ export async function updateNotificationPrefsAction(
     eventAnnouncements: formData.get("eventAnnouncements") === "on",
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   await prisma.userPreference.upsert({
@@ -159,7 +160,7 @@ export async function updateThemeAction(
 
   const parsed = themeSchema.safeParse({ theme: formData.get("theme") });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
+    return fail(parsed.error.issues[0].message);
   }
 
   await prisma.userPreference.upsert({
