@@ -1,4 +1,6 @@
 import { useTranslations } from "next-intl";
+import type { LucideIcon } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 /**
  * Consistent "coming soon" body for the dashboard sections that aren't built
@@ -10,15 +12,15 @@ export function SectionPlaceholder({
   title,
   description,
 }: {
-  icon: string;
+  icon: LucideIcon;
   title: string;
   description: string;
 }) {
   const t = useTranslations("common");
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-6 py-20 text-center">
-      <span className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-3xl" aria-hidden>
-        {icon}
+      <span className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-brand" aria-hidden>
+        <Icon icon={icon} size="xl" />
       </span>
       <div className="space-y-2">
         <div className="flex items-center justify-center gap-2">

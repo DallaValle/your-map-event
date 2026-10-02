@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { setActiveEventAction } from "@/actions/active-event";
 import { Spinner } from "@/components/ui/Spinner";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 export interface SwitchableEvent {
   id: string;
@@ -111,9 +113,7 @@ export function EventSwitcher({
             {active ? (active.published ? t("live") : t("draft")) : t("count", { count: events.length })}
           </span>
         </span>
-        <span className="shrink-0 text-xs opacity-50" aria-hidden>
-          ▾
-        </span>
+        <Icon icon={ChevronsUpDown} size="sm" className="opacity-50" />
       </button>
 
       {open && (
@@ -144,9 +144,7 @@ export function EventSwitcher({
                     </span>
                   </span>
                   {event.id === activeEventId && (
-                    <span className="shrink-0 text-brand" aria-hidden>
-                      ✓
-                    </span>
+                    <Icon icon={Check} size="sm" className="text-brand" />
                   )}
                 </button>
               </li>
@@ -156,8 +154,9 @@ export function EventSwitcher({
             <Link
               href="/dashboard/events/new"
               onClick={() => setOpen(false)}
-              className="block border-t border-line px-3 py-2.5 text-sm font-semibold text-brand hover:bg-brand-soft"
+              className="flex items-center gap-2 border-t border-line px-3 py-2.5 text-sm font-semibold text-brand hover:bg-brand-soft"
             >
+              <Icon icon={Plus} size="sm" />
               {t("newEvent")}
             </Link>
           )}

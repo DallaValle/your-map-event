@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { pageTitle } from "@/i18n/metadata";
+import { ArrowLeft } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { NewEventFlow } from "@/components/event/NewEventFlow";
 
@@ -29,7 +31,7 @@ export default async function NewEventPage() {
           href="/dashboard"
           className="inline-flex w-fit items-center gap-1.5 text-sm opacity-70 hover:opacity-100"
         >
-          <span aria-hidden>←</span> {t("back")}
+          <Icon icon={ArrowLeft} size="sm" /> {t("back")}
         </Link>
       </div>
     </div>

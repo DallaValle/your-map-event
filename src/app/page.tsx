@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { MapPin } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { BrandMark } from "@/components/nav/BrandMark";
@@ -64,8 +66,8 @@ export default async function LandingPage() {
                       className="size-8 rounded-full object-cover"
                     />
                   ) : (
-                    <span className="flex size-8 items-center justify-center rounded-full bg-brand-soft text-sm">
-                      📍
+                    <span className="flex size-8 items-center justify-center rounded-full bg-brand-soft text-brand">
+                      <Icon icon={MapPin} size="sm" />
                     </span>
                   )}
                   <span className="font-medium">{team.name}</span>

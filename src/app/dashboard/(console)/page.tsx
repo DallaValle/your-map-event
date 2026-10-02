@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { pageTitle } from "@/i18n/metadata";
 import { getTranslations } from "next-intl/server";
+import { ArrowRight, ChevronRight, MapIcon, Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole } from "@/lib/session";
 import { getActiveEvent } from "@/lib/active-event";
@@ -41,10 +43,10 @@ export default async function EventPage() {
       <div className="flex min-h-full items-center justify-center px-6 py-12">
         <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-black/10 bg-white px-8 py-10 text-center shadow-sm dark:border-white/10 dark:bg-white/5">
           <span
-            className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-3xl"
+            className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-brand"
             aria-hidden
           >
-            🗺️
+            <Icon icon={MapIcon} size="xl" />
           </span>
           <div className="space-y-2">
             <h1 className="text-2xl font-bold tracking-tight">{t("noEvent")}</h1>
@@ -57,8 +59,9 @@ export default async function EventPage() {
           {isAdmin && (
             <Link
               href="/dashboard/events/new"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 gap-2 font-semibold text-brand-fg active:scale-[.98]"
             >
+              <Icon icon={Plus} size="sm" />
               {t("newEvent")}
             </Link>
           )}
@@ -99,8 +102,8 @@ export default async function EventPage() {
           href={`/dashboard/events/${event.id}`}
           className="group flex items-center gap-4 rounded-2xl border border-black/10 p-5 transition-colors hover:border-brand/50 hover:bg-brand-soft dark:border-white/15"
         >
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-3xl" aria-hidden>
-            🗺️
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand" aria-hidden>
+            <Icon icon={MapIcon} size="lg" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-semibold">{t("mapEditor")}</span>
@@ -108,17 +111,19 @@ export default async function EventPage() {
               {t("mapEditorHint")}
             </span>
           </span>
-          <span className="shrink-0 text-xl opacity-40 transition-transform group-hover:translate-x-0.5" aria-hidden>
-            →
-          </span>
+          <Icon
+            icon={ChevronRight}
+            className="opacity-40 transition-transform group-hover:translate-x-0.5"
+          />
         </Link>
       ) : (
         event.published && (
           <Link
             href={`/${team.slug}/${event.slug}`}
-            className="block rounded-xl border border-brand/40 px-6 py-3 text-center font-semibold text-brand"
+            className="flex items-center justify-center gap-2 rounded-xl border border-brand/40 px-6 py-3 font-semibold text-brand"
           >
             {t("viewLiveMap")}
+            <Icon icon={ArrowRight} size="sm" />
           </Link>
         )
       )}
