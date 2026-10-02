@@ -49,6 +49,10 @@ test.describe("map markers", () => {
     await drinks.pressSequentially("ne bar");
     await expect(drinks).toBeFocused();
     await expect(drinks).toHaveValue("Wine bar");
+    // Leaving the row at once must not roll it back to the mid edit save.
+    await page.getByRole("heading", { name: "Markers" }).click();
+    await page.waitForTimeout(300);
+    await expect(drinks).toHaveValue("Wine bar");
     await expect.poll(async () => (await prisma.poiCategory.findFirst({ where: { name: "Wine bar" } }))?.icon).toBeTruthy();
 
     // Attendees filter by category; the map keeps only those points.

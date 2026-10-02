@@ -264,12 +264,12 @@ function CategoryRow({
   const [confirming, setConfirming] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  // Take saved values from the server only while the admin is not typing here,
-  // so a refresh that lands mid edit never rolls the field back.
+  // Take saved values from the server only while the admin is not typing here
+  // and nothing local is still waiting to save, so a refresh never rolls a field back.
   const [synced, setSynced] = useState<CategoryInput>(category);
   if (!editing && !sameCategory(synced, category)) {
     setSynced(category);
-    setValue(category);
+    if (sameCategory(value, synced)) setValue(category);
   }
 
   // Saves shortly after the last keystroke or color drag, like the rest of the editor.

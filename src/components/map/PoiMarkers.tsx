@@ -41,7 +41,10 @@ const PoiMarker = memo(function PoiMarker({
       // Markers are focusable buttons; without popups nothing else opens them from the keyboard.
       keypress: (event: L.LeafletKeyboardEvent) => {
         const key = event.originalEvent.key;
-        if (key === "Enter" || key === " ") onTap(poi, event as unknown as L.LeafletMouseEvent);
+        if (key !== "Enter" && key !== " ") return;
+        // Space would also scroll a scrollable page such as the editor.
+        event.originalEvent.preventDefault();
+        onTap(poi, event as unknown as L.LeafletMouseEvent);
       },
     }),
     [onTap, poi],
