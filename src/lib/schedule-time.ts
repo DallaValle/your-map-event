@@ -13,19 +13,22 @@ export const MINUTE_MS = 60_000;
 export const DEFAULT_DURATION_MS = HOUR_MS;
 export const MAX_ACTIVITY_DAYS = 14;
 
-const DAY_HEADING = new Intl.DateTimeFormat("en-GB", {
+const SHORT_DAY = new Intl.DateTimeFormat("en-GB", {
   weekday: "short",
   day: "numeric",
   month: "short",
   timeZone: "UTC",
 });
 
-const DAY_TAB = new Intl.DateTimeFormat("en-GB", {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
+/**
+ * "Sat 18 Jul". Built from parts because Node and browsers ship different
+ * locale data ("Sat, 18 Jul" vs "Sat 18 Jul"), which breaks hydration.
+ */
+function shortDay(date: Date): string {
+  const parts = SHORT_DAY.formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${part("weekday")} ${part("day")} ${part("month")}`;
+}
 
 function toDate(value: string | Date): Date {
   return value instanceof Date ? value : new Date(value);
@@ -69,12 +72,8 @@ export function formatRange(start: string | Date, end: string | Date): string {
   return `${formatClock(start)} - ${formatClock(end)}`;
 }
 
-export function formatDayHeading(value: string | Date): string {
-  return DAY_HEADING.format(toDate(value));
-}
-
 export function formatDayTab(value: string | Date, index: number): string {
-  return `Day ${index + 1} ${DAY_TAB.format(toDate(value))}`;
+  return `Day ${index + 1} ${shortDay(toDate(value))}`;
 }
 
 /** Value for `<input type="datetime-local">`. */
