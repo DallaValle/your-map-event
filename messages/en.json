@@ -228,7 +228,8 @@
     "joining": "Joining…",
     "signInHint": "Sign in with the email address the invitation was sent to.",
     "signIn": "Sign in",
-    "createAccount": "Create an account"
+    "createAccount": "Create an account",
+    "wrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it."
   },
   "upload": {
     "preview": "Preview",
@@ -304,7 +305,8 @@
     "slugLength": "Slug must be between 3 and 48 characters.",
     "slugChars": "Slug may only contain lowercase letters, numbers and hyphens.",
     "invalidUrl": "Invalid URL",
-    "unknownLanguage": "Unknown language"
+    "unknownLanguage": "Unknown language",
+    "teamAddressTaken": "The address \"{address}\" is already taken."
   },
   "settings": {
     "title": "Settings",

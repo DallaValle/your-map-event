@@ -228,7 +228,8 @@
     "joining": "Ingresso…",
     "signInHint": "Accedi con l’indirizzo email a cui è arrivato l’invito.",
     "signIn": "Accedi",
-    "createAccount": "Crea un account"
+    "createAccount": "Crea un account",
+    "wrongAccount": "Questo invito è stato inviato a un altro indirizzo email. Accedi con quell’account per accettarlo."
   },
   "upload": {
     "preview": "Anteprima",
@@ -304,7 +305,8 @@
     "slugLength": "L’indirizzo deve avere da 3 a 48 caratteri.",
     "slugChars": "L’indirizzo può contenere solo lettere minuscole, numeri e trattini.",
     "invalidUrl": "URL non valido",
-    "unknownLanguage": "Lingua non disponibile"
+    "unknownLanguage": "Lingua non disponibile",
+    "teamAddressTaken": "L’indirizzo \"{address}\" è già in uso."
   },
   "settings": {
     "title": "Impostazioni",

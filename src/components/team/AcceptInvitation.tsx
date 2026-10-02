@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { authClient, useSession } from "@/lib/auth-client";
 import { PendingLabel, Spinner } from "@/components/ui/Spinner";
 import { BrandMark } from "@/components/nav/BrandMark";
@@ -22,7 +22,17 @@ interface InvitationDetails {
  */
 export function AcceptInvitation({ invitationId }: { invitationId: string }) {
   const t = useTranslations("invitation");
+  const locale = useLocale();
   const router = useRouter();
+
+  // Wrong account gets its own hint; other server text is English, kept only for English readers.
+  const describe = useCallback(
+    (apiError: { code?: string; message?: string } | null, fallback: string) => {
+      if (apiError?.code === "YOU_ARE_NOT_THE_RECIPIENT_OF_THE_INVITATION") return t("wrongAccount");
+      return locale === "en" ? (apiError?.message ?? fallback) : fallback;
+    },
+    [t, locale],
+  );
   const { data: session, isPending: sessionPending, refetch } = useSession();
 
   // Arriving from sign-up, the shared session store can still hold the
@@ -46,7 +56,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
       .then(({ data, error: apiError }) => {
         if (cancelled) return;
         if (apiError || !data) {
-          setError(t("invalid"));
+          setError(describe(apiError, t("invalid")));
           return;
         }
         setInvitation(data);
@@ -54,7 +64,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [session, invitationId, t]);
+  }, [session, invitationId, t, describe]);
 
   async function accept() {
     setAccepting(true);
@@ -64,7 +74,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
     });
     if (apiError) {
       setAccepting(false);
-      setError(t("acceptFailed"));
+      setError(describe(apiError, t("acceptFailed")));
       return;
     }
     router.push("/dashboard");

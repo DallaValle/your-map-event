@@ -11,9 +11,10 @@ const KEY_BY_TEXT = new Map<string, keyof typeof en.errors>(
 );
 
 // Messages that carry a value, matched by shape.
-const PATTERNS: [RegExp, "slugReserved" | "addressTaken" | "activityTooLong", string][] = [
+const PATTERNS: [RegExp, "slugReserved" | "addressTaken" | "teamAddressTaken" | "activityTooLong", string][] = [
   [/^"([^"]+)" is reserved\. Please pick another slug\.$/, "slugReserved", "slug"],
-  [/^(?:The address )?"([^"]+)" is already taken\.$/, "addressTaken", "address"],
+  [/^The address "([^"]+)" is already taken\.$/, "teamAddressTaken", "address"],
+  [/^"([^"]+)" is already taken\.$/, "addressTaken", "address"],
   [/^An activity cannot run longer than (\d+) days$/, "activityTooLong", "days"],
 ];
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { BrandMark } from "@/components/nav/BrandMark";
 import { SiteFooter } from "@/components/nav/SiteFooter";
@@ -18,13 +18,15 @@ const AUTH_ERRORS = {
   USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: "userExists",
 } as const;
 
-// Better Auth answers in English; known codes get our own wording.
+// Better Auth answers in English: known codes get our wording, others keep its text for English readers.
 function authErrorMessage(
   error: { code?: string; message?: string },
   t: ReturnType<typeof useTranslations<"auth">>,
+  locale: string,
 ) {
   const key = AUTH_ERRORS[error.code as keyof typeof AUTH_ERRORS];
-  return t(`errors.${key ?? "generic"}`);
+  if (key) return t(`errors.${key}`);
+  return locale === "en" && error.message ? error.message : t("errors.generic");
 }
 
 /**
@@ -39,6 +41,7 @@ export function AuthForm({
   googleEnabled: boolean;
 }) {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") ?? "/dashboard";
@@ -75,7 +78,7 @@ export function AuthForm({
     setPending(false);
 
     if (result.error) {
-      setError(authErrorMessage(result.error, t));
+      setError(authErrorMessage(result.error, t, locale));
       return;
     }
 
