@@ -78,6 +78,28 @@ test.describe("schedule", () => {
     await expect(block).toHaveAttribute("title", `${title} · 11:00 - 11:45`);
   });
 
+  test("a multi-day event shows the whole night between its days", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "layout is desktop-first");
+
+    await signIn(page);
+    await page.goto("/dashboard/schedule");
+
+    // The event opens at 10:00 on day 1 and closes at 23:00 on day 3, so 03:00 on day 2 is inside it.
+    const title = `E2E Night Set ${Date.now()}`;
+    await page.getByRole("button", { name: "Add activity", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Add activity" });
+    await dialog.getByLabel("Name").fill(title);
+    await dialog.getByLabel("Location").selectOption({ label: "🎤 Main Stage" });
+    await dialog.getByLabel("Start").fill("2026-07-19T03:00");
+    await dialog.getByLabel("End").fill("2026-07-19T04:30");
+    await dialog.getByRole("button", { name: "Add activity" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    await page.getByRole("tab", { name: /Day 2/ }).click();
+    await expect(page.getByRole("article").filter({ hasText: title })).toBeVisible();
+    await expect(page.getByText("12AM", { exact: true })).toBeVisible();
+  });
+
   test("viewer can read the schedule but cannot edit", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "flow is identical; run once");
 
