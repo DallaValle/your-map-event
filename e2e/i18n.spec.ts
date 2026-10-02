@@ -65,7 +65,7 @@ test.describe("attendee on an Italian phone", () => {
     await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible({ timeout: 20_000 });
     await expect(page.locator("html")).toHaveAttribute("lang", "it");
 
-    const nav = page.getByRole("button", { name: /^📍\s*Punti \(\d+\)$/ });
+    const nav = page.getByRole("button", { name: /^Punti \(\d+\)$/ });
     await expect(nav).toBeVisible();
     await expect(page.getByRole("button", { name: /Dove sono/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /Centra/ })).toBeVisible();
