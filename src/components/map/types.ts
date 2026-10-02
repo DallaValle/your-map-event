@@ -64,3 +64,9 @@ export const POI_ICONS = [
   "🧸",
   "🔌",
 ] as const;
+
+/** Marker shown when a point has no icon of its own. */
+export const DEFAULT_POI_ICON = POI_ICONS[0];
+
+/** Stage-like markers: the schedule lists these venues even before they host an act. */
+export const VENUE_ICONS = new Set<string>(["🎤", "🎪", "🍔", "🍺", "☕", "🚪", "🎡", "🧸"]);

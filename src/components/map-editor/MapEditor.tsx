@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ArrowRight, Check, Lock, Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { setMapPublishedAction, updateMapViewAction } from "@/actions/maps";
 import { EditorMapCanvas } from "@/components/map/MapCanvas";
 import { GeocodeSearch } from "@/components/map/GeocodeSearch";
@@ -393,7 +395,16 @@ export function MapEditor({
           >
             <PendingLabel
               pending={publishPending}
-              label={map.published ? t("unpublish") : t("publish")}
+              label={
+                map.published ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Icon icon={Check} size="sm" />
+                    {t("unpublish")}
+                  </span>
+                ) : (
+                  t("publish")
+                )
+              }
               pendingLabel={t("saving")}
             />
           </button>
@@ -451,7 +462,8 @@ export function MapEditor({
         {bounds && (
           <>
             <div className="pointer-events-none absolute inset-1.5 z-[500] rounded-xl border-2 border-dashed border-brand/90" />
-            <span className="pointer-events-none absolute right-3 top-3 z-[500] rounded-full bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-fg shadow">
+            <span className="pointer-events-none absolute right-3 top-3 z-[500] flex items-center gap-1 rounded-full bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-fg shadow">
+              <Icon icon={Lock} size="xs" className="size-3" />
               {t("viewLocked")}
             </span>
           </>
@@ -559,6 +571,7 @@ export function MapEditor({
           {bounds ? (
             <div className="flex items-center justify-between gap-2 rounded-xl bg-brand-soft px-4 py-3 text-sm">
               <span className="text-brand">
+                <Icon icon={Lock} size="sm" className="mr-1 inline align-[-3px]" />
                 {t("lockedHint")}
               </span>
               <button
@@ -583,12 +596,13 @@ export function MapEditor({
             <button
               type="button"
               onClick={togglePlacing}
-              className={`rounded-full px-4 py-2 text-sm font-semibold active:scale-[.98] ${
+              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold active:scale-[.98] ${
                 placing
                   ? "bg-brand-soft text-brand"
                   : "bg-brand text-brand-fg"
               }`}
             >
+              <Icon icon={placing ? Check : Plus} size="sm" />
               {placing ? t("doneAdding") : t("addPoints")}
             </button>
           </div>
@@ -662,9 +676,10 @@ export function MapEditor({
           {map.published && (
             <Link
               href={`/${teamSlug}/${map.slug}`}
-              className="block rounded-xl border border-brand/40 px-6 py-3 text-center font-semibold text-brand"
+              className="flex items-center justify-center gap-2 rounded-xl border border-brand/40 px-6 py-3 font-semibold text-brand"
             >
               {t("viewLive")}
+              <Icon icon={ArrowRight} size="sm" />
             </Link>
           )}
           <ShareCard

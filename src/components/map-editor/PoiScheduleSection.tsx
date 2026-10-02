@@ -4,6 +4,8 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Plus, X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { createActivityAction, deleteActivityAction } from "@/actions/activities";
 import { ACTIVITY_TYPES, activityTypeMeta, isScheduled, type ActivityDTO } from "@/lib/activity";
 import { formatRange, toLocalInputValue } from "@/lib/schedule-time";
@@ -86,9 +88,9 @@ export function PoiScheduleSection({
                     await deleteActivityAction(activity.id);
                     router.refresh();
                   }}
-                  className="text-xs font-semibold opacity-60 hover:opacity-100"
+                  className="flex opacity-60 hover:opacity-100"
                 >
-                  ✕
+                  <Icon icon={X} size="sm" />
                 </button>
               </li>
             );
@@ -109,7 +111,7 @@ export function PoiScheduleSection({
         <select name="type" defaultValue="performance" aria-label={t("type")} className={inputClass}>
           {ACTIVITY_TYPES.map((type) => (
             <option key={type.id} value={type.id}>
-              {type.emoji} {typeLabel(type.id)}
+              {typeLabel(type.id)}
             </option>
           ))}
         </select>
@@ -144,7 +146,16 @@ export function PoiScheduleSection({
           aria-busy={pending}
           className="rounded-xl bg-brand-soft px-3 py-2 text-sm font-semibold text-brand disabled:opacity-60"
         >
-          <PendingLabel pending={pending} label={t("add")} pendingLabel={t("adding")} />
+          <PendingLabel
+            pending={pending}
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <Icon icon={Plus} size="sm" />
+                {t("add")}
+              </span>
+            }
+            pendingLabel={t("adding")}
+          />
         </button>
       </form>
     </section>

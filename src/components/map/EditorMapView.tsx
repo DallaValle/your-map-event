@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import type L from "leaflet";
 import { Marker, useMap, useMapEvents } from "react-leaflet";
+import { Lock, LockOpen } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { RotateControl } from "./RotateControl";
 import { ZoomControl } from "./ZoomControl";
@@ -134,12 +136,13 @@ function LockViewControl({
         <button
           type="button"
           onClick={() => (locked ? onUnlock() : onLock(captureBounds(map)))}
-          className={`rounded-lg px-3 py-2 text-xs font-semibold shadow-lg ${
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold shadow-lg ${
             locked
               ? "bg-surface text-brand"
               : "bg-brand text-brand-fg"
           }`}
         >
+          <Icon icon={locked ? LockOpen : Lock} size="xs" />
           {locked ? t("unlockView") : t("lockView")}
         </button>
       </div>

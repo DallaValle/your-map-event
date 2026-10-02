@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { Rectangle, useMap } from "react-leaflet";
+import { Scan } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { useMapControlRef } from "./control-utils";
 import { LocationPicker } from "./LocationPicker";
@@ -57,9 +59,10 @@ function CaptureBoundsControl({
               neLng: b.getNorthEast().lng,
             });
           }}
-          className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-brand-fg shadow-lg"
+          className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-brand-fg shadow-lg"
         >
-          ⛶ Use current view as borders
+          <Icon icon={Scan} size="xs" />
+          Use current view as borders
         </button>
       </div>
     </div>
