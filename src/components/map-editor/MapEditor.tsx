@@ -47,6 +47,7 @@ export interface EditorMapData {
 }
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+type MarkerLook = { markerLabel: MarkerLabel; markerColor: string | null };
 
 const ZOOM_MIN = 14;
 const ZOOM_MAX = 19;
@@ -109,7 +110,7 @@ export function MapEditor({
 
   // --- Marker look: applied at once on the map, saved shortly after ----------
   const savedStyle = markerStyleOf(map, categories);
-  const [markerLook, setMarkerLook] = useState<{ markerLabel: MarkerLabel; markerColor: string | null }>({
+  const [markerLook, setMarkerLook] = useState<MarkerLook>({
     markerLabel: savedStyle.label,
     markerColor: savedStyle.color,
   });
@@ -117,13 +118,46 @@ export function MapEditor({
     () => markerStyleOf(markerLook, categories),
     [markerLook, categories],
   );
-  useEffect(() => {
-    if (markerLook.markerLabel === map.markerLabel && markerLook.markerColor === map.markerColor) return;
-    const t = window.setTimeout(() => {
-      void updateMarkerStyleAction(map.id, markerLook).then(() => router.refresh());
+  const [markerError, setMarkerError] = useState<string | null>(null);
+  const pendingLook = useRef<{ look: MarkerLook; timer: number } | null>(null);
+
+  function saveLook(look: MarkerLook) {
+    void updateMarkerStyleAction(map.id, look).then((result) => {
+      if (result && !result.ok) setMarkerError(result.error);
+      else {
+        setMarkerError(null);
+        router.refresh();
+      }
+    });
+  }
+
+  // Clicks save at once; only a dragged color waits for the hand to settle.
+  function changeLook(look: MarkerLook, { debounce = false } = {}) {
+    setMarkerLook(look);
+    if (pendingLook.current) window.clearTimeout(pendingLook.current.timer);
+    pendingLook.current = null;
+    if (!debounce) return saveLook(look);
+    const timer = window.setTimeout(() => {
+      pendingLook.current = null;
+      saveLook(look);
     }, 500);
-    return () => window.clearTimeout(t);
-  }, [markerLook, map.id, map.markerLabel, map.markerColor, router]);
+    pendingLook.current = { look, timer };
+  }
+
+  // Leaving mid drag still keeps the last color.
+  const saveLookRef = useRef(saveLook);
+  useEffect(() => {
+    saveLookRef.current = saveLook;
+  });
+  useEffect(
+    () => () => {
+      const pending = pendingLook.current;
+      if (!pending) return;
+      window.clearTimeout(pending.timer);
+      saveLookRef.current(pending.look);
+    },
+    [],
+  );
 
   // --- POI editing state ----------------------------------------------------
   const [sheet, setSheet] = useState<PoiSheetMode | null>(null);
@@ -515,7 +549,8 @@ export function MapEditor({
           categories={categories}
           markerLabel={markerLook.markerLabel}
           markerColor={markerLook.markerColor}
-          onStyleChange={setMarkerLook}
+          onStyleChange={changeLook}
+          styleError={markerError}
         />
 
         {/* View lock: freezing the phone-shaped view captures borders,
@@ -657,6 +692,7 @@ export function MapEditor({
           uploadsEnabled={uploadsEnabled}
           activities={activities}
           categories={categories}
+          markerColor={markerLook.markerColor}
           onClose={closeSheet}
           onPositionChange={setSheetDraft}
         />

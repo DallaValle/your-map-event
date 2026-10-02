@@ -141,6 +141,8 @@ export function nearestSpacing(pois: PoiData[]): Map<string, number> {
 }
 
 export const BADGE_MIN = 10;
+/** Closer neighbours count as this far apart: labels show by zoom 20. */
+const MIN_SPACING_M = 2;
 export const BADGE_MAX = 34;
 /** Below this the badge is a plain dot: a code would not be legible. */
 export const BADGE_LABEL_MIN = 18;
@@ -151,7 +153,8 @@ export const BADGE_LABEL_MIN = 18;
  */
 export function badgeSize(spacingMeters: number, zoom: number, lat: number): number {
   const metersPerPixel = (156_543.03 * Math.cos((lat * Math.PI) / 180)) / 2 ** zoom;
-  const px = (spacingMeters / metersPerPixel) * 0.95;
+  // Stacked or near stacked points still earn their number when zoomed in.
+  const px = (Math.max(spacingMeters, MIN_SPACING_M) / metersPerPixel) * 0.95;
   return Math.round(Math.min(BADGE_MAX, Math.max(BADGE_MIN, px)));
 }
 

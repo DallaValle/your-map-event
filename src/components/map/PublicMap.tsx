@@ -295,7 +295,10 @@ export default function PublicMap({
             {shownCategory && (
               <button
                 type="button"
-                onClick={() => setShownCategoryId(null)}
+                onClick={() => {
+                  onPick([]);
+                  setShownCategoryId(null);
+                }}
                 className="pointer-events-auto flex items-center gap-2 rounded-full bg-neutral-900 py-1.5 pl-3 pr-2 text-sm font-medium text-white shadow-lg dark:bg-white dark:text-neutral-900"
               >
                 <span aria-hidden className="size-2.5 rounded-full" style={{ background: shownCategory.color }} />
@@ -421,7 +424,11 @@ export default function PublicMap({
                         key={category?.id ?? "all"}
                         type="button"
                         aria-pressed={on}
-                        onClick={() => setShownCategoryId(category?.id ?? null)}
+                        onClick={() => {
+                          // A new filter starts clean: no sheet or chooser for points it hides.
+                          onPick([]);
+                          setShownCategoryId(category?.id ?? null);
+                        }}
                         className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
                           on
                             ? "border-transparent bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"

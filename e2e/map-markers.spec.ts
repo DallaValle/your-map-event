@@ -42,10 +42,14 @@ test.describe("map markers", () => {
       .poll(() => names.evaluateAll((els) => els.map((el) => (el as HTMLInputElement).value)))
       .toEqual(["Services", "Drinks", "Food", "Shops", "Stages"]);
 
-    // Renaming saves on its own, like the rest of the editor.
+    // Renaming saves on its own, and a save landing mid typing never steals the field.
     const drinks = names.nth(1);
-    await drinks.fill("Bars");
-    await expect.poll(async () => (await prisma.poiCategory.findFirst({ where: { name: "Bars" } }))?.icon).toBeTruthy();
+    await drinks.fill("Wi");
+    await page.waitForTimeout(1500);
+    await drinks.pressSequentially("ne bar");
+    await expect(drinks).toBeFocused();
+    await expect(drinks).toHaveValue("Wine bar");
+    await expect.poll(async () => (await prisma.poiCategory.findFirst({ where: { name: "Wine bar" } }))?.icon).toBeTruthy();
 
     // Attendees filter by category; the map keeps only those points.
     await page.goto(LIVE);
@@ -59,6 +63,16 @@ test.describe("map markers", () => {
 
     await page.getByRole("button", { name: /Only .*Services/ }).click();
     await expect(page.locator(".leaflet-marker-icon.poi-badge")).toHaveCount(10);
+
+    // A filter closes what it hides, and clearing it does not reopen it.
+    await page.locator('.leaflet-marker-icon[title="Beer Garden"]').click();
+    const details = page.getByRole("region", { name: "Point details" });
+    await expect(details).toContainText("Local craft beer");
+    await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+    await chips.getByRole("button", { name: /Services/ }).click();
+    await chips.getByRole("button", { name: /^All/ }).click();
+    await page.getByRole("button", { name: "Collapse list" }).click();
+    await expect(details).toBeHidden();
   });
 
   test("numbers, own colors and the event look reach the attendee", async ({ page }, testInfo) => {
@@ -82,6 +96,8 @@ test.describe("map markers", () => {
 
     await page.goto(LIVE);
     const beer = page.locator('.leaflet-marker-icon[title="B1 Beer Garden"]');
+    // Selected badges are always big enough for their label, whatever the spacing.
+    await beer.click();
     await expect(beer).toHaveText("B1");
     await expect(page.locator('.leaflet-marker-icon[title="Main Stage"]')).toHaveText("");
 

@@ -37,13 +37,20 @@ export function MarkerStyleSection({
   markerLabel,
   markerColor,
   onStyleChange,
+  styleError,
 }: {
   eventId: string;
   pois: PoiData[];
   categories: PoiCategoryData[];
   markerLabel: MarkerLabel;
   markerColor: string | null;
-  onStyleChange: (style: { markerLabel: MarkerLabel; markerColor: string | null }) => void;
+  /** `debounce` while a color is being dragged; a click saves at once. */
+  onStyleChange: (
+    style: { markerLabel: MarkerLabel; markerColor: string | null },
+    options?: { debounce?: boolean },
+  ) => void;
+  /** Why the last marker style save failed. */
+  styleError?: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -121,7 +128,7 @@ export function MarkerStyleSection({
           <input
             type="color"
             value={markerColor}
-            onChange={(e) => onStyleChange({ markerLabel, markerColor: e.target.value })}
+            onChange={(e) => onStyleChange({ markerLabel, markerColor: e.target.value }, { debounce: true })}
             aria-label="Marker color"
             className={swatch}
           />
@@ -138,7 +145,8 @@ export function MarkerStyleSection({
           <ul className="divide-y divide-black/10 rounded-2xl border border-black/10 dark:divide-white/15 dark:border-white/15">
             {categories.map((category) => (
               <CategoryRow
-                key={`${category.id}-${category.name}-${category.icon}-${category.color}`}
+                // By id only: a refresh after autosave must not remount the row being typed in.
+                key={category.id}
                 category={category}
                 count={countFor(category.id)}
                 onSave={(next) => run(() => updateCategoryAction(category.id, next))}
@@ -184,9 +192,9 @@ export function MarkerStyleSection({
         )}
 
         <NewCategory disabled={pending} onCreate={(input) => run(() => createCategoryAction(eventId, input))} />
-        {error && (
+        {(error || styleError) && (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-            {error}
+            {error ?? styleError}
           </p>
         )}
       </div>
@@ -237,6 +245,10 @@ function CategoryFields({
   );
 }
 
+function sameCategory(a: CategoryInput, b: CategoryInput) {
+  return a.name === b.name && a.icon === b.icon && a.color === b.color;
+}
+
 function CategoryRow({
   category,
   count,
@@ -250,9 +262,18 @@ function CategoryRow({
 }) {
   const [value, setValue] = useState<CategoryInput>(category);
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  // Take saved values from the server only while the admin is not typing here,
+  // so a refresh that lands mid edit never rolls the field back.
+  const [synced, setSynced] = useState<CategoryInput>(category);
+  if (!editing && !sameCategory(synced, category)) {
+    setSynced(category);
+    setValue(category);
+  }
 
   // Saves shortly after the last keystroke or color drag, like the rest of the editor.
-  const changed = value.name !== category.name || value.icon !== category.icon || value.color !== category.color;
+  const changed = !sameCategory(value, category);
   const valid = !!value.name.trim() && !!value.icon.trim();
   const onSaveRef = useRef(onSave);
   useEffect(() => {
@@ -265,17 +286,24 @@ function CategoryRow({
   }, [changed, valid, value]);
 
   return (
-    <li className="flex items-center gap-2 px-3 py-2" aria-label={`Category ${category.name}`}>
+    <li
+      className="flex items-center gap-2 px-3 py-2"
+      aria-label={`Category ${category.name}`}
+      onFocus={() => setEditing(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setEditing(false);
+      }}
+    >
       <CategoryFields value={value} onChange={setValue} />
       <span className="w-8 shrink-0 text-right text-xs tabular-nums opacity-60" title={`${count} points`}>
         {count}
       </span>
       {confirming ? (
         <span className="flex shrink-0 items-center gap-1">
-          <button type="button" onClick={onDelete} className="rounded-lg px-2 py-1 text-xs font-semibold text-red-600 dark:text-red-400">
+          <button type="button" onClick={onDelete} className="min-h-11 rounded-lg px-2 text-xs font-semibold text-red-600 dark:text-red-400">
             Delete
           </button>
-          <button type="button" onClick={() => setConfirming(false)} className="rounded-lg px-2 py-1 text-xs opacity-70">
+          <button type="button" onClick={() => setConfirming(false)} className="min-h-11 rounded-lg px-2 text-xs opacity-70">
             Keep
           </button>
         </span>
@@ -284,7 +312,7 @@ function CategoryRow({
           type="button"
           onClick={() => setConfirming(true)}
           aria-label={`Delete ${category.name}`}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-sm opacity-50 hover:opacity-80"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-sm opacity-50 hover:opacity-80"
         >
           ✕
         </button>

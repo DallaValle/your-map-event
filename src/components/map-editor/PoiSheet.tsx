@@ -28,6 +28,7 @@ export function PoiSheet({
   uploadsEnabled,
   activities = [],
   categories = [],
+  markerColor = null,
   eventStartTime = null,
   eventEndTime = null,
   onClose,
@@ -39,6 +40,8 @@ export function PoiSheet({
   uploadsEnabled: boolean;
   activities?: ActivityDTO[];
   categories?: PoiCategoryData[];
+  /** Event wide marker color; it wins over category colors, like on the map. */
+  markerColor?: string | null;
   eventStartTime?: string | null;
   eventEndTime?: string | null;
   onClose: () => void;
@@ -226,14 +229,14 @@ export function PoiSheet({
               <span
                 aria-hidden
                 className="size-2.5 rounded-full"
-                style={{ background: category?.color ?? suggestedColor(icon) }}
+                style={{ background: markerColor ?? category?.color ?? suggestedColor(icon) }}
               />
-              {category ? "Category color" : "Automatic"}
+              {markerColor ? "Event color" : category ? "Category color" : "Automatic"}
             </button>
             <button
               type="button"
               aria-pressed={!!ownColor}
-              onClick={() => setOwnColor(ownColor ?? category?.color ?? suggestedColor(icon))}
+              onClick={() => setOwnColor(ownColor ?? markerColor ?? category?.color ?? suggestedColor(icon))}
               className={`rounded-full border px-2.5 py-1 ${
                 ownColor ? "border-brand bg-brand-soft" : "border-black/10 dark:border-white/15"
               }`}

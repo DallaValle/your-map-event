@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { categorySchema, markerStyleSchema } from "@/lib/event-schemas";
@@ -26,6 +27,8 @@ async function guarded(eventId: string, run: (ctx: Awaited<ReturnType<typeof req
   try {
     ctx = await requireEventAdmin(eventId);
   } catch (error) {
+    // A sign in redirect must reach the browser, not show up as an error message.
+    unstable_rethrow(error);
     return { ok: false, error: error instanceof Error ? error.message : "Forbidden" } as ActionState;
   }
   const result = await run(ctx);

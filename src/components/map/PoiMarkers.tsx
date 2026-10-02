@@ -36,7 +36,14 @@ const PoiMarker = memo(function PoiMarker({
     showLabel: !!label && shown >= BADGE_LABEL_MIN,
   });
   const eventHandlers = useMemo(
-    () => ({ click: (event: L.LeafletMouseEvent) => onTap(poi, event) }),
+    () => ({
+      click: (event: L.LeafletMouseEvent) => onTap(poi, event),
+      // Markers are focusable buttons; without popups nothing else opens them from the keyboard.
+      keypress: (event: L.LeafletKeyboardEvent) => {
+        const key = event.originalEvent.key;
+        if (key === "Enter" || key === " ") onTap(poi, event as unknown as L.LeafletMouseEvent);
+      },
+    }),
     [onTap, poi],
   );
 
