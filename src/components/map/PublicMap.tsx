@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type L from "leaflet";
 import { useMap } from "react-leaflet";
 import { useTranslations } from "next-intl";
+import { ChevronDown, ChevronRight, Focus, MapPin, Navigation, X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { PoiMarkers } from "./PoiMarkers";
 import { PoiBadge, PoiChooser, PoiDetails } from "./PoiPanels";
@@ -271,8 +273,8 @@ export default function PublicMap({
               className="size-8 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm">
-              📍
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+              <Icon icon={MapPin} size="sm" />
             </span>
           )}
           <div className="min-w-0">
@@ -305,8 +307,8 @@ export default function PublicMap({
               >
                 <span aria-hidden className="size-2.5 rounded-full" style={{ background: shownCategory.color }} />
                 {t("only", { category: `${shownCategory.icon} ${shownCategory.name}` })}
-                <span className="flex size-5 items-center justify-center rounded-full bg-white/20 text-xs dark:bg-black/10" aria-hidden>
-                  ✕
+                <span className="flex size-5 items-center justify-center rounded-full bg-white/20 dark:bg-black/10" aria-hidden>
+                  <Icon icon={X} size="xs" />
                 </span>
                 <span className="sr-only">{t("showAll")}</span>
               </button>
@@ -384,7 +386,7 @@ export default function PublicMap({
                   aria-label={t("collapseList")}
                   className="flex size-9 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
                 >
-                  ▼
+                  <Icon icon={ChevronDown} />
                 </button>
               </div>
               {pois.length > 0 && (
@@ -414,7 +416,7 @@ export default function PublicMap({
                       aria-label={t("clearSearch")}
                       className="absolute inset-y-0 right-1 flex w-10 items-center justify-center opacity-50 hover:opacity-80"
                     >
-                      ✕
+                      <Icon icon={X} size="sm" />
                     </button>
                   )}
                 </div>
@@ -470,7 +472,7 @@ export default function PublicMap({
                         <p className="truncate text-xs opacity-60">{poi.description}</p>
                       )}
                     </div>
-                    <span aria-hidden className="text-sm opacity-40">→</span>
+                    <Icon icon={ChevronRight} size="sm" className="opacity-40" />
                   </button>
                 </li>
               ))}
@@ -497,7 +499,7 @@ export default function PublicMap({
             aria-expanded={listOpen}
             className={`${navButton} ${listOpen ? "text-brand" : ""}`}
           >
-            <span className="text-xl" aria-hidden>📍</span>
+            <Icon icon={MapPin} />
             {t("points", { count: pois.length })}
           </button>
           <button
@@ -513,11 +515,11 @@ export default function PublicMap({
             }
             className={navButton}
           >
-            <span className="text-xl" aria-hidden>🧭</span>
+            <Icon icon={Navigation} />
             {t("locate")}
           </button>
           <button type="button" onClick={recenter} className={navButton}>
-            <span className="text-xl" aria-hidden>🎯</span>
+            <Icon icon={Focus} />
             {t("recenter")}
           </button>
         </div>

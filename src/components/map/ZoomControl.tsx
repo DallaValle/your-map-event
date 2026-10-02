@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMap } from "react-leaflet";
+import { Minus, Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useMapControlRef } from "./control-utils";
 
 /**
@@ -25,7 +27,7 @@ export function ZoomControl({ min = 14, max = 19 }: { min?: number; max?: number
   }, [map]);
 
   const buttonClass =
-    "pointer-events-auto flex size-11 items-center justify-center rounded-full bg-white text-2xl leading-none shadow-lg select-none active:scale-95 disabled:opacity-40 dark:bg-neutral-900";
+    "pointer-events-auto flex size-11 items-center justify-center rounded-full bg-white shadow-lg select-none active:scale-95 disabled:opacity-40 dark:bg-neutral-900";
 
   return (
     <div className="leaflet-top leaflet-right">
@@ -37,7 +39,7 @@ export function ZoomControl({ min = 14, max = 19 }: { min?: number; max?: number
           disabled={zoom >= max}
           className={buttonClass}
         >
-          +
+          <Icon icon={Plus} />
         </button>
         <button
           type="button"
@@ -46,7 +48,7 @@ export function ZoomControl({ min = 14, max = 19 }: { min?: number; max?: number
           disabled={zoom <= min}
           className={buttonClass}
         >
-          −
+          <Icon icon={Minus} />
         </button>
       </div>
     </div>

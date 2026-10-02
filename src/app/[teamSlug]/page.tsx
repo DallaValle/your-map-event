@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { MapPin } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { prisma } from "@/lib/prisma";
 
 interface PageProps {
@@ -54,7 +56,9 @@ export default async function TeamPage({ params }: PageProps) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={team.logoUrl} alt="" className="size-16 rounded-full object-cover" />
         ) : (
-          <span className="flex size-16 items-center justify-center rounded-full bg-brand-soft text-3xl">📍</span>
+          <span className="flex size-16 items-center justify-center rounded-full bg-brand-soft text-brand">
+            <Icon icon={MapPin} size="xl" />
+          </span>
         )}
         <h1 className="text-2xl font-bold">{team.name}</h1>
       </header>

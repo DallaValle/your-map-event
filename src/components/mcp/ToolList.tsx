@@ -1,5 +1,7 @@
 import { useTranslations } from "next-intl";
 import type { ToolParam } from "@/lib/mcp/tools";
+import { ChevronRight } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 export interface ToolDoc {
   name: string;
@@ -85,9 +87,7 @@ export function ToolList({ tools, prompts }: { tools: ToolDoc[]; prompts: Prompt
                   <span className="rounded-full bg-surface px-2.5 py-0.5 text-xs font-medium">
                     {tool.readOnly ? t("read") : t("write")}
                   </span>
-                  <span aria-hidden className="text-xs opacity-50 transition-transform group-open:rotate-90">
-                    ▶
-                  </span>
+                  <Icon icon={ChevronRight} size="sm" className="opacity-50 transition-transform group-open:rotate-90" />
                 </span>
               </summary>
               <div className="mt-3">

@@ -2,8 +2,10 @@
 
 import type { Ref } from "react";
 import { useTranslations } from "next-intl";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { poiCode, resolveBadge } from "./poi-badge";
-import { DEFAULT_MARKER_STYLE, type MarkerStyle, type PoiData } from "./types";
+import { DEFAULT_MARKER_STYLE, DEFAULT_POI_ICON, type MarkerStyle, type PoiData } from "./types";
 
 /** The map badge in list form, so the list and the map read the same. */
 export function PoiBadge({
@@ -24,7 +26,7 @@ export function PoiBadge({
       } ${large ? "size-11 text-base" : "size-10 text-sm"}`}
       style={{ background: color }}
     >
-      {label ?? (icon || "📍")}
+      {label ?? (icon || DEFAULT_POI_ICON)}
     </span>
   );
 }
@@ -47,9 +49,9 @@ function Header({ onClose }: { onClose: () => void }) {
         type="button"
         onClick={onClose}
         aria-label={t("close")}
-        className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/5 text-sm dark:bg-white/10"
+        className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
       >
-        ✕
+        <Icon icon={X} size="sm" />
       </button>
     </>
   );
@@ -152,7 +154,7 @@ export function PoiDetails({
               aria-label={prev ? t("previous", { name: prev.title }) : t("noPrevious")}
               className={step}
             >
-              <span aria-hidden>‹</span>
+              <Icon icon={ChevronLeft} size="sm" />
               <span className="truncate">{prev && shortName(prev)}</span>
             </button>
             <button
@@ -163,7 +165,7 @@ export function PoiDetails({
               className={`${step} justify-end`}
             >
               <span className="truncate">{next && shortName(next)}</span>
-              <span aria-hidden>›</span>
+              <Icon icon={ChevronRight} size="sm" />
             </button>
           </div>
         )}

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Check, CircleCheck } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { authClient } from "@/lib/auth-client";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -89,7 +91,8 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
 
       {inviteLink && (
         <div className="flex flex-col gap-2 rounded-xl bg-brand-soft p-3">
-          <p className="text-sm font-medium text-brand">
+          <p className="flex items-center gap-1.5 text-sm font-medium text-brand">
+            <Icon icon={CircleCheck} size="sm" />
             {t("inviteCreated")}
           </p>
           <div className="flex items-stretch gap-2">
@@ -101,7 +104,14 @@ export function InviteMemberForm({ orgId }: { orgId: string }) {
               onClick={copy}
               className="shrink-0 rounded-lg bg-brand px-3 text-xs font-semibold text-brand-fg active:scale-95"
             >
-              {copied ? t("copied") : t("copy")}
+              {copied ? (
+                <span className="inline-flex items-center gap-1">
+                  <Icon icon={Check} size="xs" />
+                  {t("copied")}
+                </span>
+              ) : (
+                t("copy")
+              )}
             </button>
           </div>
         </div>

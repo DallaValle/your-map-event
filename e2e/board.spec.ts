@@ -17,7 +17,7 @@ test.describe("board", () => {
     const title = `E2E Soundcheck ${stamp}`;
     const edited = `${title} (doors)`;
 
-    await page.getByRole("button", { name: "+ Add activity" }).click();
+    await page.getByRole("button", { name: "Add activity", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Add activity" });
     await dialog.getByLabel("Name").fill(title);
     await dialog.getByLabel("Type").selectOption("other");
@@ -46,7 +46,7 @@ test.describe("board", () => {
     await signInViewer(page);
     await page.goto("/dashboard/board");
     await expect(page.getByRole("heading", { name: "Board" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "+ Add activity" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add activity", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Edit" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Delete" })).toHaveCount(0);
   });

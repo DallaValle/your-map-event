@@ -2,6 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useFormatter, useTranslations } from "next-intl";
+import { CircleCheck } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import {
   createMcpTokenAction,
   revokeMcpTokenAction,
@@ -92,7 +94,8 @@ export function TokenManager({ teamId, tokens, endpoint }: { teamId: string; tok
 
       {state?.ok && (
         <div role="status" className="flex flex-col gap-3 rounded-xl bg-brand-soft p-3">
-          <p className="text-sm font-medium text-brand">
+          <p className="flex items-center gap-1.5 text-sm font-medium text-brand">
+            <Icon icon={CircleCheck} size="sm" />
             {t("tokenCreated", { name: state.name })}
           </p>
           <div className="flex items-center gap-2">

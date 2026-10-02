@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { clearThemeCookieAction } from "@/actions/settings";
 import { BrandMark, Wordmark } from "./BrandMark";
+import { Bell } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 export interface HeaderUser {
   name: string;
@@ -87,9 +89,9 @@ export function SiteHeader({
           href="/dashboard/notifications"
           aria-label={unreadCount > 0 ? t("notificationsUnread", { count: unreadCount }) : t("notifications")}
           title={t("notifications")}
-          className="relative flex size-9 items-center justify-center rounded-full text-lg hover:bg-black/5 dark:hover:bg-white/10"
+          className="relative flex size-9 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10"
         >
-          <span aria-hidden>🔔</span>
+          <Icon icon={Bell} />
           {unreadCount > 0 && (
             <span
               data-testid="notif-badge"

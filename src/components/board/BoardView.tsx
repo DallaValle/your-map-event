@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { deleteActivityAction } from "@/actions/activities";
 import { activityTypeMeta, isScheduled, type ActivityDTO, type SchedulePoi } from "@/lib/activity";
 import { formatRange } from "@/lib/schedule-time";
@@ -52,8 +54,9 @@ export function BoardView({
         <button
           type="button"
           onClick={() => setDialog({ mode: "create" })}
-          className="self-start rounded-xl border border-dashed border-black/20 px-4 py-3 text-sm font-semibold dark:border-white/20"
+          className="flex items-center gap-1.5 self-start rounded-xl border border-dashed border-black/20 px-4 py-3 text-sm font-semibold dark:border-white/20"
         >
+          <Icon icon={Plus} size="sm" />
           {t("addActivity")}
         </button>
       )}

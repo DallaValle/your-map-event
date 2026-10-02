@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMap } from "react-leaflet";
+import { Navigation2 } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useMapControlRef } from "./control-utils";
 
 /**
@@ -39,11 +41,8 @@ export function CompassControl({
           onClick={() => map.setBearing(0)}
           className="flex size-11 items-center justify-center rounded-full bg-white shadow-lg dark:bg-neutral-900"
         >
-          <span
-            className="text-xl"
-            style={{ transform: `rotate(${bearing}deg)` }}
-          >
-            🧭
+          <span className="flex text-brand" style={{ transform: `rotate(${bearing}deg)` }}>
+            <Icon icon={Navigation2} className="fill-current" />
           </span>
         </button>
       </div>

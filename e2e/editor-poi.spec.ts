@@ -41,7 +41,7 @@ test.describe("editor: points", () => {
     test.skip(testInfo.project.name !== "desktop", "run once");
     await openFirstMapEditor(page);
 
-    await page.getByRole("button", { name: "+ Add points" }).click();
+    await page.getByRole("button", { name: "Add points" }).click();
     await page.locator(".leaflet-container").click({ position: { x: 160, y: 300 } });
     await expect(page.getByRole("heading", { name: "New point" })).toBeVisible();
 

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { CalendarDays, ClipboardList, Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 /** Shared empty body when Board or Schedule has no selected event. */
 export function EmptyEventState({
@@ -14,10 +16,10 @@ export function EmptyEventState({
     <div className="flex min-h-full items-center justify-center px-6 py-12">
       <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-black/10 bg-white px-8 py-10 text-center shadow-sm dark:border-white/10 dark:bg-white/5">
         <span
-          className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-3xl"
+          className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft text-brand"
           aria-hidden
         >
-          {section === "Board" ? "📋" : "🗓️"}
+          <Icon icon={section === "Board" ? ClipboardList : CalendarDays} size="xl" />
         </span>
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">{t("noEvent")}</h1>
@@ -30,8 +32,9 @@ export function EmptyEventState({
         {isAdmin && (
           <Link
             href="/dashboard/events/new"
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 gap-2 font-semibold text-brand-fg active:scale-[.98]"
           >
+            <Icon icon={Plus} size="sm" />
             {t("newEvent")}
           </Link>
         )}

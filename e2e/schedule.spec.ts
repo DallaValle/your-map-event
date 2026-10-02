@@ -33,7 +33,7 @@ test.describe("schedule", () => {
     await page.goto("/dashboard/schedule");
 
     const title = `E2E Workshop ${Date.now()}`;
-    await page.getByRole("button", { name: "+ Add activity" }).click();
+    await page.getByRole("button", { name: "Add activity", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Add activity" });
     await dialog.getByLabel("Name").fill(title);
     await dialog.getByLabel("Type").selectOption("workshop");
@@ -66,7 +66,7 @@ test.describe("schedule", () => {
     await form.getByLabel("Activity type").selectOption("talk");
     await form.getByLabel("Start").fill("2026-07-18T11:00");
     await form.getByLabel("End").fill("2026-07-18T11:45");
-    await form.getByRole("button", { name: "+ Add to schedule" }).click();
+    await form.getByRole("button", { name: "Add to schedule" }).click();
     await expect(page.getByRole("listitem").filter({ hasText: title })).toBeVisible();
 
     await page.locator("aside").getByRole("link", { name: "Schedule" }).click();
@@ -84,8 +84,8 @@ test.describe("schedule", () => {
     await signInViewer(page);
     await page.goto("/dashboard/schedule");
     await expect(page.getByRole("heading", { name: "Timeline Builder" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "+ Add activity" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "+ Add act" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add activity", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add act", exact: true })).toHaveCount(0);
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 });
@@ -102,7 +102,7 @@ test.describe("schedule in a distant timezone", () => {
     await page.goto("/dashboard/schedule");
 
     const title = `E2E Timezone ${Date.now()}`;
-    await page.getByRole("button", { name: "+ Add activity" }).click();
+    await page.getByRole("button", { name: "Add activity", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Add activity" });
     await dialog.getByLabel("Name").fill(title);
     await dialog.getByLabel("Location").selectOption({ label: "🎤 Main Stage" });

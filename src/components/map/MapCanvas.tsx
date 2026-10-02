@@ -6,12 +6,14 @@
 // wrappers, never LeafletMap/PublicMap/etc. directly.
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
+import { BrandMark } from "@/components/nav/BrandMark";
 
 function MapLoading() {
   const t = useTranslations("liveMap");
   return (
-    <div className="flex h-full min-h-40 w-full animate-pulse items-center justify-center rounded-2xl bg-black/5 text-sm opacity-60 dark:bg-white/10">
-      {t("loading")}
+    <div className="flex h-full min-h-40 w-full flex-col items-center justify-center gap-3 rounded-2xl bg-black/5 text-sm dark:bg-white/10">
+      <BrandMark size={40} className="animate-pulse" />
+      <span className="opacity-60">{t("loading")}</span>
     </div>
   );
 }

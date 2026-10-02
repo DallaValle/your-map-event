@@ -1,3 +1,5 @@
+import { Music, Pin, Presentation, type LucideIcon, UtensilsCrossed, Wrench } from "lucide-react";
+
 export const ACTIVITY_TYPE_IDS = ["performance", "food", "talk", "workshop", "other"] as const;
 export type ActivityTypeId = (typeof ACTIVITY_TYPE_IDS)[number];
 
@@ -8,42 +10,42 @@ export function isActivityType(value: string): value is ActivityTypeId {
 export const ACTIVITY_TYPES: {
   id: ActivityTypeId;
   label: string;
-  emoji: string;
+  icon: LucideIcon;
   card: string;
   chip: string;
 }[] = [
   {
     id: "performance",
     label: "Performance",
-    emoji: "🎤",
+    icon: Music,
     card: "typed border-violet-400 bg-violet-50 text-violet-950 dark:border-violet-400/70 dark:bg-violet-950/60 dark:text-violet-50",
     chip: "typed bg-violet-100 text-violet-800 dark:bg-violet-900/70 dark:text-violet-100",
   },
   {
     id: "food",
     label: "Food",
-    emoji: "🍔",
+    icon: UtensilsCrossed,
     card: "typed border-orange-400 bg-orange-50 text-orange-950 dark:border-orange-400/70 dark:bg-orange-950/60 dark:text-orange-50",
     chip: "typed bg-orange-100 text-orange-800 dark:bg-orange-900/70 dark:text-orange-100",
   },
   {
     id: "talk",
     label: "Talk",
-    emoji: "🎙️",
+    icon: Presentation,
     card: "typed border-sky-400 bg-sky-50 text-sky-950 dark:border-sky-400/70 dark:bg-sky-950/50 dark:text-sky-50",
     chip: "typed bg-sky-100 text-sky-800 dark:bg-sky-900/70 dark:text-sky-100",
   },
   {
     id: "workshop",
     label: "Workshop",
-    emoji: "🛠️",
+    icon: Wrench,
     card: "typed border-emerald-400 bg-emerald-50 text-emerald-950 dark:border-emerald-400/70 dark:bg-emerald-950/50 dark:text-emerald-50",
     chip: "typed bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-100",
   },
   {
     id: "other",
     label: "Other",
-    emoji: "📌",
+    icon: Pin,
     card: "typed border-slate-300 bg-slate-50 text-slate-900 dark:border-slate-500 dark:bg-slate-900/70 dark:text-slate-50",
     chip: "typed bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100",
   },

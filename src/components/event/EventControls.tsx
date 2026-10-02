@@ -3,6 +3,8 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Check } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { setMapPublishedAction, deleteMapAction } from "@/actions/maps";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -39,7 +41,16 @@ export function PublishToggle({
     >
       <PendingLabel
         pending={pending}
-        label={published ? t("unpublish") : t("publish")}
+        label={
+          published ? (
+            <span className="inline-flex items-center gap-1.5">
+              <Icon icon={Check} size="sm" />
+              {t("unpublish")}
+            </span>
+          ) : (
+            t("publish")
+          )
+        }
         pendingLabel={t("saving")}
       />
     </button>

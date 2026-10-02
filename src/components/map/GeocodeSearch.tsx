@@ -2,6 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { MapPin, Search } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
+import { Spinner } from "@/components/ui/Spinner";
 
 export interface GeocodeResult {
   lat: number;
@@ -102,9 +105,10 @@ export function GeocodeSearch({
           type="button"
           onClick={search}
           disabled={loading}
-          className="shrink-0 rounded-xl bg-brand px-4 py-3 font-semibold text-brand-fg disabled:opacity-60"
+          aria-label={t("search")}
+          className="flex shrink-0 items-center rounded-xl bg-brand px-4 py-3 font-semibold text-brand-fg disabled:opacity-60"
         >
-          {loading ? "…" : "🔍"}
+          {loading ? <Spinner className="size-5" /> : <Icon icon={Search} />}
         </button>
       </div>
 
@@ -130,9 +134,10 @@ export function GeocodeSearch({
                     setQuery("");
                     onSelect(result);
                   }}
-                  className="w-full px-4 py-3 text-left text-sm active:bg-black/5 dark:active:bg-white/10"
+                  className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm active:bg-black/5 dark:active:bg-white/10"
                 >
-                  📍 {result.label}
+                  <Icon icon={MapPin} size="sm" className="text-brand" />
+                  {result.label}
                 </button>
               </li>
             ))

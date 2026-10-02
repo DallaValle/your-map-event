@@ -32,7 +32,7 @@ test("switching events updates the whole overview, form included", async ({ page
     await expect(options).toHaveCount(await prisma.event.count({ where: { teamId: team!.id } }));
 
     // Pick whichever option is not currently selected.
-    const target = options.filter({ hasNot: page.getByText("✓") }).first();
+    const target = page.locator('[role="option"][aria-selected="false"]').first();
     const targetName = (await target.locator("span.font-medium").textContent())!.trim();
     await target.click();
 

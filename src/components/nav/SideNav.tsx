@@ -3,12 +3,27 @@
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import {
+  CalendarDays,
+  ChartColumn,
+  ClipboardList,
+  CreditCard,
+  History,
+  LayoutDashboard,
+  MapIcon,
+  Megaphone,
+  Settings,
+  Sparkles,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   isActive: (pathname: string) => boolean;
 }
 
@@ -39,13 +54,13 @@ export function SideNav({
     {
       href: "/dashboard",
       label: t("dashboard"),
-      icon: "🎫",
+      icon: LayoutDashboard,
       isActive: (p) => p === "/dashboard",
     },
     {
       href: "/dashboard/schedule",
       label: t("schedule"),
-      icon: "🗓️",
+      icon: CalendarDays,
       isActive: (p) => p.startsWith("/dashboard/schedule"),
     },
     // Map editor needs a selected event — hide the item when there isn't one
@@ -55,7 +70,7 @@ export function SideNav({
           {
             href: `/dashboard/events/${activeEventId}`,
             label: t("mapEditor"),
-            icon: "🗺️",
+            icon: MapIcon,
             isActive: isEventEditorPath,
           },
         ]
@@ -63,25 +78,25 @@ export function SideNav({
     {
       href: "/dashboard/board",
       label: t("board"),
-      icon: "📋",
+      icon: ClipboardList,
       isActive: (p) => p.startsWith("/dashboard/board"),
     },
     {
       href: "/dashboard/social",
       label: t("social"),
-      icon: "📣",
+      icon: Megaphone,
       isActive: (p) => p.startsWith("/dashboard/social"),
     },
     {
       href: "/dashboard/analytics",
       label: t("analytics"),
-      icon: "📊",
+      icon: ChartColumn,
       isActive: (p) => p.startsWith("/dashboard/analytics"),
     },
     {
       href: "/dashboard/history",
       label: t("history"),
-      icon: "🕑",
+      icon: History,
       isActive: (p) => p.startsWith("/dashboard/history"),
     },
   ];
@@ -92,13 +107,13 @@ export function SideNav({
           {
             href: "/dashboard/events/new",
             label: t("pricing"),
-            icon: "💳",
+            icon: CreditCard,
             isActive: isPricingPath,
           },
           {
             href: "/dashboard/team",
             label: t("team"),
-            icon: "👥",
+            icon: Users,
             isActive: (p: string) => p.startsWith("/dashboard/team"),
           },
         ]
@@ -106,13 +121,13 @@ export function SideNav({
     {
       href: "/dashboard/ai",
       label: t("ai"),
-      icon: "✨",
+      icon: Sparkles,
       isActive: (p) => p.startsWith("/dashboard/ai"),
     },
     {
       href: "/dashboard/settings",
       label: t("settings"),
-      icon: "⚙️",
+      icon: Settings,
       isActive: (p) => p.startsWith("/dashboard/settings"),
     },
   ];
@@ -152,11 +167,11 @@ export function SideNav({
 }
 
 /** Spins over the icon while the click waits on the server; overlaid so labels never shift. */
-function NavIcon({ icon }: { icon: string }) {
+function NavIcon({ icon }: { icon: LucideIcon }) {
   const { pending } = useLinkStatus();
   return (
-    <span className="relative text-lg" aria-hidden>
-      <span className={pending ? "invisible" : undefined}>{icon}</span>
+    <span className="relative flex" aria-hidden>
+      <Icon icon={icon} className={pending ? "invisible" : undefined} />
       {pending ? (
         <Spinner className="absolute inset-0 m-auto size-[1.125rem] text-brand" />
       ) : null}

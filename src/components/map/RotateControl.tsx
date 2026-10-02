@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMap } from "react-leaflet";
+import { RotateCcw, RotateCw } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useMapControlRef } from "./control-utils";
 
 /**
@@ -57,7 +59,7 @@ export function RotateControl({
   }
 
   const buttonClass =
-    "pointer-events-auto flex size-11 items-center justify-center rounded-full bg-white text-lg shadow-lg select-none active:scale-95 dark:bg-neutral-900";
+    "pointer-events-auto flex size-11 items-center justify-center rounded-full bg-white shadow-lg select-none active:scale-95 dark:bg-neutral-900";
 
   const holdProps = (direction: 1 | -1) => ({
     onPointerDown: () => startHold(direction),
@@ -83,7 +85,7 @@ export function RotateControl({
           {...holdProps(-1)}
           className={buttonClass}
         >
-          ⟲
+          <Icon icon={RotateCcw} />
         </button>
         <span className="rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
           {Math.round(((bearing % 360) + 360) % 360)}°
@@ -94,7 +96,7 @@ export function RotateControl({
           {...holdProps(1)}
           className={buttonClass}
         >
-          ⟳
+          <Icon icon={RotateCw} />
         </button>
       </div>
     </div>

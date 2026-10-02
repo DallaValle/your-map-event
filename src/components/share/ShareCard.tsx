@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { useTranslations } from "next-intl";
+import { Check, Download, Megaphone, QrCode, Share2 } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 /**
  * Makes the attendee-facing URL impossible to miss and one-tap shareable:
@@ -68,7 +70,8 @@ export function ShareCard({
   return (
     <section className="flex flex-col gap-3 rounded-2xl border-2 border-brand/40 bg-brand-soft p-4">
       <div>
-        <h2 className="text-sm font-bold">
+        <h2 className="flex items-center gap-1.5 text-sm font-bold">
+          <Icon icon={Megaphone} size="sm" className="text-brand" />
           {published ? t("heading") : t("headingDraft")}
         </h2>
         {!published && (
@@ -87,7 +90,14 @@ export function ShareCard({
           onClick={copy}
           className="shrink-0 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-fg active:scale-95"
         >
-          {copied ? t("copied") : t("copy")}
+          {copied ? (
+            <span className="inline-flex items-center gap-1">
+              <Icon icon={Check} size="sm" />
+              {t("copied")}
+            </span>
+          ) : (
+            t("copy")
+          )}
         </button>
       </div>
 
@@ -95,16 +105,18 @@ export function ShareCard({
         <button
           type="button"
           onClick={toggleQr}
-          className="rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
+          className="flex items-center gap-1.5 rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
         >
+          <Icon icon={QrCode} size="sm" />
           {qr ? t("hideQr") : t("showQr")}
         </button>
         {canNativeShare && (
           <button
             type="button"
             onClick={() => navigator.share({ title: text, url }).catch(() => {})}
-            className="rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
+            className="flex items-center gap-1.5 rounded-xl border border-brand/40 px-4 py-2.5 text-sm font-semibold text-brand"
           >
+            <Icon icon={Share2} size="sm" />
             {t("share")}
           </button>
         )}
@@ -117,8 +129,9 @@ export function ShareCard({
           <a
             href={qr}
             download={`${path.replace(/\//g, "-")}-qr.png`}
-            className="text-sm font-semibold text-brand"
+            className="flex items-center gap-1.5 text-sm font-semibold text-brand"
           >
+            <Icon icon={Download} size="sm" />
             {t("downloadQr")}
           </a>
         </div>

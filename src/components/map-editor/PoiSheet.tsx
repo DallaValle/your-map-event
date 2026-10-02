@@ -3,9 +3,11 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Plus, X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { createPoiAction, updatePoiAction, deletePoiAction } from "@/actions/pois";
 import { ImageField } from "@/components/upload/ImageField";
-import { POI_ICONS, type LatLng, type PoiCategoryData, type PoiData } from "@/components/map/types";
+import { DEFAULT_POI_ICON, POI_ICONS, type LatLng, type PoiCategoryData, type PoiData } from "@/components/map/types";
 import { poiCode, suggestedColor } from "@/components/map/poi-badge";
 import type { ActivityDTO } from "@/lib/activity";
 import { PoiScheduleSection } from "./PoiScheduleSection";
@@ -54,7 +56,7 @@ export function PoiSheet({
 
   const [lat, setLat] = useState(position.lat.toFixed(6));
   const [lng, setLng] = useState(position.lng.toFixed(6));
-  const [icon, setIcon] = useState(isEdit ? (mode.poi.icon ?? "📍") : "📍");
+  const [icon, setIcon] = useState(isEdit ? (mode.poi.icon ?? DEFAULT_POI_ICON) : DEFAULT_POI_ICON);
   const [title, setTitle] = useState(isEdit ? mode.poi.title : "");
   const [categoryId, setCategoryId] = useState(isEdit ? (mode.poi.categoryId ?? "") : "");
   const category = categories.find((c) => c.id === categoryId);
@@ -125,8 +127,8 @@ export function PoiSheet({
 
   return (
     <div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-[1100] mx-auto max-w-md">
-      {/* 15rem = app header + event header above, bottom offset below: the title and ✕ stay visible. */}
-      <div className="max-h-[calc(100dvh-15rem)] overflow-y-auto rounded-2xl bg-white/97 p-4 shadow-2xl backdrop-blur dark:bg-neutral-950/97">
+      {/* 15rem = app header + event header above, bottom offset below: the title and close button stay visible. */}
+      <div className="max-h-[calc(100dvh-15rem)] overflow-y-auto rounded-2xl border border-black/15 bg-white/97 p-4 shadow-2xl backdrop-blur dark:border-white/20 dark:bg-neutral-950/97">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-base font-bold">
             {isEdit ? t("editTitle") : t("newTitle")}
@@ -137,7 +139,7 @@ export function PoiSheet({
             aria-label={t("close")}
             className="flex size-8 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
           >
-            ✕
+            <Icon icon={X} size="sm" />
           </button>
         </div>
 
@@ -323,8 +325,9 @@ export function PoiSheet({
               <button
                 type="button"
                 onClick={() => setShowPhoto(true)}
-                className="self-start text-sm font-semibold text-brand"
+                className="flex items-center gap-1.5 self-start text-sm font-semibold text-brand"
               >
+                <Icon icon={Plus} size="sm" />
                 {t("addPhoto")}
               </button>
             </>

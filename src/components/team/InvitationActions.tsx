@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Check } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { authClient } from "@/lib/auth-client";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -35,7 +37,14 @@ export function InvitationActions({ invitationId }: { invitationId: string }) {
         onClick={copy}
         className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/5"
       >
-        {copied ? t("copied") : t("copyLink")}
+        {copied ? (
+          <span className="inline-flex items-center gap-1">
+            <Icon icon={Check} size="xs" />
+            {t("copied")}
+          </span>
+        ) : (
+          t("copyLink")
+        )}
       </button>
       <button
         type="button"

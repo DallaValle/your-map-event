@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { suggestCategories, suggestedColor } from "@/components/map/poi-badge";
+import { DEFAULT_POI_ICON } from "@/components/map/types";
 
 type Db = Prisma.TransactionClient | typeof prisma;
 
@@ -57,7 +58,7 @@ export async function findOrCreateCategory(eventId: string, name: string, icon: 
     data: {
       eventId,
       name,
-      icon: icon || "📍",
+      icon: icon || DEFAULT_POI_ICON,
       color: suggestedColor(icon),
       position: await nextPosition(eventId, db),
     },

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, type Messages } from "next-intl";
+import { Plus, Trash2, X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import {
   createCategoryAction,
   createSuggestedCategoriesAction,
@@ -11,7 +13,7 @@ import {
 } from "@/actions/categories";
 import type { ActionState } from "@/actions/types";
 import { categoryNameKey, suggestCategories } from "@/components/map/poi-badge";
-import type { MarkerLabel, PoiCategoryData, PoiData } from "@/components/map/types";
+import { DEFAULT_POI_ICON, type MarkerLabel, type PoiCategoryData, type PoiData } from "@/components/map/types";
 
 const LABEL_OPTIONS: MarkerLabel[] = ["auto", "number", "icon"];
 
@@ -317,9 +319,9 @@ function CategoryRow({
           type="button"
           onClick={() => setConfirming(true)}
           aria-label={t("deleteCategory", { name: category.name })}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-sm opacity-50 hover:opacity-80"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full opacity-50 hover:opacity-80"
         >
-          ✕
+          <Icon icon={Trash2} size="sm" />
         </button>
       )}
     </li>
@@ -333,9 +335,10 @@ function NewCategory({ disabled, onCreate }: { disabled: boolean; onCreate: (inp
     return (
       <button
         type="button"
-        onClick={() => setDraft({ name: "", icon: "📍", color: DEFAULT_BRAND_COLOR })}
-        className="self-start text-sm font-semibold text-brand"
+        onClick={() => setDraft({ name: "", icon: DEFAULT_POI_ICON, color: DEFAULT_BRAND_COLOR })}
+        className="flex items-center gap-1.5 self-start text-sm font-semibold text-brand"
       >
+        <Icon icon={Plus} size="sm" />
         {t("addCategory")}
       </button>
     );
@@ -355,8 +358,8 @@ function NewCategory({ disabled, onCreate }: { disabled: boolean; onCreate: (inp
       <button type="submit" disabled={disabled || !draft.name.trim()} className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-brand-fg disabled:opacity-40">
         {t("add")}
       </button>
-      <button type="button" onClick={() => setDraft(null)} aria-label={t("cancel")} className="shrink-0 px-1 text-sm opacity-60">
-        ✕
+      <button type="button" onClick={() => setDraft(null)} aria-label={t("cancel")} className="flex shrink-0 px-1 opacity-60">
+        <Icon icon={X} size="sm" />
       </button>
     </form>
   );

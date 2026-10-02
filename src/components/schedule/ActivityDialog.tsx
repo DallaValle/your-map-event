@@ -3,6 +3,8 @@
 import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import {
   createActivityAction,
   deleteActivityAction,
@@ -99,7 +101,7 @@ export function ActivityDialog({
             aria-label={t("close")}
             className="flex size-8 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
           >
-            ✕
+            <Icon icon={X} size="sm" />
           </button>
         </div>
 
@@ -126,7 +128,7 @@ export function ActivityDialog({
             >
               {ACTIVITY_TYPES.map((type) => (
                 <option key={type.id} value={type.id}>
-                  {type.emoji} {typeLabel(type.id)}
+                  {typeLabel(type.id)}
                 </option>
               ))}
             </select>

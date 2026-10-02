@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { EventSwitcher, type SwitchableEvent } from "./EventSwitcher";
 import { SideNav } from "./SideNav";
 
@@ -62,7 +64,7 @@ export function DashboardSidebar({
           title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
           className="flex size-8 items-center justify-center rounded-lg text-sm opacity-60 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
         >
-          <span aria-hidden>{collapsed ? "»" : "«"}</span>
+          <Icon icon={collapsed ? PanelLeftOpen : PanelLeftClose} size="sm" />
         </button>
       </div>
     </aside>
