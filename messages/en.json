@@ -705,7 +705,7 @@
     "doneAdding": "Done adding",
     "addPoints": "Add points",
     "filter": "Filter points…",
-    "noPoints": "No points yet. Tap “+ Add points”, then tap the map once per point.",
+    "noPoints": "No points yet. Tap “Add points”, then tap the map once per point.",
     "acts": "{count, plural, one {# act} other {# acts}}",
     "unscheduled": "unscheduled",
     "edit": "Edit",

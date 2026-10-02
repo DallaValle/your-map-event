@@ -83,7 +83,7 @@ test("translations carry no icon glyphs", async ({}, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "run once");
   for (const locale of ["en", "it"]) {
     const messages = readFileSync(`messages/${locale}.json`, "utf8");
-    const offenders = messages.split("\n").filter((line) => GLYPH.test(line) || /": "\+ /.test(line));
+    const offenders = messages.split("\n").filter((line) => GLYPH.test(line) || /(": "|“)\+ /.test(line));
     expect(offenders, `messages/${locale}.json`).toEqual([]);
   }
 });

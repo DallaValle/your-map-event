@@ -705,7 +705,7 @@
     "doneAdding": "Fine",
     "addPoints": "Aggiungi punti",
     "filter": "Filtra i punti…",
-    "noPoints": "Ancora nessun punto. Tocca “+ Aggiungi punti”, poi tocca la mappa una volta per ogni punto.",
+    "noPoints": "Ancora nessun punto. Tocca “Aggiungi punti”, poi tocca la mappa una volta per ogni punto.",
     "acts": "{count, plural, one {# attività} other {# attività}}",
     "unscheduled": "senza orario",
     "edit": "Modifica",
