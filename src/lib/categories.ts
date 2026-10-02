@@ -8,12 +8,17 @@ type Db = Prisma.TransactionClient | typeof prisma;
  * The quick start: turn the suggested icon groups into categories (or join an
  * existing one of the same name) and file every uncategorized point under them.
  */
-export async function createSuggestedCategories(eventId: string, keys: string[], db: Db = prisma) {
+export async function createSuggestedCategories(
+  eventId: string,
+  keys: string[],
+  db: Db = prisma,
+  nameOf?: (english: string) => string,
+) {
   const pois = await db.pointOfInterest.findMany({
     where: { mapId: eventId, categoryId: null },
     select: { icon: true, categoryId: true },
   });
-  const wanted = suggestCategories(pois).filter((s) => keys.includes(s.key));
+  const wanted = suggestCategories(pois, nameOf).filter((s) => keys.includes(s.key));
   for (const suggestion of wanted) {
     const existing = await db.poiCategory.findFirst({
       where: { eventId, name: { equals: suggestion.name, mode: "insensitive" } },

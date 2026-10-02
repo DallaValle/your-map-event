@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useMap } from "react-leaflet";
 import { useMapControlRef } from "./control-utils";
 
@@ -14,6 +15,7 @@ export function CompassControl({
   /** Margin classes — lets host screens clear their own top overlays. */
   className?: string;
 }) {
+  const t = useTranslations("mapControls");
   const map = useMap();
   const controlRef = useMapControlRef();
   const [bearing, setBearing] = useState(0);
@@ -33,7 +35,7 @@ export function CompassControl({
       <div ref={controlRef} className={`leaflet-control ${className}`}>
         <button
           type="button"
-          aria-label="Reset map to north"
+          aria-label={t("north")}
           onClick={() => map.setBearing(0)}
           className="flex size-11 items-center justify-center rounded-full bg-white shadow-lg dark:bg-neutral-900"
         >

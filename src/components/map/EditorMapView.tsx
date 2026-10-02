@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import type L from "leaflet";
 import { Marker, useMap, useMapEvents } from "react-leaflet";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
@@ -124,6 +125,7 @@ function LockViewControl({
   onLock: (bounds: MapBounds) => void;
   onUnlock: () => void;
 }) {
+  const t = useTranslations("editor");
   const map = useMap();
   const controlRef = useMapControlRef();
   return (
@@ -138,7 +140,7 @@ function LockViewControl({
               : "bg-brand text-brand-fg"
           }`}
         >
-          {locked ? "🔓 Unlock view" : "🔒 Lock this view for attendees"}
+          {locked ? t("unlockView") : t("lockView")}
         </button>
       </div>
     </div>

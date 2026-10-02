@@ -5,7 +5,10 @@ import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { categorySchema, markerStyleSchema } from "@/lib/event-schemas";
+import type { Messages } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { createSuggestedCategories } from "@/lib/categories";
+import { categoryNameKey } from "@/components/map/poi-badge";
 import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
@@ -94,7 +97,12 @@ export async function deleteCategoryAction(categoryId: string): Promise<ActionSt
 /** Quick start from the icons on the map; `keys` come from suggestCategories. */
 export async function createSuggestedCategoriesAction(eventId: string, keys: string[]): Promise<ActionState> {
   return guarded(eventId, async ({ event }) => {
-    const created = await prisma.$transaction((tx) => createSuggestedCategories(event.id, keys, tx));
+    const t = await getTranslations("categoryNames");
+    const nameOf = (english: string) => {
+      const key = categoryNameKey(english) as keyof Messages["categoryNames"];
+      return t.has(key) ? t(key) : english;
+    };
+    const created = await prisma.$transaction((tx) => createSuggestedCategories(event.id, keys, tx, nameOf));
     return created ? { ok: true } : fail("These points already have a category");
   });
 }

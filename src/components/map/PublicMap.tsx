@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type L from "leaflet";
 import { useMap } from "react-leaflet";
+import { useTranslations } from "next-intl";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { PoiMarkers } from "./PoiMarkers";
 import { PoiBadge, PoiChooser, PoiDetails } from "./PoiPanels";
@@ -134,6 +135,7 @@ export default function PublicMap({
   /** Optional overlay at the top of the map (live announcement, etc.). */
   banner?: React.ReactNode;
 }) {
+  const t = useTranslations("liveMap");
   const topInset = chromeInsets?.top ?? 0;
   const bottomInset = chromeInsets?.bottom ?? 0;
   const [map, setMap] = useState<L.Map | null>(null);
@@ -211,8 +213,8 @@ export default function PublicMap({
 
   useEffect(() => {
     if (!offMapNotice) return;
-    const t = window.setTimeout(() => setOffMapNotice(false), 5000);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setOffMapNotice(false), 5000);
+    return () => window.clearTimeout(timer);
   }, [offMapNotice]);
 
   function closeList() {
@@ -302,11 +304,11 @@ export default function PublicMap({
                 className="pointer-events-auto flex items-center gap-2 rounded-full bg-neutral-900 py-1.5 pl-3 pr-2 text-sm font-medium text-white shadow-lg dark:bg-white dark:text-neutral-900"
               >
                 <span aria-hidden className="size-2.5 rounded-full" style={{ background: shownCategory.color }} />
-                Only {shownCategory.icon} {shownCategory.name}
+                {t("only", { category: `${shownCategory.icon} ${shownCategory.name}` })}
                 <span className="flex size-5 items-center justify-center rounded-full bg-white/20 text-xs dark:bg-black/10" aria-hidden>
                   ✕
                 </span>
-                <span className="sr-only">Show all points</span>
+                <span className="sr-only">{t("showAll")}</span>
               </button>
             )}
           </div>
@@ -332,7 +334,7 @@ export default function PublicMap({
               role="status"
               className="rounded-2xl bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg dark:bg-white dark:text-neutral-900"
             >
-              You are not on the map
+              {t("offMap")}
             </p>
           </div>
         )}
@@ -363,7 +365,7 @@ export default function PublicMap({
         <div className="absolute inset-0 z-[1100] flex flex-col justify-end">
           <button
             type="button"
-            aria-label="Close list"
+            aria-label={t("closeList")}
             onClick={closeList}
             className="flex-1 bg-black/30"
           />
@@ -372,12 +374,14 @@ export default function PublicMap({
               <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold">
-                  Points of interest ({matches.length < pois.length ? `${matches.length} of ${pois.length}` : pois.length})
+                  {matches.length < pois.length
+                    ? t("listTitleFiltered", { shown: matches.length, total: pois.length })
+                    : t("listTitle", { total: pois.length })}
                 </h2>
                 <button
                   type="button"
                   onClick={closeList}
-                  aria-label="Collapse list"
+                  aria-label={t("collapseList")}
                   className="flex size-9 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
                 >
                   ▼
@@ -394,8 +398,8 @@ export default function PublicMap({
                       if (e.key === "Enter" && matches[0]) goToPoi(matches[0]);
                       if (e.key === "Escape") closeList();
                     }}
-                    placeholder="Search points by name"
-                    aria-label="Search points"
+                    placeholder={t("searchPlaceholder")}
+                    aria-label={t("search")}
                     enterKeyHint="go"
                     autoComplete="off"
                     className="w-full rounded-xl bg-black/5 py-2.5 pl-4 pr-11 text-base outline-none placeholder:opacity-50 focus:ring-2 focus:ring-brand dark:bg-white/10 [&::-webkit-search-cancel-button]:appearance-none"
@@ -407,7 +411,7 @@ export default function PublicMap({
                         setQuery("");
                         searchRef.current?.focus();
                       }}
-                      aria-label="Clear search"
+                      aria-label={t("clearSearch")}
                       className="absolute inset-y-0 right-1 flex w-10 items-center justify-center opacity-50 hover:opacity-80"
                     >
                       ✕
@@ -416,7 +420,7 @@ export default function PublicMap({
                 </div>
               )}
               {usedCategories.length > 0 && (
-                <div role="group" aria-label="Categories" className="-mx-5 mt-2 flex gap-2 overflow-x-auto px-5 pb-1">
+                <div role="group" aria-label={t("categories")} className="-mx-5 mt-2 flex gap-2 overflow-x-auto px-5 pb-1">
                   {[{ category: null, count: pois.length }, ...usedCategories].map(({ category, count }) => {
                     const on = (category?.id ?? null) === (shownCategory?.id ?? null);
                     return (
@@ -438,7 +442,7 @@ export default function PublicMap({
                         {category && (
                           <span aria-hidden className="size-2.5 rounded-full" style={{ background: category.color }} />
                         )}
-                        {category ? `${category.icon} ${category.name}` : "All"}
+                        {category ? `${category.icon} ${category.name}` : t("all")}
                         <span className="tabular-nums opacity-50">{count}</span>
                       </button>
                     );
@@ -471,10 +475,10 @@ export default function PublicMap({
                 </li>
               ))}
               {pois.length === 0 && (
-                <li className="py-6 text-center text-sm opacity-60">No points of interest yet.</li>
+                <li className="py-6 text-center text-sm opacity-60">{t("empty")}</li>
               )}
               {pois.length > 0 && matches.length === 0 && (
-                <li className="py-6 text-center text-sm opacity-60">No points match “{query.trim()}”.</li>
+                <li className="py-6 text-center text-sm opacity-60">{t("noMatch", { query: query.trim() })}</li>
               )}
             </ul>
           </div>
@@ -494,7 +498,7 @@ export default function PublicMap({
             className={`${navButton} ${listOpen ? "text-brand" : ""}`}
           >
             <span className="text-xl" aria-hidden>📍</span>
-            Points ({pois.length})
+            {t("points", { count: pois.length })}
           </button>
           <button
             type="button"
@@ -502,19 +506,19 @@ export default function PublicMap({
             disabled={geo.status !== "active"}
             title={
               geo.status === "denied"
-                ? "Location access denied"
+                ? t("locationDenied")
                 : geo.status === "unavailable"
-                  ? "Location unavailable"
-                  : "Show my location"
+                  ? t("locationUnavailable")
+                  : t("showLocation")
             }
             className={navButton}
           >
             <span className="text-xl" aria-hidden>🧭</span>
-            Locate
+            {t("locate")}
           </button>
           <button type="button" onClick={recenter} className={navButton}>
             <span className="text-xl" aria-hidden>🎯</span>
-            Recenter
+            {t("recenter")}
           </button>
         </div>
       </div>

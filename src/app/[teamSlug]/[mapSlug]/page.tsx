@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { PublicMapCanvas } from "@/components/map/MapCanvas";
 import { markerStyleOf } from "@/components/map/poi-badge";
@@ -28,12 +29,12 @@ async function getPublicMap(teamSlug: string, mapSlug: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { teamSlug, mapSlug } = await params;
   const result = await getPublicMap(teamSlug, mapSlug);
-  if (!result) return { title: "Map not found" };
+  const t = await getTranslations("liveMap");
+  if (!result) return { title: t("pageTitleNotFound") };
   const { team, map } = result;
 
   const description =
-    map.description ??
-    `Interactive event map of ${map.centerName} with ${map.pois.length} points of interest.`;
+    map.description ?? t("pageDescription", { place: map.centerName, count: map.pois.length });
 
   return {
     title: `${map.name} – ${team.name}`,
@@ -56,11 +57,12 @@ export default async function PublicMapPage({ params }: PageProps) {
   if (!result) notFound();
   const { team, map } = result;
   const latest = await getLatestAnnouncement(map.id);
+  const t = await getTranslations("liveMap");
 
   return (
     <main className="relative h-dvh w-full">
       <h1 className="sr-only">
-        {map.name} – interactive event map by {team.name}
+        {t("pageHeading", { event: map.name, team: team.name })}
       </h1>
 
       <PublicMapCanvas

@@ -5,11 +5,13 @@
 // components — this file IS that client boundary. Server pages import these
 // wrappers, never LeafletMap/PublicMap/etc. directly.
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 
 function MapLoading() {
+  const t = useTranslations("liveMap");
   return (
     <div className="flex h-full min-h-40 w-full animate-pulse items-center justify-center rounded-2xl bg-black/5 text-sm opacity-60 dark:bg-white/10">
-      Loading map…
+      {t("loading")}
     </div>
   );
 }

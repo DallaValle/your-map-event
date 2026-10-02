@@ -1,11 +1,14 @@
 import type { MetadataRoute } from "next";
+import { getLocale, getTranslations } from "next-intl/server";
 
-export default function manifest(): MetadataRoute.Manifest {
+// Follows the device language like the attendee map, so an installed app reads the same.
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const t = await getTranslations("manifest");
   return {
     name: "Your Map Event",
     short_name: "MapEvent",
-    description:
-      "Interactive event maps: see where you are and what's around you.",
+    description: t("description"),
+    lang: await getLocale(),
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { ACTIVE_EVENT_COOKIE } from "@/lib/active-event";
@@ -78,6 +79,8 @@ export async function createMapAction(
       slug: await uniqueMapSlug(team.id, slugify(info.data.name)),
       name: info.data.name,
       ...NEW_EVENT_MAP_DEFAULTS,
+      // A placeholder the organizer replaces in the editor, so it starts in their language.
+      centerName: (await getTranslations("newEvent"))("defaultLocation"),
     },
   });
 

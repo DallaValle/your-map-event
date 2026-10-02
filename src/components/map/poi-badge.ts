@@ -51,12 +51,21 @@ export interface CategorySuggestion {
   count: number;
 }
 
+/** Catalog key of a suggested name: "Ice cream" reads `categoryNames.iceCream`. */
+export function categoryNameKey(english: string) {
+  return english.replace(/\s+(\w)/g, (_, c: string) => c.toUpperCase()).replace(/^\w/, (c) => c.toLowerCase());
+}
+
 /**
  * Categories worth creating from the icons of uncategorized points. Related
  * icons share one ("Food" for 🍕 🥪 🍝), so each point keeps its own emoji
  * and the legend stays short.
  */
-export function suggestCategories(pois: Pick<PoiData, "icon" | "categoryId">[]): CategorySuggestion[] {
+export function suggestCategories(
+  pois: Pick<PoiData, "icon" | "categoryId">[],
+  /** Names the suggestion in the organizer's language; it becomes their content once created. */
+  nameOf: (english: string) => string = (english) => english,
+): CategorySuggestion[] {
   const byIcon = new Map<string, number>();
   for (const poi of pois) {
     if (poi.categoryId || !poi.icon) continue;
@@ -77,7 +86,7 @@ export function suggestCategories(pois: Pick<PoiData, "icon" | "categoryId">[]):
       return {
         key,
         // A group used through one icon reads better by that icon: "Wine", not "Drinks".
-        name: (icons.length === 1 ? ICON_NAMES[top] : undefined) ?? group?.name ?? ICON_NAMES[top] ?? "New category",
+        name: nameOf((icons.length === 1 ? ICON_NAMES[top] : undefined) ?? group?.name ?? ICON_NAMES[top] ?? "New category"),
         icon: top,
         color: group?.color ?? suggestedColor(top),
         icons: icons.map(([icon]) => icon),
