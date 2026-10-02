@@ -54,7 +54,7 @@ export function AcceptInvitation({ invitationId }: { invitationId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [session, invitationId]);
+  }, [session, invitationId, t]);
 
   async function accept() {
     setAccepting(true);

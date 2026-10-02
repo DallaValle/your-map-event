@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { pageTitle } from "@/i18n/metadata";
 import { prisma } from "@/lib/prisma";
 import { getMyTeam, isAdminRole } from "@/lib/session";
@@ -32,6 +33,7 @@ export default async function AiAssistantPage() {
   if (!membership) redirect("/dashboard");
 
   const { team, role } = membership;
+  const t = await getTranslations("ai");
   const isAdmin = isAdminRole(role);
   const endpoint = `${await publicOrigin()}/api/mcp/mcp`;
 
@@ -45,22 +47,14 @@ export default async function AiAssistantPage() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold">AI assistant</h1>
-        <p className="text-sm opacity-70">
-          Connect Claude (or any MCP client) to {team.name}. Attach a photo of your printed event
-          map, and the assistant asks what is missing, then creates the event and places every
-          point for you to review in the map editor.
-        </p>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-sm opacity-70">{t("intro", { team: team.name })}</p>
       </header>
 
       <section className="space-y-3">
         <SectionHeading
-          title="Connect"
-          hint={
-            isAdmin
-              ? "Paste one of these into your AI client, with a token from below in place of <token>."
-              : "Paste one of these into your AI client. Tokens can edit events, so ask an admin of your team for one."
-          }
+          title={t("connect")}
+          hint={isAdmin ? t("connectHintAdmin") : t("connectHintViewer")}
         />
         <ConnectSnippet url={endpoint} />
       </section>
@@ -68,26 +62,26 @@ export default async function AiAssistantPage() {
       {isAdmin && (
         <section className="space-y-3">
           <SectionHeading
-            title="Access tokens"
-            hint="Each token can edit every event of this team. Create one per client and revoke it when it is no longer used."
+            title={t("tokens")}
+            hint={t("tokensHint")}
           />
           <TokenManager
             teamId={team.id}
             endpoint={endpoint}
-            tokens={tokens.map((t) => ({
-              id: t.id,
-              name: t.name,
-              prefix: t.prefix,
-              createdByEmail: t.createdByEmail,
-              createdAt: t.createdAt.toISOString(),
-              lastUsedAt: t.lastUsedAt?.toISOString() ?? null,
+            tokens={tokens.map((token) => ({
+              id: token.id,
+              name: token.name,
+              prefix: token.prefix,
+              createdByEmail: token.createdByEmail,
+              createdAt: token.createdAt.toISOString(),
+              lastUsedAt: token.lastUsedAt?.toISOString() ?? null,
             }))}
           />
         </section>
       )}
 
       <section className="space-y-3">
-        <SectionHeading title="Tools" hint="What the assistant can do. Required parameters are marked with *." />
+        <SectionHeading title={t("tools")} hint={t("toolsHint")} />
         <ToolList
           tools={describeTools()}
           prompts={MCP_PROMPTS.map(({ name, title, description }) => ({ name, title, description }))}

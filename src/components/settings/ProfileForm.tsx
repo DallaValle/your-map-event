@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useTranslations } from "next-intl";
 import { updateProfileAction } from "@/actions/settings";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -16,6 +17,7 @@ export function ProfileForm({
   email: string;
   image: string | null;
 }) {
+  const t = useTranslations("settings.profile");
   const [state, formAction, pending] = useActionState(updateProfileAction, null);
   const [avatarUrl, setAvatarUrl] = useState(image ?? "");
 
@@ -38,12 +40,12 @@ export function ProfileForm({
           </span>
         )}
         <p className="min-w-0 text-sm opacity-60">
-          Shown in the account menu. Paste an image URL if you have one.
+          {t("avatarHint")}
         </p>
       </div>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Name
+        {t("name")}
         <input
           name="name"
           required
@@ -57,7 +59,7 @@ export function ProfileForm({
 
       <div className="flex flex-col gap-1">
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Email
+          {t("email")}
           <input
             type="email"
             value={email}
@@ -65,16 +67,16 @@ export function ProfileForm({
             className={`${inputClass} opacity-70`}
           />
         </label>
-        <span className="text-xs opacity-60">Email is used to sign in and cannot be changed here.</span>
+        <span className="text-xs opacity-60">{t("emailHint")}</span>
       </div>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Avatar URL
+        {t("avatar")}
         <input
           name="image"
           type="url"
           inputMode="url"
-          placeholder="https://… (image URL)"
+          placeholder={t("avatarPlaceholder")}
           value={avatarUrl}
           onChange={(e) => setAvatarUrl(e.target.value)}
           className={inputClass}
@@ -88,7 +90,7 @@ export function ProfileForm({
       )}
       {state?.ok && (
         <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
-          Profile saved.
+          {t("saved")}
         </p>
       )}
 
@@ -98,7 +100,7 @@ export function ProfileForm({
         aria-busy={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        <PendingLabel pending={pending} label="Save profile" pendingLabel="Saving…" />
+        <PendingLabel pending={pending} label={t("save")} pendingLabel={t("saving")} />
       </button>
     </form>
   );

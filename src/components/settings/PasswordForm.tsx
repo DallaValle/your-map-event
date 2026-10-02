@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { changePasswordAction } from "@/actions/settings";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -8,12 +9,13 @@ const inputClass =
   "rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5";
 
 export function PasswordForm() {
+  const t = useTranslations("settings.password");
   const [state, formAction, pending] = useActionState(changePasswordAction, null);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Current password
+        {t("current")}
         <input
           name="currentPassword"
           type="password"
@@ -24,7 +26,7 @@ export function PasswordForm() {
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        New password
+        {t("new")}
         <input
           name="newPassword"
           type="password"
@@ -36,7 +38,7 @@ export function PasswordForm() {
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Confirm new password
+        {t("confirm")}
         <input
           name="confirmPassword"
           type="password"
@@ -54,7 +56,7 @@ export function PasswordForm() {
       )}
       {state?.ok && (
         <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
-          Password updated.
+          {t("updated")}
         </p>
       )}
 
@@ -64,7 +66,7 @@ export function PasswordForm() {
         aria-busy={pending}
         className="rounded-xl bg-brand px-6 py-3.5 font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        <PendingLabel pending={pending} label="Update password" pendingLabel="Updating…" />
+        <PendingLabel pending={pending} label={t("update")} pendingLabel={t("updating")} />
       </button>
     </form>
   );

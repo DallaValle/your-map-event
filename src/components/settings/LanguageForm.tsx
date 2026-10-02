@@ -1,62 +1,51 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { updateThemeAction } from "@/actions/settings";
-import { asTheme, type ThemePreference } from "@/components/settings/prefs";
-import { applyThemeClass } from "@/components/theme/apply-theme";
+import { updateLocaleAction } from "@/actions/settings";
+import { LOCALES, localeName } from "@/i18n/config";
 import { PendingLabel } from "@/components/ui/Spinner";
 import type { ActionState } from "@/actions/types";
 
-const OPTIONS: ThemePreference[] = ["system", "light", "dark", "mono"];
-
-export function ThemeForm({ theme }: { theme: ThemePreference }) {
-  const t = useTranslations("settings.appearance");
+export function LanguageForm({ locale }: { locale: string | null }) {
+  const t = useTranslations("settings.language");
   const router = useRouter();
-  const [savedAs, setSavedAs] = useState<ThemePreference | null>(null);
-  const committed = useRef(theme);
-  committed.current = savedAs ?? theme;
-
-  useEffect(() => {
-    return () => applyThemeClass(committed.current);
-  }, []);
   const [state, formAction, pending] = useActionState(
     async (prev: ActionState, formData: FormData) => {
-      const next = asTheme(String(formData.get("theme")));
-      const result = await updateThemeAction(prev, formData);
-      if (result?.ok) {
-        applyThemeClass(next);
-        setSavedAs(next);
-        router.refresh();
-      }
+      const result = await updateLocaleAction(prev, formData);
+      if (result?.ok) router.refresh();
       return result;
     },
     null,
   );
+
+  const options = [
+    { value: "", label: t("browser"), hint: t("browserHint") },
+    ...LOCALES.map((code) => ({ value: code, label: localeName(code), hint: code.toUpperCase() })),
+  ];
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <fieldset>
         <legend className="sr-only">{t("legend")}</legend>
         <div role="radiogroup" aria-label={t("legend")} className="grid gap-2 sm:grid-cols-2">
-          {OPTIONS.map((option) => (
+          {options.map((option) => (
             <label
-              key={option}
+              key={option.value || "browser"}
               className="flex cursor-pointer flex-col gap-0.5 rounded-xl border border-line px-4 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft"
             >
               <span className="flex items-center gap-2 text-sm font-medium">
                 <input
                   type="radio"
-                  name="theme"
-                  value={option}
-                  defaultChecked={theme === option}
-                  onChange={() => applyThemeClass(option)}
+                  name="locale"
+                  value={option.value}
+                  defaultChecked={(locale ?? "") === option.value}
                   className="size-4 accent-brand"
                 />
-                {t(`${option}.label`)}
+                {option.label}
               </span>
-              <span className="pl-6 text-xs text-muted">{t(`${option}.hint`)}</span>
+              <span className="pl-6 text-xs text-muted">{option.hint}</span>
             </label>
           ))}
         </div>
@@ -68,9 +57,7 @@ export function ThemeForm({ theme }: { theme: ThemePreference }) {
         </p>
       )}
       {state?.ok && (
-        <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
-          {savedAs ? t("savedAs", { theme: t(`${savedAs}.label`) }) : t("saved")}
-        </p>
+        <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">{t("saved")}</p>
       )}
 
       <button

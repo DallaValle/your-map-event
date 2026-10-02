@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function CopyButton({ value, label }: { value: string; label: string }) {
+  const t = useTranslations("ai");
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -18,7 +20,7 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
       aria-label={label}
       className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-brand-fg active:scale-95"
     >
-      {copied ? "✓ Copied" : "Copy"}
+      {copied ? t("copied") : t("copy")}
     </button>
   );
 }
@@ -45,11 +47,12 @@ export function claudeDesktopConfig(url: string, token: string) {
 }
 
 function Snippet({ title, hint, value, multiline }: { title: string; hint?: string; value: string; multiline?: boolean }) {
+  const t = useTranslations("ai");
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">{title}</h3>
-        <CopyButton value={value} label={`Copy ${title}`} />
+        <CopyButton value={value} label={t("copyLabel", { what: title })} />
       </div>
       {hint && <p className="text-xs opacity-60">{hint}</p>}
       <pre
@@ -65,13 +68,14 @@ function Snippet({ title, hint, value, multiline }: { title: string; hint?: stri
 
 /** Endpoint plus ready to paste client configs, with a token placeholder. */
 export function ConnectSnippet({ url, token = "<token>" }: { url: string; token?: string }) {
+  const t = useTranslations("ai");
   return (
     <div className="flex flex-col gap-4">
-      <Snippet title="Endpoint" hint="Streamable HTTP. Send the token as a Bearer Authorization header." value={url} />
+      <Snippet title={t("endpoint")} hint={t("endpointHint")} value={url} />
       <Snippet title="Claude Code" value={claudeCodeCommand(url, token)} />
       <Snippet
         title="Claude Desktop"
-        hint="Add to claude_desktop_config.json, then restart Claude Desktop."
+        hint={t("desktopHint")}
         value={claudeDesktopConfig(url, token)}
         multiline
       />

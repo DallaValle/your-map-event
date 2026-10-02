@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { sendAnnouncementAction } from "@/actions/notifications";
 import type { ActionState } from "@/actions/types";
 import { PendingLabel } from "@/components/ui/Spinner";
@@ -9,6 +10,7 @@ const inputClass =
   "rounded-xl border border-black/15 px-4 py-3 text-base outline-brand dark:border-white/20 dark:bg-white/5";
 
 export function ComposeAnnouncementForm({ eventId }: { eventId: string }) {
+  const t = useTranslations("notifications");
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     sendAnnouncementAction.bind(null, eventId),
@@ -22,29 +24,29 @@ export function ComposeAnnouncementForm({ eventId }: { eventId: string }) {
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Title
+        {t("titleField")}
         <input
           name="title"
           required
           minLength={2}
           maxLength={80}
-          placeholder="Gates closing in 10 minutes"
+          placeholder={t("titlePlaceholder")}
           className={inputClass}
         />
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium">
-        Message
+        {t("message")}
         <textarea
           name="body"
           required
           minLength={1}
           maxLength={280}
           rows={3}
-          placeholder="Main entrance closes at 23:00. Last entry 22:50."
+          placeholder={t("messagePlaceholder")}
           className={inputClass}
         />
-        <span className="text-xs opacity-60">Shown on the live attendee map. 280 characters max.</span>
+        <span className="text-xs opacity-60">{t("messageHint")}</span>
       </label>
 
       {state && !state.ok && (
@@ -54,7 +56,7 @@ export function ComposeAnnouncementForm({ eventId }: { eventId: string }) {
       )}
       {state?.ok && (
         <p role="status" className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
-          Sent to the live map.
+          {t("sentOk")}
         </p>
       )}
 
@@ -64,7 +66,7 @@ export function ComposeAnnouncementForm({ eventId }: { eventId: string }) {
         aria-busy={pending}
         className="self-start rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60 active:scale-[.98]"
       >
-        <PendingLabel pending={pending} label="Send announcement" pendingLabel="Sending…" />
+        <PendingLabel pending={pending} label={t("send")} pendingLabel={t("sending")} />
       </button>
     </form>
   );

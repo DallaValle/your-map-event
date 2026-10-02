@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { pageTitle } from "@/i18n/metadata";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +13,7 @@ export const generateMetadata = pageTitle("social");
 
 export default async function SocialPage() {
   const membership = await getMyTeam();
+  const t = await getTranslations("social");
   if (!membership) redirect("/dashboard");
 
   const { team, role } = membership;
@@ -29,11 +31,11 @@ export default async function SocialPage() {
             📣
           </span>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">No event yet</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("noEvent")}</h1>
             <p className="text-balance text-sm leading-relaxed opacity-70">
               {isAdmin
-                ? "Create an event first, then plan its posts and share assets here."
-                : "No published events yet. Check back soon!"}
+                ? t("noEventAdmin")
+                : t("noEventViewer")}
             </p>
           </div>
           {isAdmin && (
@@ -41,7 +43,7 @@ export default async function SocialPage() {
               href="/dashboard/events/new"
               className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-6 py-3 font-semibold text-brand-fg active:scale-[.98]"
             >
-              + New event
+              {t("newEvent")}
             </Link>
           )}
         </div>
@@ -57,10 +59,8 @@ export default async function SocialPage() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold">Social campaign</h1>
-        <p className="text-sm opacity-70">
-          Share the map for {event.name} and plan the posts around it.
-        </p>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-sm opacity-70">{t("intro", { event: event.name })}</p>
       </header>
 
       <ShareCard

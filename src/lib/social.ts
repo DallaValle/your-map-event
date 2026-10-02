@@ -41,9 +41,9 @@ export function parseWallClock(value: unknown): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export function formatWallClock(value: Date | string): string {
+export function formatWallClock(value: Date | string, locale?: string): string {
   const date = value instanceof Date ? value : new Date(value);
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "UTC",

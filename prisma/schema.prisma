@@ -267,6 +267,8 @@ model UserPreference {
   eventAnnouncements Boolean  @default(true)
   // system | light | dark - tokens themselves live in milestone 1.
   theme              String   @default("system")
+  // Console language (messages/<locale>.json); null follows the browser.
+  locale             String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }

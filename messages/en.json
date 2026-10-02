@@ -302,6 +302,212 @@
     "mapSlugChars": "Map address may only contain lowercase letters, numbers and hyphens.",
     "slugLength": "Slug must be between 3 and 48 characters.",
     "slugChars": "Slug may only contain lowercase letters, numbers and hyphens.",
-    "invalidUrl": "Invalid URL"
+    "invalidUrl": "Invalid URL",
+    "unknownLanguage": "Unknown language"
+  },
+  "settings": {
+    "title": "Settings",
+    "intro": "Your personal account. Team profile and event details live on their own pages.",
+    "profile": {
+      "title": "Profile",
+      "intro": "Name and avatar shown in the account menu.",
+      "avatarHint": "Shown in the account menu. Paste an image URL if you have one.",
+      "name": "Name",
+      "email": "Email",
+      "emailHint": "Email is used to sign in and cannot be changed here.",
+      "avatar": "Avatar URL",
+      "avatarPlaceholder": "https://… (image URL)",
+      "saved": "Profile saved.",
+      "save": "Save profile",
+      "saving": "Saving…"
+    },
+    "password": {
+      "title": "Password",
+      "intro": "Change the password you use with your email.",
+      "none": "You sign in through a connected account, so there is no password to change.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "updated": "Password updated.",
+      "update": "Update password",
+      "updating": "Updating…"
+    },
+    "accounts": {
+      "title": "Connected accounts",
+      "intro": "Sign-in methods linked to this account.",
+      "none": "No sign-in methods are linked yet.",
+      "credential": "Email & password",
+      "connected": "Connected"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "intro": "Choose what we send you. These are personal; they do not change team or event settings.",
+      "emailNotifications": {
+        "label": "Email notifications",
+        "hint": "Account and event updates sent to your inbox."
+      },
+      "pushNotifications": {
+        "label": "Push notifications",
+        "hint": "Browser alerts while the dashboard is open."
+      },
+      "eventAnnouncements": {
+        "label": "Event announcements",
+        "hint": "Live organizer broadcasts from the header bell."
+      },
+      "saved": "Preferences saved.",
+      "save": "Save preferences",
+      "saving": "Saving…"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "intro": "Light, dark, or black and white. Tokens live in the shared theme.",
+      "legend": "Theme",
+      "system": {
+        "label": "System",
+        "hint": "Match the device"
+      },
+      "light": {
+        "label": "Light",
+        "hint": "Paper and ink"
+      },
+      "dark": {
+        "label": "Dark",
+        "hint": "Always dark"
+      },
+      "mono": {
+        "label": "Black & white",
+        "hint": "No color"
+      },
+      "saved": "Appearance saved.",
+      "savedAs": "Appearance saved ({theme}).",
+      "save": "Save appearance",
+      "saving": "Saving…"
+    },
+    "language": {
+      "title": "Language",
+      "intro": "The language of the console. Attendees always see the map in their phone’s language.",
+      "legend": "Language",
+      "browser": "Browser language",
+      "browserHint": "Follow this device",
+      "saved": "Language saved.",
+      "save": "Save language",
+      "saving": "Saving…"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noTeam": "Create a team first, then broadcast live announcements from here.",
+    "goToDashboard": "Go to dashboard",
+    "noEvent": "No event yet",
+    "noEventAdmin": "Create an event, then send live announcements to attendees from here.",
+    "noEventViewer": "No published events yet. Check back soon!",
+    "newEvent": "+ New event",
+    "intro": "Broadcast a live announcement to attendees of {event}. It shows on the public map as soon as you send it.",
+    "new": "New announcement",
+    "sent": "Sent announcements",
+    "empty": "No announcements sent yet.",
+    "sentBy": "Sent by {name}",
+    "sentAt": {
+      "now": "Just now",
+      "minutes": "{count} min ago",
+      "hours": "{count} h ago"
+    },
+    "titleField": "Title",
+    "titlePlaceholder": "Gates closing in 10 minutes",
+    "message": "Message",
+    "messagePlaceholder": "Main entrance closes at 23:00. Last entry 22:50.",
+    "messageHint": "Shown on the live attendee map. 280 characters max.",
+    "sentOk": "Sent to the live map.",
+    "send": "Send announcement",
+    "sending": "Sending…",
+    "liveAnnouncement": "Live announcement",
+    "dismiss": "Dismiss announcement"
+  },
+  "social": {
+    "noEvent": "No event yet",
+    "noEventAdmin": "Create an event first, then plan its posts and share assets here.",
+    "noEventViewer": "No published events yet. Check back soon!",
+    "newEvent": "+ New event",
+    "title": "Social campaign",
+    "intro": "Share the map for {event} and plan the posts around it.",
+    "post": "Post",
+    "postPlaceholder": "Gates open at 16:00. Open the map for stages, food and first aid.",
+    "channel": "Channel",
+    "when": "When",
+    "scheduleTime": "Schedule time",
+    "saveDraft": "Save draft",
+    "schedulePost": "Schedule post",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "channels": {
+      "x": "X",
+      "instagram": "Instagram",
+      "linkedin": "LinkedIn",
+      "stories": "Stories",
+      "other": "Other"
+    },
+    "posterQr": "Poster QR",
+    "posterHint": "Print this on badges and flyers. It opens the published map.",
+    "posterHintDraft": "The QR is ready. It goes live when you publish the map.",
+    "posterAlt": "Poster QR for {event}",
+    "downloadPoster": "Download poster PNG",
+    "planner": "Post planner",
+    "plannerHint": "Draft, schedule, then mark done when you have posted. Nothing is sent to X or Instagram from here.",
+    "columns": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "done": "Done"
+    },
+    "empty": {
+      "draft": "No draft posts.",
+      "scheduled": "No scheduled posts.",
+      "done": "No done posts."
+    },
+    "schedule": "Schedule",
+    "markDone": "Mark done",
+    "backToDraft": "Back to draft",
+    "delete": "Delete"
+  },
+  "ai": {
+    "title": "AI assistant",
+    "intro": "Connect Claude (or any MCP client) to {team}. Attach a photo of your printed event map, and the assistant asks what is missing, then creates the event and places every point for you to review in the map editor.",
+    "connect": "Connect",
+    "connectHintAdmin": "Paste one of these into your AI client, with a token from below in place of <token>.",
+    "connectHintViewer": "Paste one of these into your AI client. Tokens can edit events, so ask an admin of your team for one.",
+    "tokens": "Access tokens",
+    "tokensHint": "Each token can edit every event of this team. Create one per client and revoke it when it is no longer used.",
+    "tools": "Tools",
+    "toolsHint": "What the assistant can do. Required parameters are marked with *.",
+    "copy": "Copy",
+    "copied": "✓ Copied",
+    "copyLabel": "Copy {what}",
+    "endpoint": "Endpoint",
+    "endpointHint": "Streamable HTTP. Send the token as a Bearer Authorization header.",
+    "desktopHint": "Add to claude_desktop_config.json, then restart Claude Desktop.",
+    "revokeLabel": "Revoke {name}",
+    "confirmRevoke": "Revoke \"{name}\"? Clients using it stop working immediately.",
+    "revoke": "Revoke",
+    "revoking": "Revoking…",
+    "tokenName": "Token name",
+    "tokenPlaceholder": "e.g. Claude Desktop on my laptop",
+    "createToken": "Create token",
+    "creating": "Creating…",
+    "tokenCreated": "✓ Token “{name}” created. Copy it now: it is not shown again.",
+    "copyToken": "Copy token",
+    "copyCommand": "Copy Claude Code command",
+    "noTokens": "No active tokens yet.",
+    "activeTokens": "Active tokens",
+    "by": "by {email}",
+    "lastUsed": "last used {date}",
+    "neverUsed": "never used",
+    "noParams": "No parameters.",
+    "param": "Parameter",
+    "type": "Type",
+    "description": "Description",
+    "required": "Required",
+    "prompt": "Prompt",
+    "mcpTools": "MCP tools",
+    "read": "Read",
+    "write": "Write"
   }
 }

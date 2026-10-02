@@ -302,6 +302,212 @@
     "mapSlugChars": "L’indirizzo della mappa può contenere solo lettere minuscole, numeri e trattini.",
     "slugLength": "L’indirizzo deve avere da 3 a 48 caratteri.",
     "slugChars": "L’indirizzo può contenere solo lettere minuscole, numeri e trattini.",
-    "invalidUrl": "URL non valido"
+    "invalidUrl": "URL non valido",
+    "unknownLanguage": "Lingua non disponibile"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "intro": "Il tuo account personale. Il profilo del team e i dettagli degli eventi hanno le loro pagine.",
+    "profile": {
+      "title": "Profilo",
+      "intro": "Nome e foto che appaiono nel menu account.",
+      "avatarHint": "Appare nel menu account. Incolla l’URL di un’immagine, se ne hai una.",
+      "name": "Nome",
+      "email": "Email",
+      "emailHint": "L’email serve per accedere e non si può cambiare qui.",
+      "avatar": "URL della foto profilo",
+      "avatarPlaceholder": "https://… (URL dell’immagine)",
+      "saved": "Profilo salvato.",
+      "save": "Salva profilo",
+      "saving": "Salvataggio…"
+    },
+    "password": {
+      "title": "Password",
+      "intro": "Cambia la password che usi con la tua email.",
+      "none": "Accedi con un account collegato, quindi non c’è nessuna password da cambiare.",
+      "current": "Password attuale",
+      "new": "Nuova password",
+      "confirm": "Conferma la nuova password",
+      "updated": "Password aggiornata.",
+      "update": "Aggiorna password",
+      "updating": "Aggiornamento…"
+    },
+    "accounts": {
+      "title": "Account collegati",
+      "intro": "I metodi di accesso collegati a questo account.",
+      "none": "Nessun metodo di accesso collegato.",
+      "credential": "Email e password",
+      "connected": "Collegato"
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "intro": "Scegli cosa ricevere. Sono preferenze personali: non cambiano le impostazioni del team o degli eventi.",
+      "emailNotifications": {
+        "label": "Notifiche via email",
+        "hint": "Aggiornamenti su account ed eventi nella tua casella di posta."
+      },
+      "pushNotifications": {
+        "label": "Notifiche push",
+        "hint": "Avvisi del browser mentre la dashboard è aperta."
+      },
+      "eventAnnouncements": {
+        "label": "Annunci dell’evento",
+        "hint": "Gli annunci in tempo reale dalla campanella in alto."
+      },
+      "saved": "Preferenze salvate.",
+      "save": "Salva preferenze",
+      "saving": "Salvataggio…"
+    },
+    "appearance": {
+      "title": "Aspetto",
+      "intro": "Chiaro, scuro o bianco e nero. I colori arrivano dal tema condiviso.",
+      "legend": "Tema",
+      "system": {
+        "label": "Sistema",
+        "hint": "Come il dispositivo"
+      },
+      "light": {
+        "label": "Chiaro",
+        "hint": "Carta e inchiostro"
+      },
+      "dark": {
+        "label": "Scuro",
+        "hint": "Sempre scuro"
+      },
+      "mono": {
+        "label": "Bianco e nero",
+        "hint": "Senza colori"
+      },
+      "saved": "Aspetto salvato.",
+      "savedAs": "Aspetto salvato ({theme}).",
+      "save": "Salva aspetto",
+      "saving": "Salvataggio…"
+    },
+    "language": {
+      "title": "Lingua",
+      "intro": "La lingua della console. Chi partecipa vede sempre la mappa nella lingua del proprio telefono.",
+      "legend": "Lingua",
+      "browser": "Lingua del browser",
+      "browserHint": "Come questo dispositivo",
+      "saved": "Lingua salvata.",
+      "save": "Salva lingua",
+      "saving": "Salvataggio…"
+    }
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "noTeam": "Crea prima un team, poi da qui potrai inviare annunci in tempo reale.",
+    "goToDashboard": "Vai alla dashboard",
+    "noEvent": "Ancora nessun evento",
+    "noEventAdmin": "Crea un evento, poi da qui potrai inviare annunci in tempo reale a chi partecipa.",
+    "noEventViewer": "Nessun evento pubblicato per ora. Torna presto!",
+    "newEvent": "+ Nuovo evento",
+    "intro": "Invia un annuncio in tempo reale a chi partecipa a {event}. Appare sulla mappa pubblica appena lo mandi.",
+    "new": "Nuovo annuncio",
+    "sent": "Annunci inviati",
+    "empty": "Nessun annuncio inviato finora.",
+    "sentBy": "Inviato da {name}",
+    "sentAt": {
+      "now": "Adesso",
+      "minutes": "{count} min fa",
+      "hours": "{count} h fa"
+    },
+    "titleField": "Titolo",
+    "titlePlaceholder": "I cancelli chiudono tra 10 minuti",
+    "message": "Messaggio",
+    "messagePlaceholder": "L’ingresso principale chiude alle 23:00. Ultimo ingresso alle 22:50.",
+    "messageHint": "Appare sulla mappa pubblica. Massimo 280 caratteri.",
+    "sentOk": "Inviato alla mappa online.",
+    "send": "Invia annuncio",
+    "sending": "Invio…",
+    "liveAnnouncement": "Annuncio in tempo reale",
+    "dismiss": "Chiudi l’annuncio"
+  },
+  "social": {
+    "noEvent": "Ancora nessun evento",
+    "noEventAdmin": "Crea prima un evento, poi qui potrai programmare i post e preparare i materiali da condividere.",
+    "noEventViewer": "Nessun evento pubblicato per ora. Torna presto!",
+    "newEvent": "+ Nuovo evento",
+    "title": "Campagna social",
+    "intro": "Condividi la mappa di {event} e programma i post che la accompagnano.",
+    "post": "Post",
+    "postPlaceholder": "Cancelli aperti dalle 16:00. Apri la mappa per palchi, cibo e primo soccorso.",
+    "channel": "Canale",
+    "when": "Quando",
+    "scheduleTime": "Data e ora di pubblicazione",
+    "saveDraft": "Salva bozza",
+    "schedulePost": "Programma post",
+    "saving": "Salvataggio…",
+    "deleting": "Eliminazione…",
+    "channels": {
+      "x": "X",
+      "instagram": "Instagram",
+      "linkedin": "LinkedIn",
+      "stories": "Storie",
+      "other": "Altro"
+    },
+    "posterQr": "QR per locandine",
+    "posterHint": "Stampalo su badge e volantini: apre la mappa pubblicata.",
+    "posterHintDraft": "Il QR è pronto. Funziona appena pubblichi la mappa.",
+    "posterAlt": "QR per la locandina di {event}",
+    "downloadPoster": "Scarica PNG per locandina",
+    "planner": "Pianificazione post",
+    "plannerHint": "Scrivi una bozza, programmala e segnala come fatta quando l’hai pubblicata. Da qui non parte nulla verso X o Instagram.",
+    "columns": {
+      "draft": "Bozze",
+      "scheduled": "Programmati",
+      "done": "Pubblicati"
+    },
+    "empty": {
+      "draft": "Nessuna bozza.",
+      "scheduled": "Nessun post programmato.",
+      "done": "Nessun post pubblicato."
+    },
+    "schedule": "Programma",
+    "markDone": "Segna come fatto",
+    "backToDraft": "Torna in bozza",
+    "delete": "Elimina"
+  },
+  "ai": {
+    "title": "Assistente AI",
+    "intro": "Collega Claude (o qualsiasi client MCP) a {team}. Allega una foto della mappa stampata dell’evento: l’assistente ti chiede cosa manca, poi crea l’evento e posiziona ogni punto, che potrai controllare nell’editor mappa.",
+    "connect": "Collega",
+    "connectHintAdmin": "Incolla una di queste configurazioni nel tuo client AI, mettendo un token qui sotto al posto di <token>.",
+    "connectHintViewer": "Incolla una di queste configurazioni nel tuo client AI. I token possono modificare gli eventi, quindi chiedine uno a un admin del team.",
+    "tokens": "Token di accesso",
+    "tokensHint": "Ogni token può modificare tutti gli eventi di questo team. Creane uno per ogni client e revocalo quando non serve più.",
+    "tools": "Strumenti",
+    "toolsHint": "Cosa può fare l’assistente. I parametri obbligatori hanno un *.",
+    "copy": "Copia",
+    "copied": "✓ Copiato",
+    "copyLabel": "Copia {what}",
+    "endpoint": "Endpoint",
+    "endpointHint": "HTTP in streaming. Invia il token come header Authorization di tipo Bearer.",
+    "desktopHint": "Aggiungilo a claude_desktop_config.json, poi riavvia Claude Desktop.",
+    "revokeLabel": "Revoca {name}",
+    "confirmRevoke": "Vuoi revocare \"{name}\"? I client che lo usano smettono subito di funzionare.",
+    "revoke": "Revoca",
+    "revoking": "Revoca in corso…",
+    "tokenName": "Nome del token",
+    "tokenPlaceholder": "es. Claude Desktop sul mio portatile",
+    "createToken": "Crea token",
+    "creating": "Creazione…",
+    "tokenCreated": "✓ Token “{name}” creato. Copialo adesso: non verrà più mostrato.",
+    "copyToken": "Copia token",
+    "copyCommand": "Copia il comando per Claude Code",
+    "noTokens": "Nessun token attivo.",
+    "activeTokens": "Token attivi",
+    "by": "di {email}",
+    "lastUsed": "ultimo uso {date}",
+    "neverUsed": "mai usato",
+    "noParams": "Nessun parametro.",
+    "param": "Parametro",
+    "type": "Tipo",
+    "description": "Descrizione",
+    "required": "Obbligatorio",
+    "prompt": "Prompt",
+    "mcpTools": "Strumenti MCP",
+    "read": "Lettura",
+    "write": "Scrittura"
   }
 }
