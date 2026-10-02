@@ -11,13 +11,15 @@ test.describe("schedule", () => {
 
     await signIn(page);
     // Day labels render the same on server and client: no hydration error.
+    // React 19 reports a mismatch either as an uncaught error or through console.error.
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("console", (message) => message.type() === "error" && pageErrors.push(message.text()));
     await page.goto("/dashboard/schedule");
     await expect(page.getByRole("heading", { name: "Timeline Builder" })).toBeVisible();
     await expect(page.getByRole("tab", { name: /Day 1/ })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Day 1 Sat 18 Jul" })).toBeVisible();
-    expect(pageErrors.filter((m) => m.includes("Hydration"))).toEqual([]);
+    expect(pageErrors.filter((m) => /hydrat/i.test(m))).toEqual([]);
     await expect(page.getByRole("article").filter({ hasText: "DJ Solaris" })).toBeVisible();
     await expect(page.getByText("Midnight Bloom")).toBeVisible();
     await expect(page.getByRole("heading", { name: /Unscheduled/ })).toBeVisible();
