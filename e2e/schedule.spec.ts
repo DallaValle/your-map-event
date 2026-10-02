@@ -10,9 +10,14 @@ test.describe("schedule", () => {
     test.skip(testInfo.project.name !== "desktop", "layout is desktop-first");
 
     await signIn(page);
+    // Day labels render the same on server and client: no hydration error.
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.goto("/dashboard/schedule");
     await expect(page.getByRole("heading", { name: "Timeline Builder" })).toBeVisible();
     await expect(page.getByRole("tab", { name: /Day 1/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Day 1 Sat 18 Jul" })).toBeVisible();
+    expect(pageErrors.filter((m) => m.includes("Hydration"))).toEqual([]);
     await expect(page.getByRole("article").filter({ hasText: "DJ Solaris" })).toBeVisible();
     await expect(page.getByText("Midnight Bloom")).toBeVisible();
     await expect(page.getByRole("heading", { name: /Unscheduled/ })).toBeVisible();
