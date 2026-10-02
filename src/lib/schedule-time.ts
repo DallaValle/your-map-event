@@ -25,8 +25,8 @@ const SHORT_DAY = new Intl.DateTimeFormat("en-GB", {
  * locale data ("Sat, 18 Jul" vs "Sat 18 Jul"), which breaks hydration.
  */
 function shortDay(date: Date): string {
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    SHORT_DAY.formatToParts(date).find((p) => p.type === type)?.value ?? "";
+  const parts = SHORT_DAY.formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
   return `${part("weekday")} ${part("day")} ${part("month")}`;
 }
 
@@ -70,10 +70,6 @@ export function formatHourTick(value: string | Date): string {
 
 export function formatRange(start: string | Date, end: string | Date): string {
   return `${formatClock(start)} - ${formatClock(end)}`;
-}
-
-export function formatDayHeading(value: string | Date): string {
-  return shortDay(toDate(value));
 }
 
 export function formatDayTab(value: string | Date, index: number): string {
