@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Bell, X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 /** Dismissible live banner for the attendee map. Session-only; next visit shows it again. */
 export function AnnouncementBanner({
@@ -23,10 +25,10 @@ export function AnnouncementBanner({
     >
       <div className="flex items-start gap-2.5">
         <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand"
           aria-hidden
         >
-          🔔
+          <Icon icon={Bell} size="sm" />
         </span>
         <div className="min-w-0 flex-1">
           <p className="font-semibold leading-tight">{title}</p>
@@ -38,7 +40,7 @@ export function AnnouncementBanner({
           aria-label={t("dismiss")}
           className="flex size-8 shrink-0 items-center justify-center rounded-full text-sm opacity-50 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
         >
-          ✕
+          <Icon icon={X} size="sm" />
         </button>
       </div>
     </aside>

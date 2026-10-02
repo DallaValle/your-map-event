@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
+import { Check } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { createMapAction } from "@/actions/maps";
 import { PendingLabel } from "@/components/ui/Spinner";
 
@@ -51,9 +53,7 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
           <ul className="mt-5 space-y-2.5 text-sm">
             {[t("featureMap"), t("featureLink"), t("featureTeam")].map((item) => (
               <li key={item} className="flex items-start gap-2.5">
-                <span className="mt-0.5 text-brand" aria-hidden>
-                  ✓
-                </span>
+                <Icon icon={Check} size="sm" className="mt-0.5 text-brand" />
                 <span>{item}</span>
               </li>
             ))}
@@ -87,10 +87,10 @@ export function NewEventFlow({ teamId }: { teamId: string }) {
 
       <div className="flex items-center gap-2 text-xs font-medium text-brand">
         <span
-          className="flex size-5 items-center justify-center rounded-full bg-brand-soft text-[10px]"
+          className="flex size-5 items-center justify-center rounded-full bg-brand-soft"
           aria-hidden
         >
-          ✓
+          <Icon icon={Check} size="xs" className="size-3" />
         </span>
         {t("paymentConfirmed")}
       </div>

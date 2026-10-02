@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Check } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 export function CopyButton({ value, label }: { value: string; label: string }) {
   const t = useTranslations("ai");
@@ -20,7 +22,14 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
       aria-label={label}
       className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-brand-fg active:scale-95"
     >
-      {copied ? t("copied") : t("copy")}
+      {copied ? (
+        <span className="inline-flex items-center gap-1">
+          <Icon icon={Check} size="xs" />
+          {t("copied")}
+        </span>
+      ) : (
+        t("copy")
+      )}
     </button>
   );
 }
