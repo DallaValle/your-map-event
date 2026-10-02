@@ -125,7 +125,7 @@ test.describe("organizer who picks Italian", () => {
     await page.waitForURL("**/dashboard/events/**");
     await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByLabel("Nome del luogo")).toHaveValue("Da impostare nell’editor mappa");
-    await page.getByRole("button", { name: "+ Aggiungi punti" }).click();
+    await page.getByRole("button", { name: "Aggiungi punti" }).click();
     await page.locator(".leaflet-container").click({ position: { x: 160, y: 300 } });
     await expect(page.getByRole("heading", { name: "Nuovo punto" })).toBeVisible();
     await page.getByLabel("Titolo").fill("Palco Centrale");
@@ -142,7 +142,7 @@ test.describe("organizer who picks Italian", () => {
     await expect(page.getByRole("tab", { name: "Giorno 1 · sab 18 lug" })).toBeVisible();
     await expect(page.getByText("16:00", { exact: true }).first()).toBeVisible();
 
-    await page.getByRole("button", { name: "+ Aggiungi attività" }).first().click();
+    await page.getByRole("button", { name: "Aggiungi attività", exact: true }).first().click();
     const dialog = page.getByRole("dialog", { name: "Aggiungi attività" });
     await dialog.getByLabel("Nome").fill("Concerto");
     await dialog.getByLabel("Tipo").selectOption("performance");
@@ -156,7 +156,7 @@ test.describe("organizer who picks Italian", () => {
     // Publish from the event home.
     await page.locator("aside").getByRole("link", { name: "Dashboard" }).click();
     await page.getByRole("button", { name: "Pubblica" }).click();
-    await expect(page.getByRole("button", { name: "Online ✓ - Ritira" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Online - Ritira" })).toBeVisible();
     await expect(page.getByText("Online", { exact: true }).first()).toBeVisible();
   });
 });

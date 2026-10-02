@@ -80,7 +80,7 @@ test.describe("map editor layout", () => {
     test.skip(testInfo.project.name !== "desktop", "flow is identical; run once");
     await openFirstMapEditor(page);
 
-    await page.getByRole("button", { name: "+ Add points" }).click();
+    await page.getByRole("button", { name: "Add points" }).click();
     await expect(page.getByText("Tap the map to add points")).toBeVisible();
 
     // First tap opens the create sheet with a draft position.
@@ -90,7 +90,7 @@ test.describe("map editor layout", () => {
     // Dismissing the sheet keeps placement armed — the pill comes back.
     await page.getByRole("button", { name: "Close", exact: true }).click();
     await expect(page.getByText("Tap the map to add points")).toBeVisible();
-    await expect(page.getByRole("button", { name: "✓ Done adding" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Done adding" })).toBeVisible();
 
     // Done disarms.
     await page.getByRole("button", { name: "Done", exact: true }).click();
