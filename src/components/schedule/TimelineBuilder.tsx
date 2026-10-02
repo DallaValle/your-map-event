@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { Check, Plus, TriangleAlert } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import {
   placeActivityAction,
   unscheduleActivityAction,
@@ -36,12 +38,12 @@ import {
   toLocalInputValue,
   utcDayStart,
 } from "@/lib/schedule-time";
+import { VENUE_ICONS } from "@/components/map/types";
 import { ActivityDialog, type ActivityDialogState } from "./ActivityDialog";
 
 const STAGE_COL = 176;
 const ROW_H = 92;
 const UNASSIGNED_ID = "__unassigned__";
-const VENUE_ICONS = new Set(["🎤", "🎪", "🍔", "🍺", "☕", "🚪", "🎡", "🧸"]);
 
 const ZOOM = [
   { id: "30m", hourWidth: 160, snap: 30 * MINUTE_MS },
@@ -178,7 +180,7 @@ export function TimelineBuilder({
         return bN - aN;
       })
       .map((poi) => ({ id: poi.id, title: poi.title, icon: poi.icon })),
-    { id: UNASSIGNED_ID, title: t("unassigned"), icon: "📍", hint: t("noLocation") },
+    { id: UNASSIGNED_ID, title: t("unassigned"), icon: null, hint: t("noLocation") },
   ];
 
   const suggestion = unscheduled[0]
@@ -275,13 +277,20 @@ export function TimelineBuilder({
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-lg font-bold">{t("title")}</h1>
             <span
-              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                 event.published
                   ? "typed bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
                   : "bg-brand-soft text-muted"
               }`}
             >
-              {event.published ? t("live") : t("draft")}
+              {event.published ? (
+                <>
+                  <span className="size-1.5 rounded-full bg-current" aria-hidden />
+                  {t("live")}
+                </>
+              ) : (
+                t("draft")
+              )}
             </span>
           </div>
         </div>
@@ -384,8 +393,9 @@ export function TimelineBuilder({
               <button
                 type="button"
                 onClick={() => setDialog({ mode: "create" })}
-                className="w-full rounded-xl border border-dashed border-line px-3 py-2.5 text-sm font-semibold text-muted hover:border-brand hover:text-brand"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-line px-3 py-2.5 text-sm font-semibold text-muted hover:border-brand hover:text-brand"
               >
+                <Icon icon={Plus} size="sm" />
                 {t("addActivity")}
               </button>
             </div>
@@ -451,8 +461,9 @@ export function TimelineBuilder({
               {editorHref && canEdit && (
                 <Link
                   href={editorHref}
-                  className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold"
+                  className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold"
                 >
+                  <Icon icon={Plus} size="sm" />
                   {t("addLocation")}
                 </Link>
               )}
@@ -538,8 +549,9 @@ export function TimelineBuilder({
                                 endTime: gap?.end ?? new Date(dayStart + DEFAULT_DURATION_MS),
                               });
                             }}
-                            className="pl-4 text-left text-[11px] font-semibold text-brand"
+                            className="flex items-center gap-1 pl-4 text-left text-[11px] font-semibold text-brand"
                           >
+                            <Icon icon={Plus} size="xs" className="size-3" />
                             {t("addAct")}
                           </button>
                         )}
@@ -612,6 +624,7 @@ export function TimelineBuilder({
                               </p>
                               {live && (
                                 <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                                  <span className="size-1.5 rounded-full bg-current" aria-hidden />
                                   {t("live")}
                                 </span>
                               )}
@@ -650,7 +663,7 @@ export function TimelineBuilder({
 
       {(conflicts.length > 0 || (unscheduled.length > 0 && suggestion)) && (
         <div className="hue flex shrink-0 flex-wrap items-center gap-3 border-t border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-          <span aria-hidden>⚠️</span>
+          <Icon icon={TriangleAlert} size="sm" />
           <p className="min-w-0 flex-1">
             {conflicts.length > 0 ? (
               <>
@@ -752,8 +765,8 @@ function LibraryCard({
           scheduled ? `border-l-4 ${meta.card}` : "border-line"
         }`}
       >
-        <span className={`flex size-9 shrink-0 items-center justify-center rounded-full text-base ${meta.chip}`}>
-          {meta.emoji}
+        <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${meta.chip}`}>
+          <Icon icon={meta.icon} size="sm" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{activity.name}</span>
@@ -764,9 +777,7 @@ function LibraryCard({
           </span>
         </span>
         {scheduled && (
-          <span className="text-brand" aria-hidden>
-            ✓
-          </span>
+          <Icon icon={Check} size="sm" className="text-brand" />
         )}
       </button>
     </li>
