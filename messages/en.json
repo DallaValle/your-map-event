@@ -158,6 +158,11 @@
     "subtitleHint": "Shown under the event name in the attendee map top bar. Empty uses the team name.",
     "logo": "Event logo",
     "logoHint": "Shown in the attendee map top bar. Prefer a square image.",
+    "bars": "Map bar color",
+    "barsDefault": "Theme default",
+    "barsOwn": "Own color",
+    "barColor": "Bar color",
+    "barsHint": "Background of the top and bottom bars on the attendee map. Text switches to black or white to stay readable.",
     "address": "Public address",
     "addressHint": "Part of the public link. Changing it breaks shared links and QR codes.",
     "description": "Description",
@@ -241,6 +246,7 @@
     "remove": "Remove image"
   },
   "errors": {
+    "invalidBarColor": "Pick a valid bar color",
     "generic": "Something went wrong. Check the form and try again.",
     "slugReserved": "\"{slug}\" is reserved. Please pick another slug.",
     "addressTaken": "\"{address}\" is already taken.",

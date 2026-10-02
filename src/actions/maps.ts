@@ -15,6 +15,7 @@ import {
   uniqueMapSlug,
 } from "@/lib/event-schemas";
 import { parseWallClock } from "@/lib/schedule-time";
+import { HEX_COLOR } from "@/lib/color";
 import { fail } from "@/i18n/action-errors";
 import type { ActionState } from "./types";
 
@@ -23,6 +24,7 @@ const eventInfoSchema = z.object({
   subtitle: z.string().trim().max(80).optional(),
   description: z.string().trim().max(500).optional(),
   logoUrl: z.union([z.url(), z.literal("")]).nullish(),
+  barColor: z.union([z.string().regex(HEX_COLOR, "Pick a valid bar color"), z.literal("")]).optional(),
 });
 
 function parseMapViewForm(formData: FormData) {
@@ -113,6 +115,7 @@ export async function updateEventInfoAction(
     subtitle: formData.get("subtitle") || undefined,
     description: formData.get("description") || undefined,
     logoUrl: formData.get("logoUrl"),
+    barColor: formData.get("barColor") ?? undefined,
   });
   if (!parsed.success) {
     return fail(parsed.error.issues[0].message);
@@ -146,7 +149,7 @@ export async function updateEventInfoAction(
     return fail("Event end must be after start");
   }
 
-  const { name, subtitle, description, logoUrl } = parsed.data;
+  const { name, subtitle, description, logoUrl, barColor } = parsed.data;
   await prisma.event.update({
     where: { id: eventId },
     data: {
@@ -154,6 +157,8 @@ export async function updateEventInfoAction(
       subtitle: subtitle || null,
       description: description ?? null,
       logoUrl: logoUrl || null,
+      // Absent field leaves the color alone; an empty one resets to the theme default.
+      ...(barColor !== undefined && { barColor: barColor ? barColor.toLowerCase() : null }),
       slug,
       startTime,
       endTime,

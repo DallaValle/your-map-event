@@ -158,6 +158,11 @@
     "subtitleHint": "Appare sotto il nome dell’evento nella barra in alto della mappa. Se vuoto, usa il nome del team.",
     "logo": "Logo dell’evento",
     "logoHint": "Appare nella barra in alto della mappa. Meglio un’immagine quadrata.",
+    "bars": "Colore delle barre",
+    "barsDefault": "Tema predefinito",
+    "barsOwn": "Colore personalizzato",
+    "barColor": "Colore delle barre",
+    "barsHint": "Sfondo delle barre in alto e in basso della mappa. Il testo diventa nero o bianco per restare leggibile.",
     "address": "Indirizzo pubblico",
     "addressHint": "Fa parte del link pubblico. Se lo cambi, i link e i QR code già condivisi smettono di funzionare.",
     "description": "Descrizione",
@@ -241,6 +246,7 @@
     "remove": "Rimuovi immagine"
   },
   "errors": {
+    "invalidBarColor": "Scegli un colore valido per le barre",
     "generic": "Qualcosa non va. Controlla i campi e riprova.",
     "slugReserved": "\"{slug}\" è riservato. Scegline un altro.",
     "addressTaken": "\"{address}\" è già in uso.",

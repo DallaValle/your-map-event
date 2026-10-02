@@ -48,6 +48,8 @@ model Event {
   logoUrl     String?
   // Top bar line under the event name; the team name when empty.
   subtitle    String?
+  // Live map top and bottom bar background (#rrggbb); null keeps the theme default.
+  barColor    String?
   // Operating window for the schedule timeline. Stored as venue wall clocks
   // anchored to UTC (same convention as Activity times).
   startTime   DateTime?
