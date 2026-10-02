@@ -67,6 +67,36 @@ function hoursOfDay(day: Date, startHour: number, endHour: number): Date[] {
   return hours;
 }
 
+/**
+ * Visible hour span of one day: the event's opening hour only clips its first
+ * day and its closing hour only its last, so nights between days stay on the
+ * grid. Acts outside the event hours still widen the span so none is hidden.
+ */
+function dayHourRange(
+  day: Date,
+  eventStart: Date | null,
+  eventEnd: Date | null,
+  activities: ActivityDTO[],
+): { startHour: number; endHour: number } {
+  const dayMs = utcDayStart(day);
+  const bounded = eventStart && eventEnd;
+  let startHour = bounded ? 0 : 10;
+  let endHour = 23;
+  if (eventStart && utcDayStart(eventStart) === dayMs) startHour = eventStart.getUTCHours();
+  if (eventEnd && utcDayStart(eventEnd) === dayMs && eventEnd.getUTCHours() > 0) {
+    endHour = eventEnd.getUTCHours();
+  }
+  for (const a of activities) {
+    if (!isScheduled(a)) continue;
+    const start = new Date(a.startTime!).getTime();
+    const end = new Date(a.endTime!).getTime();
+    if (end <= dayMs || start >= dayMs + 24 * HOUR_MS) continue;
+    startHour = Math.min(startHour, start <= dayMs ? 0 : Math.floor((start - dayMs) / HOUR_MS));
+    endHour = Math.max(endHour, Math.min(23, Math.ceil((end - dayMs) / HOUR_MS) - 1));
+  }
+  return { startHour, endHour: Math.max(startHour, endHour) };
+}
+
 function firstGap(
   activities: ActivityDTO[],
   poiId: string | null,
@@ -128,7 +158,10 @@ export function TimelineBuilder({
 
   const days = useMemo(() => {
     if (event.startTime && event.endTime) {
-      return eachUtcDay(new Date(event.startTime), new Date(event.endTime));
+      // Closing at midnight ends the previous day, not opens an empty one.
+      const start = new Date(event.startTime).getTime();
+      const end = new Date(event.endTime).getTime();
+      return eachUtcDay(new Date(start), new Date(Math.max(start, end - 1)));
     }
     const timed = activities.filter(isScheduled);
     if (timed.length === 0) return [];
@@ -139,11 +172,16 @@ export function TimelineBuilder({
 
   const selectedDay = days[Math.min(dayIndex, Math.max(days.length - 1, 0))] ?? null;
 
-  const startHour = event.startTime ? new Date(event.startTime).getUTCHours() : 10;
-  const rawEndHour = event.endTime ? new Date(event.endTime).getUTCHours() : 23;
-  const endHour = Math.max(startHour, rawEndHour === 0 ? 23 : rawEndHour);
-
-  const hours = selectedDay ? hoursOfDay(selectedDay, startHour, endHour) : [];
+  const hours = useMemo(() => {
+    if (!selectedDay) return [];
+    const { startHour, endHour } = dayHourRange(
+      selectedDay,
+      event.startTime ? new Date(event.startTime) : null,
+      event.endTime ? new Date(event.endTime) : null,
+      activities,
+    );
+    return hoursOfDay(selectedDay, startHour, endHour);
+  }, [selectedDay, event.startTime, event.endTime, activities]);
   const dayStart = hours[0]?.getTime() ?? 0;
   const dayEnd = dayStart + hours.length * HOUR_MS;
   const canvasWidth = hours.length * zoom.hourWidth;
