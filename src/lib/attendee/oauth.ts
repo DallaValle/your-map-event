@@ -70,7 +70,8 @@ const PROVIDERS: Record<AttendeeProvider, ProviderConfig> = {
     clientId: process.env.FACEBOOK_CLIENT_ID,
     clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
     authorizeUrl: "https://www.facebook.com/dialog/oauth",
-    scope: "email,public_profile",
+    // No email scope: Facebook gives no verified flag, so its email could never be trusted.
+    scope: "public_profile",
     async token({ code, verifier, redirectUri, clientId, clientSecret }) {
       const url = new URL("https://graph.facebook.com/oauth/access_token");
       url.search = new URLSearchParams({
@@ -85,18 +86,17 @@ const PROVIDERS: Record<AttendeeProvider, ProviderConfig> = {
     async profile(accessToken) {
       const url = new URL("https://graph.facebook.com/me");
       url.search = new URLSearchParams({
-        fields: "id,name,email,picture.width(160).height(160)",
+        fields: "id,name,picture.width(160).height(160)",
         access_token: accessToken,
       }).toString();
-      const p = await json<{ id: string; name?: string; email?: string; picture?: { data?: { url?: string; is_silhouette?: boolean } } }>(
+      const p = await json<{ id: string; name?: string; picture?: { data?: { url?: string; is_silhouette?: boolean } } }>(
         await fetch(url),
       );
       return {
         id: p.id,
         name: p.name || "Facebook",
-        email: p.email ?? null,
-        // Facebook only hands out confirmed emails.
-        emailVerified: !!p.email,
+        email: null,
+        emailVerified: false,
         image: p.picture?.data?.is_silhouette ? null : (p.picture?.data?.url ?? null),
       };
     },

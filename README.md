@@ -229,8 +229,11 @@ with PKCE (`src/lib/attendee/`).
 - Facebook needs `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` and the
   redirect URI `https://your-domain/api/attendee-auth/facebook/callback`.
 - A provider button appears only when its pair is set.
-- A verified Google or Facebook email that matches an email sign up takes the
-  account over and drops its password, since email sign up is not verified.
+- A verified Google email that matches an attendee links to it.
+  If that attendee only has a password, Google takes the account over: the
+  password and its sessions are dropped, since email sign up is not verified.
+- Facebook sends no verified flag, so it is asked for the public profile only:
+  a Facebook sign in never links by email and is always its own attendee.
 
 ## Roles
 

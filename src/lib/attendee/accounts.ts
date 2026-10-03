@@ -1,5 +1,3 @@
-import "server-only";
-
 import { prisma } from "@/lib/prisma";
 import type { AttendeeProvider, ProviderProfile } from "./oauth";
 
@@ -32,16 +30,20 @@ export async function attendeeFromProvider(eventId: string, provider: AttendeePr
       : null;
 
   if (existing) {
-    // Password sign up never proves the email: the verified provider owner takes the account over.
-    await prisma.attendee.update({
-      where: { id: existing.id },
-      data: {
-        passwordHash: null,
-        image: existing.image ?? profile.image,
-        accounts: { create: { eventId, provider, providerAccountId: profile.id } },
-      },
-    });
-    await prisma.attendeeSession.deleteMany({ where: { attendeeId: existing.id } });
+    // Email sign up never proves the email; once a provider has, the account is trusted as is.
+    const takeover = !!existing.passwordHash && !(await prisma.attendeeAccount.count({ where: { attendeeId: existing.id } }));
+    await prisma.$transaction([
+      prisma.attendee.update({
+        where: { id: existing.id },
+        data: {
+          // Whoever set that password may not own the email: the verified owner takes the account over.
+          ...(takeover && { passwordHash: null }),
+          image: existing.image ?? profile.image,
+          accounts: { create: { eventId, provider, providerAccountId: profile.id } },
+        },
+      }),
+      ...(takeover ? [prisma.attendeeSession.deleteMany({ where: { attendeeId: existing.id } })] : []),
+    ]);
     return existing.id;
   }
 
