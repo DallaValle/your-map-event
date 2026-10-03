@@ -7,8 +7,6 @@ import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { clearThemeCookieAction } from "@/actions/settings";
 import { BrandMark, Wordmark } from "./BrandMark";
-import { Bell } from "lucide-react";
-import { Icon } from "@/components/ui/Icon";
 
 export interface HeaderUser {
   name: string;
@@ -37,18 +35,11 @@ function Avatar({ user, className }: { user: HeaderUser; className: string }) {
 }
 
 /**
- * Always-on app header: the `your map event` wordmark (left), a notifications
- * bell and the account avatar (right). The avatar opens a menu with the user's
- * picture, name, email and a sign-out button.
+ * Always-on app header: the `your map event` wordmark (left) and the account
+ * avatar (right). The avatar opens a menu with the user's picture, name, email
+ * and a sign-out button. Attendee announcements live on the live map, not here.
  */
-export function SiteHeader({
-  user,
-  unreadCount = 0,
-}: {
-  user: HeaderUser | null;
-  /** Unread announcements for the selected event. Hidden when 0. */
-  unreadCount?: number;
-}) {
+export function SiteHeader({ user }: { user: HeaderUser | null }) {
   const t = useTranslations("nav");
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,23 +76,6 @@ export function SiteHeader({
       </Link>
 
       <div className="flex items-center gap-1">
-        <Link
-          href="/dashboard/notifications"
-          aria-label={unreadCount > 0 ? t("notificationsUnread", { count: unreadCount }) : t("notifications")}
-          title={t("notifications")}
-          className="relative flex size-9 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10"
-        >
-          <Icon icon={Bell} />
-          {unreadCount > 0 && (
-            <span
-              data-testid="notif-badge"
-              className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold leading-none text-brand-fg"
-            >
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          )}
-        </Link>
-
         {user && (
           <div ref={ref} className="relative">
             <button

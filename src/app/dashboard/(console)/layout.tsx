@@ -1,14 +1,13 @@
 import { getSession, getMyTeam, isAdminRole } from "@/lib/session";
 import { getActiveEvent, getSwitchableEvents } from "@/lib/active-event";
-import { getUnreadCount } from "@/lib/notifications";
 import { SiteHeader } from "@/components/nav/SiteHeader";
 import { SiteFooter } from "@/components/nav/SiteFooter";
 import { DashboardSidebar } from "@/components/nav/DashboardSidebar";
 
 /**
- * The always-on console chrome: header (wordmark, notifications bell, account
- * menu), a collapsible left sidebar (event switcher + navigation) and a footer
- * wordmark. Wraps every dashboard screen, including the map editor.
+ * The always-on console chrome: header (wordmark, account menu), a collapsible
+ * left sidebar (event switcher + navigation) and a footer wordmark.
+ * Wraps every dashboard screen, including the map editor.
  */
 export default async function ConsoleLayout({
   children,
@@ -29,11 +28,9 @@ export default async function ConsoleLayout({
     ? { name: session.user.name, email: session.user.email, image: session.user.image ?? null }
     : null;
 
-  const unreadCount = activeEvent ? await getUnreadCount(activeEvent.id) : 0;
-
   return (
     <div className="flex h-dvh flex-col">
-      <SiteHeader user={user} unreadCount={unreadCount} />
+      <SiteHeader user={user} />
 
       <div className="flex min-h-0 flex-1">
         <DashboardSidebar

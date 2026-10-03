@@ -5,8 +5,12 @@ import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { PublicMapCanvas } from "@/components/map/MapCanvas";
 import { markerStyleOf } from "@/components/map/poi-badge";
-import { getLatestAnnouncement } from "@/lib/notifications";
-import { AnnouncementBanner } from "@/components/notifications/AnnouncementBanner";
+import { getLiveFeed } from "@/lib/announcements";
+import {
+  LiveAnnouncementBanner,
+  LiveAnnouncementBell,
+  LiveAnnouncementsProvider,
+} from "@/components/announcements/LiveAnnouncements";
 import { AttendeeAccount } from "@/components/attendee/AttendeeAccount";
 import { getAttendee } from "@/lib/attendee/session";
 import { enabledAttendeeProviders } from "@/lib/attendee/oauth";
@@ -69,7 +73,7 @@ export default async function PublicMapPage({ params }: PageProps) {
   const result = await getPublicMap(teamSlug, mapSlug);
   if (!result) notFound();
   const { team, map } = result;
-  const [latest, attendee] = await Promise.all([getLatestAnnouncement(map.id), getAttendee(map.id)]);
+  const [feed, attendee] = await Promise.all([getLiveFeed(map.id), getAttendee(map.id)]);
   const t = await getTranslations("liveMap");
 
   return (
@@ -78,40 +82,41 @@ export default async function PublicMapPage({ params }: PageProps) {
         {t("pageHeading", { event: map.name, team: team.name })}
       </h1>
 
-      <PublicMapCanvas
-        center={{ lat: map.centerLat, lng: map.centerLng }}
-        zoom={map.zoom}
-        bearing={map.bearing}
-        layout={map.mapLayout}
-        pois={map.pois}
-        markerStyle={markerStyleOf(map, map.categories)}
-        eventName={map.name}
-        eventSubtitle={map.subtitle}
-        eventLogoUrl={map.logoUrl}
-        barColor={map.barColor}
-        team={{ name: team.name }}
-        maxBounds={
-          map.boundsSWLat != null
-            ? {
-                swLat: map.boundsSWLat,
-                swLng: map.boundsSWLng!,
-                neLat: map.boundsNELat!,
-                neLng: map.boundsNELng!,
-              }
-            : null
-        }
-        banner={
-          latest ? <AnnouncementBanner title={latest.title} body={latest.body} /> : undefined
-        }
-        account={
-          <AttendeeAccount
-            eventId={map.id}
-            eventName={map.name}
-            attendee={attendee && { name: attendee.name, email: attendee.email, image: attendee.image }}
-            providers={enabledAttendeeProviders()}
-          />
-        }
-      />
+      <LiveAnnouncementsProvider eventId={map.id} initial={feed}>
+        <PublicMapCanvas
+          center={{ lat: map.centerLat, lng: map.centerLng }}
+          zoom={map.zoom}
+          bearing={map.bearing}
+          layout={map.mapLayout}
+          pois={map.pois}
+          markerStyle={markerStyleOf(map, map.categories)}
+          eventName={map.name}
+          eventSubtitle={map.subtitle}
+          eventLogoUrl={map.logoUrl}
+          barColor={map.barColor}
+          team={{ name: team.name }}
+          maxBounds={
+            map.boundsSWLat != null
+              ? {
+                  swLat: map.boundsSWLat,
+                  swLng: map.boundsSWLng!,
+                  neLat: map.boundsNELat!,
+                  neLng: map.boundsNELng!,
+                }
+              : null
+          }
+          banner={<LiveAnnouncementBanner />}
+          topBarAction={<LiveAnnouncementBell />}
+          account={
+            <AttendeeAccount
+              eventId={map.id}
+              eventName={map.name}
+              attendee={attendee && { name: attendee.name, email: attendee.email, image: attendee.image }}
+              providers={enabledAttendeeProviders()}
+            />
+          }
+        />
+      </LiveAnnouncementsProvider>
     </main>
   );
 }

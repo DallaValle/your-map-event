@@ -112,6 +112,7 @@ export default function PublicMap({
   chromeInsets,
   banner,
   account,
+  topBarAction,
 }: {
   center: LatLng;
   zoom: number;
@@ -143,6 +144,8 @@ export default function PublicMap({
   banner?: React.ReactNode;
   /** Attendee sign in control, first in the top bar. */
   account?: React.ReactNode;
+  /** Optional control at the right end of the top bar (announcements bell). */
+  topBarAction?: React.ReactNode;
 }) {
   const t = useTranslations("liveMap");
   const topInset = chromeInsets?.top ?? 0;
@@ -299,10 +302,11 @@ export default function PublicMap({
             </span>
           )}
           {/* Whole-pixel line heights keep the map on the pixel grid: a fractional header height draws seams between tiles. */}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate font-semibold leading-tight">{eventName}</p>
             <p className="truncate text-[11px] leading-[14px] opacity-60">{eventSubtitle || team.name}</p>
           </div>
+          {topBarAction && <div className="shrink-0">{topBarAction}</div>}
         </div>
       </div>
 
