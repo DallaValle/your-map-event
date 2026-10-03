@@ -76,7 +76,7 @@ link.
 Invited teammates with the Viewer role can sign in and see the published events
 exactly as attendees do - but can't change anything. Only Admins edit.
 
-### 3. Attendees (no account)
+### 3. Attendees (optional account per event)
 
 1. Open `https://your-domain/your-team-slug` on their phone - during the
    event typically via a QR code on posters/badges.
@@ -89,6 +89,10 @@ exactly as attendees do - but can't change anything. Only Admins edit.
    points under the finger.
 4. Install it as an app (PWA) if they like; map areas they've viewed keep
    working even when the venue Wi-Fi drops.
+5. Optionally sign in from the avatar in the top left with Google, Facebook or
+   email and password.
+   The account belongs to that one event only: it is not an organizer account,
+   and the same email on another event is a separate attendee.
 
 ## Data model
 
@@ -211,6 +215,25 @@ To browse the tools by hand: `npx @modelcontextprotocol/inspector`.
 App data (teams, events, POIs) always lives in Postgres; `Team.orgId` is a plain
 string reference to the Better Auth organization (no DB-level foreign key, so
 the two storages can be switched independently).
+
+## Attendee accounts
+
+Live map visitors sign in with their own auth, separate from Better Auth.
+`Attendee`, `AttendeeAccount` and `AttendeeSession` live in Postgres and every
+row belongs to one event; the session cookie is named per event.
+Email sign up hashes with scrypt; Google and Facebook use the OAuth code flow
+with PKCE (`src/lib/attendee/`).
+
+- Google reuses `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+  Add the redirect URI `https://your-domain/api/attendee-auth/google/callback`.
+- Facebook needs `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` and the
+  redirect URI `https://your-domain/api/attendee-auth/facebook/callback`.
+- A provider button appears only when its pair is set.
+- A verified Google email that matches an attendee links to it.
+  If that attendee only has a password, Google takes the account over: the
+  password and its sessions are dropped, since email sign up is not verified.
+- Facebook sends no verified flag, so it is asked for the public profile only:
+  a Facebook sign in never links by email and is always its own attendee.
 
 ## Roles
 

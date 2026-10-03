@@ -80,6 +80,7 @@ model Event {
   campaign      SocialCampaign?
   mapImports    MapImport[]
   categories    PoiCategory[]
+  attendees     Attendee[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -353,4 +354,51 @@ model MapImport {
   createdAt   DateTime @default(now())
 
   @@index([eventId])
+}
+
+// Live map visitor account. Separate from organizer auth and scoped to one
+// event: the same email on two events is two unrelated attendees.
+model Attendee {
+  id           String            @id @default(cuid())
+  eventId      String
+  event        Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name         String
+  // Lowercased; null for a provider that shared no email.
+  email        String?
+  image        String?
+  // scrypt hash; null for provider only accounts.
+  passwordHash String?
+  accounts     AttendeeAccount[]
+  sessions     AttendeeSession[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([eventId, email])
+  @@index([eventId])
+}
+
+// Google or Facebook identity linked to an attendee of one event.
+model AttendeeAccount {
+  id                String   @id @default(cuid())
+  attendeeId        String
+  attendee          Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  eventId           String
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now())
+
+  @@unique([eventId, provider, providerAccountId])
+  @@index([attendeeId])
+}
+
+// Only the sha256 of the cookie token is stored.
+model AttendeeSession {
+  id         String   @id @default(cuid())
+  attendeeId String
+  attendee   Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([attendeeId])
 }
