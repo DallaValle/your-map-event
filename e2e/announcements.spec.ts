@@ -69,6 +69,20 @@ test.describe("announcements", () => {
     await expect(page.getByRole("status", { name: "Live announcement" })).toHaveCount(0);
   });
 
+  test("a phone with a slow clock still gets announcements that are out", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "flow is identical; run once");
+    const title = `${E2E_PREFIX}slow clock`;
+    await prisma.announcement.create({
+      data: { eventId, title, body: "The server says this is out.", authorName: "Stage manager" },
+    });
+    // The server decides what is out; an hour behind must not hide it.
+    await page.clock.install({ time: Date.now() - 3_600_000 });
+
+    await page.goto(LIVE);
+    await expect(page.getByRole("status", { name: "Live announcement" })).toContainText(title);
+    await expect(page.getByTestId("announcement-badge")).toBeVisible();
+  });
+
   test("a scheduled announcement waits for its time and can be cancelled", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "flow is identical; run once");
     await signIn(page);

@@ -42,10 +42,12 @@ export function wallClockNow(now = Date.now()): number {
   return now - new Date(now).getTimezoneOffset() * MINUTE_MS;
 }
 
-/** Manual announcements plus activities starting within the lead time, newest first. */
+/**
+ * Manual announcements plus activities starting within the lead time, newest first.
+ * The server already dropped announcements not yet due: the device clock may be off.
+ */
 export function buildFeed(feed: LiveFeedDTO, now = Date.now()): FeedItem[] {
   const items: FeedItem[] = feed.announcements
-    .filter((a) => Date.parse(a.publishAt) <= now)
     .map((a) => ({ kind: "manual", id: a.id, at: Date.parse(a.publishAt), title: a.title, body: a.body }));
 
   if (feed.leadMinutes != null) {

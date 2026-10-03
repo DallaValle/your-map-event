@@ -27,21 +27,26 @@ function useLiveAnnouncements() {
 }
 
 function seenKey(eventId: string) {
-  return `announcements-seen:${eventId}`;
+  return `announcements-read:${eventId}`;
 }
 
+// Enough to cover every item an event can show at once; older ids are long gone from the feed.
+const MAX_SEEN = 200;
+
+// Ids, not times: manual items carry server time, "starting soon" ones device time.
 // Storage can throw (private mode, blocked site data): reading falls back to "nothing seen".
-function readSeen(eventId: string): number {
+function readSeen(eventId: string): Set<string> {
   try {
-    return Number(localStorage.getItem(seenKey(eventId))) || 0;
+    const ids: unknown = JSON.parse(localStorage.getItem(seenKey(eventId)) ?? "[]");
+    return new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : []);
   } catch {
-    return 0;
+    return new Set();
   }
 }
 
-function writeSeen(eventId: string, at: number) {
+function writeSeen(eventId: string, ids: Set<string>) {
   try {
-    localStorage.setItem(seenKey(eventId), String(at));
+    localStorage.setItem(seenKey(eventId), JSON.stringify([...ids].slice(-MAX_SEEN)));
   } catch {}
 }
 
@@ -60,10 +65,10 @@ export function LiveAnnouncementsProvider({
 }) {
   const [feed, setFeed] = useState(initial);
   const [now, setNow] = useState<number | null>(null);
-  const [seenAt, setSeenAt] = useState(0);
+  const [seen, setSeen] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
-    setSeenAt(readSeen(eventId));
+    setSeen(readSeen(eventId));
     setNow(Date.now());
 
     let cancelled = false;
@@ -89,14 +94,15 @@ export function LiveAnnouncementsProvider({
   }, [eventId]);
 
   const items = useMemo(() => (now == null ? [] : buildFeed(feed, now)), [feed, now]);
-  const unread = useMemo(() => items.filter((item) => item.at > seenAt), [items, seenAt]);
+  const unread = useMemo(() => items.filter((item) => !seen.has(item.id)), [items, seen]);
 
   const markSeen = useCallback(() => {
-    const latest = items[0]?.at;
-    if (latest == null) return;
-    setSeenAt(latest);
-    writeSeen(eventId, latest);
-  }, [items, eventId]);
+    if (unread.length === 0) return;
+    const next = new Set(seen);
+    for (const item of unread) next.add(item.id);
+    setSeen(next);
+    writeSeen(eventId, next);
+  }, [unread, seen, eventId]);
 
   const value = useMemo(() => ({ items, unread, markSeen }), [items, unread, markSeen]);
   return <LiveAnnouncementsContext.Provider value={value}>{children}</LiveAnnouncementsContext.Provider>;
@@ -132,16 +138,16 @@ export function LiveAnnouncementBell() {
   const text = useItemText();
   const [open, setOpen] = useState(false);
 
-  function toggle() {
-    if (!open) markSeen();
-    setOpen(!open);
-  }
+  // Whatever lands while the sheet is open is read on the spot.
+  useEffect(() => {
+    if (open) markSeen();
+  }, [open, markSeen]);
 
   return (
     <>
       <button
         type="button"
-        onClick={toggle}
+        onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label={unread.length > 0 ? t("bellUnread", { count: unread.length }) : t("bell")}
         title={t("bell")}
