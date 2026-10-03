@@ -9,7 +9,8 @@ import { Icon } from "@/components/ui/Icon";
 import { readableTextOn } from "@/lib/color";
 import { LeafletMap, type MapBounds } from "./LeafletMap";
 import { PoiMarkers } from "./PoiMarkers";
-import { PoiBadge, PoiChooser, PoiDetails } from "./PoiPanels";
+import { PoiBadge, PoiChooser, PoiDetails, type SheetSurface } from "./PoiPanels";
+import { useDragToClose } from "./sheet-drag";
 import { walkOrder } from "./poi-badge";
 import { GeolocateLayer, isInsideBounds, type GeoState } from "./GeolocateLayer";
 import { CompassControl } from "./CompassControl";
@@ -233,6 +234,7 @@ export default function PublicMap({
     setListOpen(false);
     setQuery("");
   }
+  const listGrab = useDragToClose(closeList);
 
   function goToPoi(poi: PoiData) {
     closeList();
@@ -274,6 +276,9 @@ export default function PublicMap({
       ? "active:bg-white/15"
       : "active:bg-black/10"
     : "active:bg-black/5 dark:active:bg-white/10";
+
+  // Sheets share the bars' surface so the chrome reads as one piece.
+  const surface: SheetSurface = { className: barTheme, style: barStyle };
 
   const navButton = `flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium disabled:opacity-40 ${barPress}`;
 
@@ -376,6 +381,7 @@ export default function PublicMap({
             next={ordered[selectedIndex + 1]}
             onPick={(poi) => onPick([poi])}
             onClose={closeSheet}
+            surface={surface}
           />
         )}
         {choices && (
@@ -385,139 +391,145 @@ export default function PublicMap({
             style={markerStyle}
             onPick={(poi) => onPick([poi])}
             onClose={closeSheet}
+            surface={surface}
           />
         )}
-      </div>
-
-      {/* Points list: expands into a sheet above the bottom bar. */}
-      {listOpen && (
-        <div className="absolute inset-0 z-[1100] flex flex-col justify-end">
-          <button
-            type="button"
-            aria-label={t("closeList")}
-            onClick={closeList}
-            className="flex-1 bg-black/30"
-          />
-          <div className="max-h-[65dvh] overflow-y-auto rounded-t-3xl bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl dark:bg-neutral-950">
-            <div className="sticky top-0 bg-white/95 px-5 pb-2 pt-3 backdrop-blur dark:bg-neutral-950/95">
-              <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">
-                  {matches.length < pois.length
-                    ? t("listTitleFiltered", { shown: matches.length, total: pois.length })
-                    : t("listTitle", { total: pois.length })}
-                </h2>
-                <button
-                  type="button"
-                  onClick={closeList}
-                  aria-label={t("collapseList")}
-                  className="flex size-9 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
-                >
-                  <Icon icon={ChevronDown} />
-                </button>
-              </div>
-              {pois.length > 0 && (
-                <div className="relative mt-2">
-                  <input
-                    ref={searchRef}
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && matches[0]) goToPoi(matches[0]);
-                      if (e.key === "Escape") closeList();
-                    }}
-                    placeholder={t("searchPlaceholder")}
-                    aria-label={t("search")}
-                    enterKeyHint="go"
-                    autoComplete="off"
-                    className="w-full rounded-xl bg-black/5 py-2.5 pl-4 pr-11 text-base outline-none placeholder:opacity-50 focus:ring-2 focus:ring-brand dark:bg-white/10 [&::-webkit-search-cancel-button]:appearance-none"
-                  />
-                  {query && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuery("");
-                        searchRef.current?.focus();
-                      }}
-                      aria-label={t("clearSearch")}
-                      className="absolute inset-y-0 right-1 flex w-10 items-center justify-center opacity-50 hover:opacity-80"
-                    >
-                      <Icon icon={X} size="sm" />
-                    </button>
-                  )}
-                </div>
-              )}
-              {usedCategories.length > 0 && (
-                <div role="group" aria-label={t("categories")} className="-mx-5 mt-2 flex gap-2 overflow-x-auto px-5 pb-1">
-                  {[{ category: null, count: pois.length }, ...usedCategories].map(({ category, count }) => {
-                    const on = (category?.id ?? null) === (shownCategory?.id ?? null);
-                    return (
-                      <button
-                        key={category?.id ?? "all"}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => {
-                          // A new filter starts clean: no sheet or chooser for points it hides.
-                          onPick([]);
-                          setShownCategoryId(category?.id ?? null);
-                        }}
-                        className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
-                          on
-                            ? "border-transparent bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                            : "border-black/10 dark:border-white/15"
-                        }`}
-                      >
-                        {category && (
-                          <span aria-hidden className="size-2.5 rounded-full" style={{ background: category.color }} />
-                        )}
-                        {category ? `${category.icon} ${category.name}` : t("all")}
-                        <span className="tabular-nums opacity-50">{count}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            <ul className="divide-y divide-black/10 px-5 dark:divide-white/15">
-              {matches.map((poi) => (
-                <li key={poi.id}>
+        {/* Points list: a sheet above the bottom bar, like the point sheets, so the bar stays usable. */}
+        {listOpen && (
+          <div className="absolute inset-0 z-[1100] flex flex-col justify-end">
+            <button
+              type="button"
+              aria-label={t("closeList")}
+              onClick={closeList}
+              className="flex-1 bg-black/30"
+            />
+            <section
+              data-sheet=""
+              aria-label={t("listLabel")}
+              className={`max-h-[85%] overflow-y-auto rounded-t-3xl pb-4 shadow-[0_-8px_30px_rgba(0,0,0,0.18)] ${barTheme}`}
+              style={barStyle}
+            >
+              {/* Opaque like the sheet so rows scroll under it without showing through. */}
+              <div {...listGrab} className={`sticky top-0 cursor-grab px-5 pb-2 pt-3 ${barTheme}`} style={barStyle}>
+                <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-current/25" />
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold">
+                    {matches.length < pois.length
+                      ? t("listTitleFiltered", { shown: matches.length, total: pois.length })
+                      : t("listTitle", { total: pois.length })}
+                  </h2>
                   <button
                     type="button"
-                    onClick={() => goToPoi(poi)}
-                    className="flex w-full items-center gap-3 py-3 text-left active:bg-black/5 dark:active:bg-white/10"
+                    onClick={closeList}
+                    aria-label={t("collapseList")}
+                    className="flex size-9 items-center justify-center rounded-full bg-current/10"
                   >
-                    {poi.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
-                    ) : (
-                      <PoiBadge poi={poi} style={markerStyle} />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{poi.title}</p>
-                      {poi.description && (
-                        <p className="truncate text-xs opacity-60">{poi.description}</p>
-                      )}
-                    </div>
-                    <Icon icon={ChevronRight} size="sm" className="opacity-40" />
+                    <Icon icon={ChevronDown} />
                   </button>
-                </li>
-              ))}
-              {pois.length === 0 && (
-                <li className="py-6 text-center text-sm opacity-60">{t("empty")}</li>
-              )}
-              {pois.length > 0 && matches.length === 0 && (
-                <li className="py-6 text-center text-sm opacity-60">{t("noMatch", { query: query.trim() })}</li>
-              )}
-            </ul>
+                </div>
+                {pois.length > 0 && (
+                  <div className="relative mt-2">
+                    <input
+                      ref={searchRef}
+                      type="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && matches[0]) goToPoi(matches[0]);
+                        if (e.key === "Escape") closeList();
+                      }}
+                      placeholder={t("searchPlaceholder")}
+                      aria-label={t("search")}
+                      enterKeyHint="go"
+                      autoComplete="off"
+                      className="w-full rounded-xl bg-current/10 py-2.5 pl-4 pr-11 text-base outline-none placeholder:opacity-50 focus:ring-2 focus:ring-brand [&::-webkit-search-cancel-button]:appearance-none"
+                    />
+                    {query && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuery("");
+                          searchRef.current?.focus();
+                        }}
+                        aria-label={t("clearSearch")}
+                        className="absolute inset-y-0 right-1 flex w-10 items-center justify-center opacity-50 hover:opacity-80"
+                      >
+                        <Icon icon={X} size="sm" />
+                      </button>
+                    )}
+                  </div>
+                )}
+                {usedCategories.length > 0 && (
+                  <div role="group" aria-label={t("categories")} className="-mx-5 mt-2 flex gap-2 overflow-x-auto px-5 pb-1">
+                    {[{ category: null, count: pois.length }, ...usedCategories].map(({ category, count }) => {
+                      const on = (category?.id ?? null) === (shownCategory?.id ?? null);
+                      return (
+                        <button
+                          key={category?.id ?? "all"}
+                          type="button"
+                          aria-pressed={on}
+                          onClick={() => {
+                            // A new filter starts clean: no sheet or chooser for points it hides.
+                            onPick([]);
+                            setShownCategoryId(category?.id ?? null);
+                          }}
+                          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
+                            on
+                              ? "border-transparent bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                              : "border-current/15"
+                          }`}
+                        >
+                          {category && (
+                            <span aria-hidden className="size-2.5 rounded-full" style={{ background: category.color }} />
+                          )}
+                          {category ? `${category.icon} ${category.name}` : t("all")}
+                          <span className="tabular-nums opacity-50">{count}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <ul className="divide-y divide-current/15 px-5">
+                {matches.map((poi) => (
+                  <li key={poi.id}>
+                    <button
+                      type="button"
+                      onClick={() => goToPoi(poi)}
+                      className="flex w-full items-center gap-3 py-3 text-left active:bg-current/10"
+                    >
+                      {poi.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={poi.imageUrl} alt="" className="size-10 rounded-lg object-cover" />
+                      ) : (
+                        <PoiBadge poi={poi} style={markerStyle} />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{poi.title}</p>
+                        {poi.description && (
+                          <p className="truncate text-xs opacity-60">{poi.description}</p>
+                        )}
+                      </div>
+                      <Icon icon={ChevronRight} size="sm" className="opacity-40" />
+                    </button>
+                  </li>
+                ))}
+                {pois.length === 0 && (
+                  <li className="py-6 text-center text-sm opacity-60">{t("empty")}</li>
+                )}
+                {pois.length > 0 && matches.length === 0 && (
+                  <li className="py-6 text-center text-sm opacity-60">{t("noMatch", { query: query.trim() })}</li>
+                )}
+              </ul>
+            </section>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Bottom navigation bar: points list, locate, recenter. */}
       <div
         data-testid="live-map-footer"
-        className={`z-[1000] shrink-0 ${barColor ? "" : "border-t border-black/10 dark:border-white/10"} ${barTheme}`}
+        className={`z-[1000] shrink-0 border-t border-current/15 ${barTheme}`}
         style={{ ...barStyle, paddingBottom: `calc(max(0rem, env(safe-area-inset-bottom)) + ${bottomInset}rem)` }}
       >
         <div className="flex items-stretch">

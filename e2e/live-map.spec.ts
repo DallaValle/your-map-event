@@ -106,6 +106,68 @@ test("live map: picking a point from the list opens its details above the bottom
   await expect(marker.locator('[data-selected="true"]')).toHaveCount(0);
 });
 
+/** Pull a sheet down by its grab handle, the way a thumb would. */
+async function dragDown(page: Page, sheet: ReturnType<Page["getByRole"]>, distance: number) {
+  const grab = sheet.locator("[data-sheet-grab]");
+  const box = (await grab.boundingBox())!;
+  const x = box.x + box.width / 2;
+  const y = box.y + 6;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + distance, { steps: 12 });
+  await page.mouse.up();
+}
+
+test("live map: sheets wear the bar color and the points list keeps the bottom bar visible", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "phone layout");
+  const event = await prisma.event.findFirstOrThrow({ where: { slug: "lakeside-festival-2026" } });
+  await prisma.event.update({ where: { id: event.id }, data: { barColor: "#ffffff" } });
+  try {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await openLiveMap(page);
+    const white = "rgb(255, 255, 255)";
+    const footer = page.getByTestId("live-map-footer");
+    // A white bar still gets a visible edge against a white sheet.
+    await expect(footer).not.toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
+
+    await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+    const list = page.getByRole("region", { name: "Points of interest" });
+    await expect(list).toHaveCSS("background-color", white);
+    // Same as tapping a point: the list opens above the bar, not over it.
+    const listBox = (await list.boundingBox())!;
+    const footerBox = (await footer.boundingBox())!;
+    expect(listBox.y + listBox.height).toBeLessThanOrEqual(footerBox.y + 1);
+    await expect(footer.getByRole("button", { name: "Recenter" })).toBeVisible();
+
+    await list.getByRole("button", { name: /Beer Garden/ }).click();
+    const sheet = page.getByRole("region", { name: "Point details" });
+    await expect(sheet).toHaveCSS("background-color", white);
+    await expect(sheet).toHaveCSS("color", "rgb(12, 12, 12)");
+  } finally {
+    await prisma.event.update({ where: { id: event.id }, data: { barColor: event.barColor } });
+  }
+});
+
+test("live map: dragging a sheet down by its handle closes it", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "run once");
+  await openLiveMap(page);
+
+  await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+  const list = page.getByRole("region", { name: "Points of interest" });
+  // A short pull springs back.
+  await dragDown(page, list, 30);
+  await expect(list).toBeVisible();
+  await dragDown(page, list, 200);
+  await expect(list).toBeHidden();
+
+  await page.getByRole("button", { name: /^Points \(\d+\)/ }).click();
+  await list.getByRole("button", { name: /Beer Garden/ }).click();
+  const sheet = page.getByRole("region", { name: "Point details" });
+  await expect(sheet).toBeVisible();
+  await dragDown(page, sheet, 200);
+  await expect(sheet).toBeHidden();
+});
+
 test("live map: search finds points by name and flies to the match", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "run once");
   await openLiveMap(page);
