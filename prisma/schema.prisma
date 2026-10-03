@@ -48,6 +48,8 @@ model Event {
   logoUrl     String?
   // Top bar line under the event name; the team name when empty.
   subtitle    String?
+  // Live map top and bottom bar background (#rrggbb); null keeps the theme default.
+  barColor    String?
   // Operating window for the schedule timeline. Stored as venue wall clocks
   // anchored to UTC (same convention as Activity times).
   startTime   DateTime?
@@ -79,6 +81,7 @@ model Event {
   campaign      SocialCampaign?
   mapImports    MapImport[]
   categories    PoiCategory[]
+  attendees     Attendee[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -132,8 +135,6 @@ model PoiCategory {
   @@index([eventId])
 }
 
-// Live announcement sent to attendees of one event. Unread state for the
-// dashboard bell is a cookie (attendees have no account), not a row here.
 // Organizer broadcast shown on the live map once publishAt has passed.
 // publishAt is a real instant (not a venue wall clock), so the server alone
 // decides what attendees see and scheduled text never leaks early.
@@ -367,4 +368,51 @@ model MapImport {
   createdAt   DateTime @default(now())
 
   @@index([eventId])
+}
+
+// Live map visitor account. Separate from organizer auth and scoped to one
+// event: the same email on two events is two unrelated attendees.
+model Attendee {
+  id           String            @id @default(cuid())
+  eventId      String
+  event        Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name         String
+  // Lowercased; null for a provider that shared no email.
+  email        String?
+  image        String?
+  // scrypt hash; null for provider only accounts.
+  passwordHash String?
+  accounts     AttendeeAccount[]
+  sessions     AttendeeSession[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([eventId, email])
+  @@index([eventId])
+}
+
+// Google or Facebook identity linked to an attendee of one event.
+model AttendeeAccount {
+  id                String   @id @default(cuid())
+  attendeeId        String
+  attendee          Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  eventId           String
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now())
+
+  @@unique([eventId, provider, providerAccountId])
+  @@index([attendeeId])
+}
+
+// Only the sha256 of the cookie token is stored.
+model AttendeeSession {
+  id         String   @id @default(cuid())
+  attendeeId String
+  attendee   Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([attendeeId])
 }

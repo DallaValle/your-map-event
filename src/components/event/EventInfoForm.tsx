@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { updateEventInfoAction } from "@/actions/maps";
 import { ImageField } from "@/components/upload/ImageField";
+import { BarColorField } from "./BarColorField";
 import { toLocalInputValue } from "@/lib/schedule-time";
 import { PendingLabel } from "@/components/ui/Spinner";
 import type { ActionState } from "@/actions/types";
@@ -28,6 +29,7 @@ export function EventInfoForm({
     slug: string;
     description: string | null;
     logoUrl: string | null;
+    barColor: string | null;
     startTime: string | null;
     endTime: string | null;
   };
@@ -79,6 +81,12 @@ export function EventInfoForm({
       <p className="-mt-2 text-xs opacity-60">
         {t("logoHint")}
       </p>
+
+      <BarColorField
+        defaultValue={event.barColor}
+        eventName={event.name}
+        subtitle={event.subtitle || teamName}
+      />
 
       <label className="flex flex-col gap-1 text-sm font-medium">
         {t("address")}

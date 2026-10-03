@@ -157,6 +157,11 @@
     "subtitleHint": "Shown under the event name in the attendee map top bar. Empty uses the team name.",
     "logo": "Event logo",
     "logoHint": "Shown in the attendee map top bar. Prefer a square image.",
+    "bars": "Map bar color",
+    "barsDefault": "Theme default",
+    "barsOwn": "Own color",
+    "barColor": "Bar color",
+    "barsHint": "Background of the top and bottom bars on the attendee map. Text switches to black or white to stay readable.",
     "address": "Public address",
     "addressHint": "Part of the public link. Changing it breaks shared links and QR codes.",
     "description": "Description",
@@ -240,6 +245,7 @@
     "remove": "Remove image"
   },
   "errors": {
+    "invalidBarColor": "Pick a valid bar color",
     "generic": "Something went wrong. Check the form and try again.",
     "slugReserved": "\"{slug}\" is reserved. Please pick another slug.",
     "addressTaken": "\"{address}\" is already taken.",
@@ -308,7 +314,13 @@
     "teamAddressTaken": "The address \"{address}\" is already taken.",
     "pickTime": "Pick a date and time",
     "pickFutureTime": "Pick a time in the future",
-    "announcementNotFound": "Announcement not found"
+    "announcementNotFound": "Announcement not found",
+    "attendeeInvalidCredentials": "Invalid email or password",
+    "attendeeInvalidEmail": "Enter a valid email address",
+    "attendeePasswordTooShort": "The password must be at least 8 characters",
+    "attendeeNameRequired": "Enter your name",
+    "attendeeEmailTaken": "An account with this email already exists for this event",
+    "eventUnavailable": "This event map is not available"
   },
   "settings": {
     "title": "Settings",
@@ -515,7 +527,7 @@
     "title": "AI assistant",
     "intro": "Connect Claude (or any MCP client) to {team}. Attach a photo of your printed event map, and the assistant asks what is missing, then creates the event and places every point for you to review in the map editor.",
     "connect": "Connect",
-    "connectHintAdmin": "Paste one of these into your AI client, with a token from below in place of <token>.",
+    "connectHintAdmin": "Paste one of these into your AI client, with a token from below in place of '<token>'.",
     "connectHintViewer": "Paste one of these into your AI client. Tokens can edit events, so ask an admin of your team for one.",
     "tokens": "Access tokens",
     "tokensHint": "Each token can edit every event of this team. Create one per client and revoke it when it is no longer used.",
@@ -866,5 +878,27 @@
   },
   "manifest": {
     "description": "Interactive event maps: see where you are and what’s around you."
+  },
+  "attendee": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "account": "Account of {name}",
+    "accountMenu": "Your account",
+    "close": "Close",
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create your account",
+    "scope": "Your account for {event}",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+    "or": "or",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "createAccount": "Create account",
+    "pleaseWait": "Please wait…",
+    "newHere": "New here?",
+    "createAnAccount": "Create an account",
+    "haveAccount": "Already have an account?",
+    "providerFailed": "Sign in did not complete. Please try again."
   }
 }

@@ -19,7 +19,8 @@ export default async function EventEditorPage({
   const map = await prisma.event.findUnique({
     where: { id: eventId },
     include: {
-      pois: { orderBy: { createdAt: "asc" } },
+      // Points added in one batch share createdAt: id keeps their order stable.
+      pois: { orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
       categories: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
       activities: {
         include: { poi: { select: { title: true, icon: true } } },

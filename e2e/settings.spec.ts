@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { signIn } from "./helpers";
 
-const AVATAR_URL =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/64px-React-icon.svg.png";
+// Same origin: an external image can disappear and leave a broken avatar in the header.
+const AVATAR_URL = "http://localhost:3999/icons/icon-192.png";
 
 /**
  * Personal Settings as an organizer actually clicks it.
@@ -65,6 +65,7 @@ test.describe("settings", () => {
 
     // Restore the seeded display name so sibling suites still see Demo Admin.
     await page.getByLabel("Name").fill("Demo Admin");
+    await page.getByLabel("Avatar URL").fill("");
     await page.getByRole("button", { name: "Save profile" }).click();
     await expect(page.getByText("Profile saved.")).toBeVisible();
 

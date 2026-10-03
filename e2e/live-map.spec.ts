@@ -52,8 +52,9 @@ const WIDE_BORDERS = {
 };
 
 /**
- * Attendee (live) map chrome. The map must sit BETWEEN the top and bottom nav
- * bars, never under them, so points near an edge stay clickable. The header shows the event's icon and name.
+ * Attendee (live) map chrome. The map sits between the top and bottom nav bars,
+ * reaching under the header only at its rounded corners, so points near an edge
+ * stay clickable. The header shows the event's icon and name.
  */
 test("live map: header shows the event, map sits between the nav bars", async ({ page }) => {
   await openLiveMap(page);
@@ -68,11 +69,13 @@ test("live map: header shows the event, map sits between the nav bars", async ({
   await expect(page.getByRole("button", { name: "Recenter" })).toBeVisible();
 
   const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
-  const titleBox = (await eventTitle.boundingBox())!;
   const pointsBox = (await points.boundingBox())!;
 
-  // Map starts below the header text and ends above the bottom bar (no overlap).
-  expect(mapBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height - 4);
+  // The header is rounded and the map only tucks under its corners, never under the text.
+  const header = page.getByTestId("live-map-header");
+  await expect(header).toHaveCSS("border-bottom-left-radius", "24px");
+  const headerBox = (await header.boundingBox())!;
+  expect(mapBox.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 24 - 1);
   expect(mapBox.y + mapBox.height).toBeLessThanOrEqual(pointsBox.y + 4);
 });
 

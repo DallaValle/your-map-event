@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import { cache } from "react";
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
@@ -10,23 +11,35 @@ import {
   LiveAnnouncementBell,
   LiveAnnouncementsProvider,
 } from "@/components/announcements/LiveAnnouncements";
+import { AttendeeAccount } from "@/components/attendee/AttendeeAccount";
+import { getAttendee } from "@/lib/attendee/session";
+import { enabledAttendeeProviders } from "@/lib/attendee/oauth";
 
 interface PageProps {
   params: Promise<{ teamSlug: string; mapSlug: string }>;
 }
 
-async function getPublicMap(teamSlug: string, mapSlug: string) {
+// Cached per request: metadata, viewport and the page all read the same event.
+const getPublicMap = cache(async (teamSlug: string, mapSlug: string) => {
   const team = await prisma.team.findUnique({ where: { slug: teamSlug } });
   if (!team) return null;
   const map = await prisma.event.findUnique({
     where: { teamId_slug: { teamId: team.id, slug: mapSlug } },
     include: {
-      pois: { orderBy: { createdAt: "asc" } },
+      // Points added in one batch share createdAt: id keeps their order stable.
+      pois: { orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
       categories: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
     },
   });
   if (!map || !map.published) return null;
   return { team, map };
+});
+
+// The browser status bar matches the organizer's bar color on phones.
+export async function generateViewport({ params }: PageProps): Promise<Viewport> {
+  const { teamSlug, mapSlug } = await params;
+  const barColor = (await getPublicMap(teamSlug, mapSlug))?.map.barColor;
+  return barColor ? { themeColor: barColor } : {};
 }
 
 // SEO for the attendee page: this is the link shared on posters and socials.
@@ -60,7 +73,7 @@ export default async function PublicMapPage({ params }: PageProps) {
   const result = await getPublicMap(teamSlug, mapSlug);
   if (!result) notFound();
   const { team, map } = result;
-  const feed = await getLiveFeed(map.id);
+  const [feed, attendee] = await Promise.all([getLiveFeed(map.id), getAttendee(map.id)]);
   const t = await getTranslations("liveMap");
 
   return (
@@ -80,6 +93,7 @@ export default async function PublicMapPage({ params }: PageProps) {
           eventName={map.name}
           eventSubtitle={map.subtitle}
           eventLogoUrl={map.logoUrl}
+          barColor={map.barColor}
           team={{ name: team.name }}
           maxBounds={
             map.boundsSWLat != null
@@ -93,6 +107,14 @@ export default async function PublicMapPage({ params }: PageProps) {
           }
           banner={<LiveAnnouncementBanner />}
           topBarAction={<LiveAnnouncementBell />}
+          account={
+            <AttendeeAccount
+              eventId={map.id}
+              eventName={map.name}
+              attendee={attendee && { name: attendee.name, email: attendee.email, image: attendee.image }}
+              providers={enabledAttendeeProviders()}
+            />
+          }
         />
       </LiveAnnouncementsProvider>
     </main>
