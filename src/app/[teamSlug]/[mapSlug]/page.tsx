@@ -19,7 +19,8 @@ const getPublicMap = cache(async (teamSlug: string, mapSlug: string) => {
   const map = await prisma.event.findUnique({
     where: { teamId_slug: { teamId: team.id, slug: mapSlug } },
     include: {
-      pois: { orderBy: { createdAt: "asc" } },
+      // Points added in one batch share createdAt: id keeps their order stable.
+      pois: { orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
       categories: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
     },
   });
