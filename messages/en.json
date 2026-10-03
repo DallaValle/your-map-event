@@ -487,7 +487,7 @@
     "title": "AI assistant",
     "intro": "Connect Claude (or any MCP client) to {team}. Attach a photo of your printed event map, and the assistant asks what is missing, then creates the event and places every point for you to review in the map editor.",
     "connect": "Connect",
-    "connectHintAdmin": "Paste one of these into your AI client, with a token from below in place of <token>.",
+    "connectHintAdmin": "Paste one of these into your AI client, with a token from below in place of '<token>'.",
     "connectHintViewer": "Paste one of these into your AI client. Tokens can edit events, so ask an admin of your team for one.",
     "tokens": "Access tokens",
     "tokensHint": "Each token can edit every event of this team. Create one per client and revoke it when it is no longer used.",
