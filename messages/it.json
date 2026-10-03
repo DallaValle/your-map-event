@@ -481,7 +481,7 @@
     "title": "Assistente AI",
     "intro": "Collega Claude (o qualsiasi client MCP) a {team}. Allega una foto della mappa stampata dell’evento: l’assistente ti chiede cosa manca, poi crea l’evento e posiziona ogni punto, che potrai controllare nell’editor mappa.",
     "connect": "Collega",
-    "connectHintAdmin": "Incolla una di queste configurazioni nel tuo client AI, mettendo un token qui sotto al posto di <token>.",
+    "connectHintAdmin": "Incolla una di queste configurazioni nel tuo client AI, mettendo un token qui sotto al posto di '<token>'.",
     "connectHintViewer": "Incolla una di queste configurazioni nel tuo client AI. I token possono modificare gli eventi, quindi chiedine uno a un admin del team.",
     "tokens": "Token di accesso",
     "tokensHint": "Ogni token può modificare tutti gli eventi di questo team. Creane uno per ogni client e revocalo quando non serve più.",

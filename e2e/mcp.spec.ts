@@ -64,6 +64,8 @@ test.describe("AI assistant (MCP)", () => {
     await page.waitForURL("**/dashboard/ai");
     await expect(page.getByRole("heading", { name: "AI assistant", level: 1 })).toBeVisible();
     await expect(page.getByText(/\/api\/mcp\/mcp$/).first()).toBeVisible();
+    // The literal <token> placeholder must survive message formatting.
+    await expect(page.getByText("in place of <token>.", { exact: false })).toBeVisible();
 
     // Token is shown once, then only its prefix remains.
     const tokenName = `e2e ${Date.now()}`;
