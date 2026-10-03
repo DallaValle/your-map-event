@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { prisma } from "../src/lib/prisma";
+import { attendeeFromProvider } from "../src/lib/attendee/accounts";
 
 const LIVE = "/demo-team/lakeside-festival-2026";
 const PASSWORD = "festival-pass";
@@ -28,9 +29,27 @@ async function signUp(page: Page, name: string, email: string) {
   await expect(page.getByTestId("attendee-avatar")).toHaveAccessibleName(`Account of ${name}`);
 }
 
+// Provider identities made up by these tests; Facebook ones carry no email.
+const PROVIDER_ID = "e2e-provider-";
+
 test.afterAll(async () => {
-  await prisma.attendee.deleteMany({ where: { email: { startsWith: "attendee-", endsWith: "@example.com" } } });
+  await prisma.attendee.deleteMany({
+    where: {
+      OR: [
+        { email: { startsWith: "attendee-", endsWith: "@example.com" } },
+        { accounts: { some: { providerAccountId: { startsWith: PROVIDER_ID } } } },
+      ],
+    },
+  });
 });
+
+function providerProfile(tag: string, email: string | null, emailVerified: boolean) {
+  return { id: `${PROVIDER_ID}${tag}-${Date.now()}`, name: "Provider Person", email, emailVerified, image: null };
+}
+
+async function lakesideId() {
+  return (await prisma.event.findFirstOrThrow({ where: { slug: "lakeside-festival-2026" } })).id;
+}
 
 test("attendee: sign up, sign out and sign in again from the top left avatar", async ({ page }) => {
   const email = testEmail("loop");
@@ -176,4 +195,57 @@ test("attendee: provider buttons only show when configured and start the OAuth r
   // Unknown or unconfigured providers never start a flow.
   const response = await page.request.get("/api/attendee-auth/github?event=x", { maxRedirects: 0 });
   expect(response.status()).toBe(404);
+});
+
+// The provider round trip itself needs real Google or Facebook, so these drive the merge step directly.
+test.describe("attendee: provider logins and existing accounts", () => {
+  test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== "desktop", "run once"));
+
+  test("a verified Google email takes over a password only account", async ({ page }) => {
+    const email = testEmail("takeover");
+    await openLiveMap(page);
+    await signUp(page, "Pat Password", email);
+    const eventId = await lakesideId();
+    const before = await prisma.attendee.findUniqueOrThrow({ where: { eventId_email: { eventId, email } } });
+
+    const id = await attendeeFromProvider(eventId, "google", providerProfile("google", email.toUpperCase(), true));
+    expect(id).toBe(before.id);
+    const after = await prisma.attendee.findUniqueOrThrow({ where: { id }, include: { accounts: true } });
+    expect(after.passwordHash).toBeNull();
+    expect(after.accounts.map((a) => a.provider)).toEqual(["google"]);
+
+    // Whoever set the password is signed out everywhere.
+    await openLiveMap(page);
+    await expect(page.getByTestId("attendee-avatar")).toHaveAccessibleName("Sign in");
+  });
+
+  test("another verified login on a provider account links without signing anyone out", async () => {
+    const email = testEmail("link");
+    const eventId = await lakesideId();
+    const id = await attendeeFromProvider(eventId, "google", providerProfile("google-a", email, true));
+    await prisma.attendeeSession.create({
+      data: { attendeeId: id, tokenHash: `e2e-${Date.now()}`, expiresAt: new Date(Date.now() + 86_400_000) },
+    });
+
+    expect(await attendeeFromProvider(eventId, "google", providerProfile("google-b", email, true))).toBe(id);
+    expect(await prisma.attendeeAccount.count({ where: { attendeeId: id } })).toBe(2);
+    expect(await prisma.attendeeSession.count({ where: { attendeeId: id } })).toBe(1);
+  });
+
+  test("an unverified email (Facebook) never touches the matching account", async ({ page }) => {
+    const email = testEmail("facebook");
+    await openLiveMap(page);
+    await signUp(page, "Fran Password", email);
+    const eventId = await lakesideId();
+    const owner = await prisma.attendee.findUniqueOrThrow({ where: { eventId_email: { eventId, email } } });
+
+    const id = await attendeeFromProvider(eventId, "facebook", providerProfile("facebook", email, false));
+    expect(id).not.toBe(owner.id);
+    expect((await prisma.attendee.findUniqueOrThrow({ where: { id } })).email).toBeNull();
+    expect((await prisma.attendee.findUniqueOrThrow({ where: { id: owner.id } })).passwordHash).not.toBeNull();
+
+    // The password owner stays signed in.
+    await openLiveMap(page);
+    await expect(page.getByTestId("attendee-avatar")).toHaveAccessibleName("Account of Fran Password");
+  });
 });
