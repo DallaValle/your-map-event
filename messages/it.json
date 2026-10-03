@@ -306,7 +306,13 @@
     "slugChars": "L’indirizzo può contenere solo lettere minuscole, numeri e trattini.",
     "invalidUrl": "URL non valido",
     "unknownLanguage": "Lingua non disponibile",
-    "teamAddressTaken": "L’indirizzo \"{address}\" è già in uso."
+    "teamAddressTaken": "L’indirizzo \"{address}\" è già in uso.",
+    "attendeeInvalidCredentials": "Email o password non validi",
+    "attendeeInvalidEmail": "Inserisci un indirizzo email valido",
+    "attendeePasswordTooShort": "La password deve avere almeno 8 caratteri",
+    "attendeeNameRequired": "Inserisci il tuo nome",
+    "attendeeEmailTaken": "Esiste già un account con questa email per questo evento",
+    "eventUnavailable": "La mappa di questo evento non è disponibile"
   },
   "settings": {
     "title": "Impostazioni",
@@ -826,5 +832,27 @@
   },
   "manifest": {
     "description": "Mappe interattive per eventi: scopri dove sei e cosa c’è intorno a te."
+  },
+  "attendee": {
+    "signIn": "Accedi",
+    "signOut": "Esci",
+    "account": "Account di {name}",
+    "accountMenu": "Il tuo account",
+    "close": "Chiudi",
+    "signInTitle": "Accedi",
+    "signUpTitle": "Crea il tuo account",
+    "scope": "Il tuo account per {event}",
+    "continueWithGoogle": "Continua con Google",
+    "continueWithFacebook": "Continua con Facebook",
+    "or": "oppure",
+    "name": "Nome",
+    "email": "Email",
+    "password": "Password",
+    "createAccount": "Crea account",
+    "pleaseWait": "Attendi…",
+    "newHere": "Prima volta qui?",
+    "createAnAccount": "Crea un account",
+    "haveAccount": "Hai già un account?",
+    "providerFailed": "L’accesso non è stato completato. Riprova."
   }
 }

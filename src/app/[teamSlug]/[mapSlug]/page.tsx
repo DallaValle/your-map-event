@@ -6,6 +6,9 @@ import { PublicMapCanvas } from "@/components/map/MapCanvas";
 import { markerStyleOf } from "@/components/map/poi-badge";
 import { getLatestAnnouncement } from "@/lib/notifications";
 import { AnnouncementBanner } from "@/components/notifications/AnnouncementBanner";
+import { AttendeeAccount } from "@/components/attendee/AttendeeAccount";
+import { getAttendee } from "@/lib/attendee/session";
+import { enabledAttendeeProviders } from "@/lib/attendee/oauth";
 
 interface PageProps {
   params: Promise<{ teamSlug: string; mapSlug: string }>;
@@ -56,7 +59,7 @@ export default async function PublicMapPage({ params }: PageProps) {
   const result = await getPublicMap(teamSlug, mapSlug);
   if (!result) notFound();
   const { team, map } = result;
-  const latest = await getLatestAnnouncement(map.id);
+  const [latest, attendee] = await Promise.all([getLatestAnnouncement(map.id), getAttendee(map.id)]);
   const t = await getTranslations("liveMap");
 
   return (
@@ -88,6 +91,14 @@ export default async function PublicMapPage({ params }: PageProps) {
         }
         banner={
           latest ? <AnnouncementBanner title={latest.title} body={latest.body} /> : undefined
+        }
+        account={
+          <AttendeeAccount
+            eventId={map.id}
+            eventName={map.name}
+            attendee={attendee && { name: attendee.name, email: attendee.email, image: attendee.image }}
+            providers={enabledAttendeeProviders()}
+          />
         }
       />
     </main>

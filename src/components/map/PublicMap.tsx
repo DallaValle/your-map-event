@@ -109,6 +109,7 @@ export default function PublicMap({
   eventLogoUrl,
   chromeInsets,
   banner,
+  account,
 }: {
   center: LatLng;
   zoom: number;
@@ -136,6 +137,8 @@ export default function PublicMap({
   chromeInsets?: { top?: number; bottom?: number };
   /** Optional overlay at the top of the map (live announcement, etc.). */
   banner?: React.ReactNode;
+  /** Attendee sign in control, first in the top bar. */
+  account?: React.ReactNode;
 }) {
   const t = useTranslations("liveMap");
   const topInset = chromeInsets?.top ?? 0;
@@ -265,6 +268,7 @@ export default function PublicMap({
         style={{ paddingTop: `calc(max(0.5rem, env(safe-area-inset-top)) + ${topInset}rem)` }}
       >
         <div className="flex items-center gap-2.5 px-4 pb-2.5 pt-0.5">
+          {account && <div className="flex shrink-0">{account}</div>}
           {eventLogoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

@@ -306,7 +306,13 @@
     "slugChars": "Slug may only contain lowercase letters, numbers and hyphens.",
     "invalidUrl": "Invalid URL",
     "unknownLanguage": "Unknown language",
-    "teamAddressTaken": "The address \"{address}\" is already taken."
+    "teamAddressTaken": "The address \"{address}\" is already taken.",
+    "attendeeInvalidCredentials": "Invalid email or password",
+    "attendeeInvalidEmail": "Enter a valid email address",
+    "attendeePasswordTooShort": "The password must be at least 8 characters",
+    "attendeeNameRequired": "Enter your name",
+    "attendeeEmailTaken": "An account with this email already exists for this event",
+    "eventUnavailable": "This event map is not available"
   },
   "settings": {
     "title": "Settings",
@@ -826,5 +832,27 @@
   },
   "manifest": {
     "description": "Interactive event maps: see where you are and what’s around you."
+  },
+  "attendee": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "account": "Account of {name}",
+    "accountMenu": "Your account",
+    "close": "Close",
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create your account",
+    "scope": "Your account for {event}",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+    "or": "or",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "createAccount": "Create account",
+    "pleaseWait": "Please wait…",
+    "newHere": "New here?",
+    "createAnAccount": "Create an account",
+    "haveAccount": "Already have an account?",
+    "providerFailed": "Sign in did not complete. Please try again."
   }
 }
