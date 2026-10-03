@@ -1,10 +1,11 @@
 "use client";
 
-import type { Ref } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { poiCode, resolveBadge } from "./poi-badge";
+import { useDragToClose } from "./sheet-drag";
 import { DEFAULT_MARKER_STYLE, DEFAULT_POI_ICON, type MarkerStyle, type PoiData } from "./types";
 
 /** The map badge in list form, so the list and the map read the same. */
@@ -37,19 +38,38 @@ function shortName(poi: PoiData) {
   return `${code ? `${code} ` : ""}${first}`;
 }
 
-const sheetClass =
-  "absolute inset-x-0 bottom-0 z-[1060] max-h-[60%] overflow-y-auto rounded-t-3xl bg-white px-5 pb-4 pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.18)] dark:bg-neutral-950";
+/** Background and text of the live map bars, so sheets read as part of the same chrome. */
+export interface SheetSurface {
+  className?: string;
+  style?: CSSProperties;
+}
 
-function Header({ onClose }: { onClose: () => void }) {
+const DEFAULT_SURFACE: SheetSurface = { className: "bg-white dark:bg-neutral-900" };
+
+function sheetProps(surface: SheetSurface = DEFAULT_SURFACE) {
+  return {
+    "data-sheet": "",
+    // Tints use currentColor so they stay visible on any organizer color.
+    className: `absolute inset-x-0 bottom-0 z-[1060] max-h-[60%] overflow-y-auto rounded-t-3xl px-5 pb-4 shadow-[0_-8px_30px_rgba(0,0,0,0.18)] ${surface.className ?? ""}`,
+    style: surface.style,
+  };
+}
+
+/** Grab handle (plus optional title) that pulls the sheet down to close it. */
+function Header({ onClose, children }: { onClose: () => void; children?: ReactNode }) {
   const t = useTranslations("liveMap");
+  const grab = useDragToClose(onClose);
   return (
     <>
-      <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-black/20 dark:bg-white/25" />
+      <div {...grab} className="-mx-5 cursor-grab px-5 pt-2">
+        <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-current/25" />
+        {children}
+      </div>
       <button
         type="button"
         onClick={onClose}
         aria-label={t("close")}
-        className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/5 dark:bg-white/10"
+        className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-current/10"
       >
         <Icon icon={X} size="sm" />
       </button>
@@ -63,26 +83,29 @@ export function PoiChooser({
   style,
   onPick,
   onClose,
+  surface,
   ref,
 }: {
   pois: PoiData[];
   style?: MarkerStyle;
   onPick: (poi: PoiData) => void;
   onClose: () => void;
+  surface?: SheetSurface;
   ref?: Ref<HTMLElement>;
 }) {
   const t = useTranslations("liveMap");
   return (
-    <section ref={ref} aria-label={t("pointsHereLabel")} className={sheetClass}>
-      <Header onClose={onClose} />
-      <h2 className="pb-2 pr-10 pt-1 text-base font-bold">{t("pointsHere", { count: pois.length })}</h2>
-      <ul className="divide-y divide-black/10 dark:divide-white/15">
+    <section ref={ref} aria-label={t("pointsHereLabel")} {...sheetProps(surface)}>
+      <Header onClose={onClose}>
+        <h2 className="pb-2 pr-10 pt-1 text-base font-bold">{t("pointsHere", { count: pois.length })}</h2>
+      </Header>
+      <ul className="divide-y divide-current/15">
         {pois.map((poi) => (
           <li key={poi.id}>
             <button
               type="button"
               onClick={() => onPick(poi)}
-              className="flex w-full items-center gap-3 py-2.5 text-left active:bg-black/5 dark:active:bg-white/10"
+              className="flex w-full items-center gap-3 py-2.5 text-left active:bg-current/10"
             >
               <PoiBadge poi={poi} style={style} />
               <span className="min-w-0 flex-1">
@@ -107,6 +130,7 @@ export function PoiDetails({
   next,
   onPick,
   onClose,
+  surface,
   ref,
 }: {
   poi: PoiData;
@@ -115,15 +139,16 @@ export function PoiDetails({
   next?: PoiData;
   onPick: (poi: PoiData) => void;
   onClose: () => void;
+  surface?: SheetSurface;
   ref?: Ref<HTMLElement>;
 }) {
   const t = useTranslations("liveMap");
   const { name, category } = resolveBadge(poi, style);
   const step =
-    "flex min-h-11 min-w-0 flex-1 items-center gap-1 rounded-xl border border-black/10 px-3 text-sm font-semibold active:bg-black/5 disabled:opacity-30 dark:border-white/15 dark:active:bg-white/10";
+    "flex min-h-11 min-w-0 flex-1 items-center gap-1 rounded-xl border border-current/15 px-3 text-sm font-semibold active:bg-current/10 disabled:opacity-30";
 
   return (
-    <section ref={ref} aria-label={t("details")} className={sheetClass}>
+    <section ref={ref} aria-label={t("details")} {...sheetProps(surface)}>
       <Header onClose={onClose} />
       <div className="space-y-3 pt-1">
         {poi.imageUrl && (

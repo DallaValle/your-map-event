@@ -617,6 +617,7 @@
     "only": "Solo {category}",
     "showAll": "Mostra tutti i punti",
     "offMap": "Non sei dentro la mappa",
+    "listLabel": "Punti di interesse",
     "closeList": "Chiudi l’elenco",
     "listTitle": "Punti di interesse ({total})",
     "listTitleFiltered": "Punti di interesse ({shown} di {total})",
