@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   MapIcon,
   Megaphone,
+  RadioTower,
   Settings,
   Sparkles,
   Users,
@@ -35,7 +36,7 @@ const isPricingPath = (pathname: string) => pathname === "/dashboard/events/new"
 /**
  * Left sidebar navigation for the console. Two groups: the selected event's
  * sections (Dashboard, Schedule, Map editor, …) then workspace pages
- * (Pricing, Team, Settings). Notifications live in the header bell.
+ * (Pricing, Team, Settings).
  * Collapses to an icon rail via `collapsed` (or automatically below lg).
  */
 export function SideNav({
@@ -80,6 +81,12 @@ export function SideNav({
       label: t("board"),
       icon: ClipboardList,
       isActive: (p) => p.startsWith("/dashboard/board"),
+    },
+    {
+      href: "/dashboard/announcements",
+      label: t("announcements"),
+      icon: RadioTower,
+      isActive: (p) => p.startsWith("/dashboard/announcements"),
     },
     {
       href: "/dashboard/social",

@@ -73,7 +73,8 @@ model Event {
   boundsNELat Float?
   boundsNELng Float?
   pois          PointOfInterest[]
-  notifications Notification[]
+  announcements Announcement[]
+  announcementSettings AnnouncementSettings?
   activities    Activity[]
   campaign      SocialCampaign?
   mapImports    MapImport[]
@@ -133,16 +134,31 @@ model PoiCategory {
 
 // Live announcement sent to attendees of one event. Unread state for the
 // dashboard bell is a cookie (attendees have no account), not a row here.
-model Notification {
+// Organizer broadcast shown on the live map once publishAt has passed.
+// publishAt is a real instant (not a venue wall clock), so the server alone
+// decides what attendees see and scheduled text never leaks early.
+model Announcement {
   id         String   @id @default(cuid())
   eventId    String
   event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   title      String
   body       String
   authorName String
+  publishAt  DateTime @default(now())
   createdAt  DateTime @default(now())
 
   @@index([eventId, createdAt])
+  @@index([eventId, publishAt])
+  @@map("Notification")
+}
+
+// Automatic "starting soon" announcements built from the schedule. No row
+// means the defaults below.
+model AnnouncementSettings {
+  eventId      String  @id
+  event        Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  autoUpcoming Boolean @default(true)
+  leadMinutes  Int     @default(15)
 }
 
 model User {

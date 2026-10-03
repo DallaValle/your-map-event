@@ -51,8 +51,6 @@ for (const scheme of ["light", "dark"] as const) {
       expect(await links.count()).toBeGreaterThan(3);
       for (const link of await links.all()) await expectSvgIcon(link);
 
-      await expectSvgIcon(page.getByRole("link", { name: /^Notifications/ }));
-
       // The active item's icon follows the theme's brand token through currentColor.
       const activeIcon = nav.locator('a[aria-current="page"] svg');
       const iconColor = await activeIcon.evaluate((svg) => getComputedStyle(svg).color);
@@ -69,6 +67,7 @@ for (const scheme of ["light", "dark"] as const) {
       await expectSvgIcon(points);
       await expectSvgIcon(page.getByRole("button", { name: "Locate" }));
       await expectSvgIcon(page.getByRole("button", { name: "Recenter" }));
+      await expectSvgIcon(page.getByRole("button", { name: /^Announcements/ }));
       expect(await chromeText(page)).not.toMatch(GLYPH);
 
       await points.click();
